@@ -5,7 +5,7 @@ displayName: ContentsEditor
 name: "contents-editor"
 
 #your name
-author: "minri2"
+author: "minRi2"
 
 #the fully qualified main class of the mod
 main: "MinRi2.ContentsEditor.Main"
@@ -14,10 +14,10 @@ main: "MinRi2.ContentsEditor.Main"
 description: "内容包编辑器 在 地图编辑器-> 地图信息->内容包编辑器 中打开内容包管理器"
 
 #the mod version
-version: 1.0
+version: 1.2
 
 #the minimum game build required to run this mod
-minGameVersion: 145
+minGameVersion: 149
 
 #this is a java mod
 java: true
