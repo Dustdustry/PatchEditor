@@ -1,7 +1,6 @@
 package MinRi2.ContentsEditor.ui;
 
 import arc.graphics.*;
-import arc.graphics.g2d.*;
 import arc.scene.style.*;
 import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.ScrollPane.*;
@@ -21,7 +20,7 @@ public class EStyles{
     public static void init(){
         cardButtoni = new ImageButtonStyle(cleari){{
             up = colored(EPalettes.gray);
-            down = over = colored(EPalettes.purpleAccent4);
+            down = over = colored(EPalettes.main4);
         }};
 
         cardModifiedButtoni = new ImageButtonStyle(cardButtoni){{

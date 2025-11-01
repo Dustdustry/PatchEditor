@@ -1,21 +1,22 @@
 package MinRi2.ContentsEditor.ui;
 
 import arc.graphics.*;
+import mindustry.graphics.*;
 
 /**
  * @author minri2
  * Create by 2024/2/15
  */
 public class EPalettes{
-    public static final Color
-    purpleAccent1 = Color.valueOf("#CC99CC"),
-    purpleAccent2 = Color.valueOf("#f39cbc"),
-    purpleAccent3 = Color.valueOf("#ffa6a4"),
-    purpleAccent4 = Color.valueOf("#ffb98c"),
-    typePurple = Color.valueOf("#ffcdff"),
-    unmodified = Color.valueOf("#597a8d"),
-    modified = Color.valueOf("#a3673e"),
+    public static Color
+    main = Pal.lightishGray,
+    main2 = Pal.lightishGray,
+    main3 = Pal.gray,
+    main4 = Pal.lightishGray,
+    type = Color.valueOf("d8d8d8"),
+    unmodified = Color.valueOf("#6A7B8C"),
+    modified = Color.valueOf("#937156"),
     gray = Color.valueOf("#767676"),
-    grayFront = Color.valueOf("#b2b2b2");
+    grayFront = Pal.lightishGray;
 
 }

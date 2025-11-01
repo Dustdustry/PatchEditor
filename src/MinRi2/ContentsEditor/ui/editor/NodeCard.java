@@ -16,9 +16,6 @@ import mindustry.ctype.ContentType;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
-import org.w3c.dom.*;
-
-import java.util.Map.*;
 
 /**
  * @author minri2
@@ -225,7 +222,7 @@ public class NodeCard extends Table{
     }
 
     private void buildTitle(Table table){
-        Color titleColor = parent != null ? EPalettes.purpleAccent2 : EPalettes.purpleAccent3;
+        Color titleColor = parent == null ? EPalettes.main2 : EPalettes.main3;
         table.table(Tex.whiteui, nodeTitle -> {
             nodeTitle.table(Tex.whiteui, nameTable -> {
                 NodeDisplay.display(nameTable, nodeData);

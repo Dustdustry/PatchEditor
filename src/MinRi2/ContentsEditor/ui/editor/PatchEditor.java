@@ -2,16 +2,13 @@ package MinRi2.ContentsEditor.ui.editor;
 
 import MinRi2.ContentsEditor.node.*;
 import MinRi2.ContentsEditor.ui.*;
-import MinRi2.ContentsEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
 import mindustry.*;
 import mindustry.gen.*;
-import mindustry.graphics.*;
 import mindustry.mod.ContentPatcher.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
@@ -70,7 +67,7 @@ public class PatchEditor extends BaseDialog{
 
     protected void setup(){
         titleTable.clearChildren();
-        titleTable.background(Tex.whiteui).setColor(EPalettes.purpleAccent1);
+        titleTable.background(Tex.whiteui).setColor(EPalettes.main);
 
         titleTable.table(buttons -> {
             buttons.defaults().size(150f, 64f).pad(8f).growY();

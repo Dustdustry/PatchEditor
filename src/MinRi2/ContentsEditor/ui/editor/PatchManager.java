@@ -7,7 +7,6 @@ import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.Jval.*;
 import mindustry.*;
 import mindustry.gen.*;
@@ -47,7 +46,7 @@ public class PatchManager extends BaseDialog{
         titleTable.clearChildren();
         cont.clearChildren();
 
-        patchContainer.background(Tex.whiteui).setColor(EPalettes.purpleAccent1);
+        patchContainer.background(Tex.whiteui).setColor(EPalettes.main);
         patchTable.background(Styles.grayPanel);
 
         cont.add(patchContainer);

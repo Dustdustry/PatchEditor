@@ -13,7 +13,6 @@ import arc.scene.utils.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.editor.*;
-import mindustry.graphics.*;
 import mindustry.ui.*;
 
 /**
@@ -44,8 +43,8 @@ public class EUI{
             buttonTable.row();
 
             buttonTable.button(b -> {
-                b.add(new FLabel("{rainbow}[CT]")).pad(8f).left();
-                b.add("@contents-editor").color(EPalettes.purpleAccent1).expandX();
+                b.add("[accent][CE]").pad(8f).left();
+                b.add("@contents-editor").expandX();
             }, Styles.cleari, manager::show)
             .colspan(buttonTable.getColumns()).width(Float.NEGATIVE_INFINITY).growX();
 

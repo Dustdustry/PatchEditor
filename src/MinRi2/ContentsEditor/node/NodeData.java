@@ -81,7 +81,10 @@ public class NodeData{
                 addChild(new NodeData(name, o));
             }
         }else if(object instanceof Seq<?> seq){
-            resolve(seq.items);
+            for(int i = 0; i < seq.size; i++){
+                String name = "" + i++;
+                addChild(new NodeData(name, seq.get(i)));
+            }
         }else if(object instanceof ObjectSet<?> set){
             int i = 0;
             for(Object o : set){
@@ -129,9 +132,6 @@ public class NodeData{
         }
 
         ValueType type = ValueType.object;
-        if(object instanceof Object[] || object instanceof Seq || object instanceof ObjectSet<?>){
-            type = ValueType.array;
-        }
 
         data = new JsonValue(type);
         addChildValue(jsonData, name, data);
@@ -147,6 +147,13 @@ public class NodeData{
 
         for(JsonValue childValue : value){
             String childName = childValue.name;
+
+            if(childName == null){
+                if(childValue.isArray()){
+
+                }
+                continue;
+            }
 
             NodeData current = this;
             JsonValue currentValue = value;
@@ -218,5 +225,12 @@ public class NodeData{
                 current = current.next;
             }
         }
+    }
+
+    @Override
+    public String toString(){
+        return "NodeData{" +
+        "name='" + name + '\'' +
+        '}';
     }
 }

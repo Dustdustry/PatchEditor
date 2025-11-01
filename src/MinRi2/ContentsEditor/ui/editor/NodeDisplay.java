@@ -7,12 +7,10 @@ import arc.scene.style.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.Json.*;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
-import mindustry.graphics.*;
 import mindustry.type.*;
 
 /**
@@ -29,7 +27,7 @@ public class NodeDisplay{
     private static void intiSymbol(){
         contentSymbolMap = ObjectMap.of(
         ContentType.item, new TextureRegionDrawable(Items.copper.uiIcon),
-        ContentType.block, new TextureRegionDrawable(Blocks.duo.uiIcon),
+        ContentType.block, new TextureRegionDrawable(Blocks.sand.uiIcon),
         ContentType.liquid, new TextureRegionDrawable(Liquids.water.uiIcon),
         ContentType.status, new TextureRegionDrawable(StatusEffects.overclock.uiIcon),
         ContentType.unit, new TextureRegionDrawable(UnitTypes.alpha.uiIcon),
@@ -114,7 +112,7 @@ public class NodeDisplay{
 
             nodeInfoTable.add(node.name).wrap().width(labelWidth);
             nodeInfoTable.row();
-            nodeInfoTable.add(typeName).fontScale(0.85f).color(EPalettes.typePurple).wrap().width(labelWidth).padTop(4f);
+            nodeInfoTable.add(typeName).fontScale(0.85f).color(EPalettes.type).wrap().width(labelWidth).padTop(4f);
         }).pad(4f).left();
     }
 
