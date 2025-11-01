@@ -7,12 +7,12 @@ import arc.scene.style.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import cf.wayzer.contentsTweaker.*;
-import cf.wayzer.contentsTweaker.CTNode.*;
+import arc.util.serialization.Json.*;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.type.*;
 
 /**
@@ -24,9 +24,7 @@ public class NodeDisplay{
     private static ObjectMap<ContentType, Drawable> contentSymbolMap;
 
     private static Table table;
-    private static CTNode node;
-    private static String nodeName;
-    private static ObjInfo<?> objInfo;
+    private static NodeData node;
 
     private static void intiSymbol(){
         contentSymbolMap = ObjectMap.of(
@@ -39,47 +37,40 @@ public class NodeDisplay{
         );
     }
 
-    private static void set(Table table, CTNode node, String nodeName){
+    private static void set(Table table, NodeData node){
         NodeDisplay.table = table;
         NodeDisplay.node = node;
-        NodeDisplay.nodeName = nodeName;
     }
 
     public static void reset(){
         table = null;
         node = null;
-        nodeName = null;
-        objInfo = null;
     }
 
-    public static void display(Table table, NodeData nodeData){
-        display(table, nodeData.node, nodeData.nodeName);
+    public static String getDisplayName(Object object){
+        if(object instanceof UnlockableContent content){
+            return content.localizedName;
+        }
+
+        return "";
     }
 
-    public static void display(Table table, CTNode node, String nodeName){
-        set(table, node, nodeName);
+    public static void display(Table table, NodeData node){
+        set(table, node);
 
-        objInfo = NodeHelper.getObjectInfo(node);
-
-        if(objInfo == null){
+        if(node.object == null){
             displayName();
             return;
         }
 
-        displayObject(objInfo.getObj());
+        displayObject(node.object);
         reset();
     }
 
-    public static void displayNameType(Table table, NodeData nodeData){
-        displayNameType(table, nodeData.node, nodeData.nodeName);
-    }
+    public static void displayNameType(Table table, NodeData node){
+        set(table, node);
 
-    public static void displayNameType(Table table, CTNode node, String nodeName){
-        set(table, node, nodeName);
-
-        objInfo = NodeHelper.getObjectInfo(node);
-
-        if(objInfo == null){
+        if(node.object == null){
             displayName();
             return;
         }
@@ -89,7 +80,7 @@ public class NodeDisplay{
     }
 
     private static void displayName(){
-        table.add(nodeName).wrap().width(labelWidth).pad(4f).expandX().left();
+        table.add(node.name).wrap().width(labelWidth).pad(4f).expandX().left();
     }
 
     private static void displayObject(Object object){
@@ -99,13 +90,15 @@ public class NodeDisplay{
         }
 
         if(object instanceof UnlockableContent content){
-            displayContent(content);
+            displayNameType();
+            displayInfo(new TextureRegionDrawable(content.uiIcon), content.localizedName);
         }else if(object instanceof ContentType contentType
         && contentType.contentClass != null
         && UnlockableContent.class.isAssignableFrom(contentType.contentClass)){
             displayContentType(contentType);
         }else if(object instanceof Weapon weapon){
-            displayWeapon(weapon);
+            displayNameType();
+            displayInfo(new TextureRegionDrawable(weapon.region), weapon.name);
         }else{
             displayNameType();
         }
@@ -116,15 +109,12 @@ public class NodeDisplay{
         table.table(nodeInfoTable -> {
             nodeInfoTable.defaults().expandX().left();
 
-            Class<?> type = objInfo.getType();
-            if(type.isAnonymousClass()){
-                type = type.getSuperclass();
-            }
-            String typeInfo = type.getSimpleName();
+            Class<?> type = NodeHelper.getType(node);
+            String typeName = type == null ? "unknown" : type.getSimpleName();
 
-            nodeInfoTable.add(nodeName).wrap().width(labelWidth);
+            nodeInfoTable.add(node.name).wrap().width(labelWidth);
             nodeInfoTable.row();
-            nodeInfoTable.add(typeInfo).fontScale(0.85f).color(EPalettes.typePurple).wrap().width(labelWidth).padTop(4f);
+            nodeInfoTable.add(typeName).fontScale(0.85f).color(EPalettes.typePurple).wrap().width(labelWidth).padTop(4f);
         }).pad(4f).left();
     }
 
@@ -136,12 +126,6 @@ public class NodeDisplay{
             valueTable.row();
             valueTable.add(value).labelAlign(Align.right).ellipsis(true).width(labelWidth).padTop(4f);
         }).width(labelWidth).pad(4f).right();
-    }
-
-    private static void displayContent(UnlockableContent content){
-        displayNameType();
-
-        displayInfo(new TextureRegionDrawable(content.uiIcon), content.localizedName);
     }
 
     private static void displayContentType(ContentType contentType){
@@ -162,11 +146,4 @@ public class NodeDisplay{
 
         displayInfo(icon, Strings.capitalize(contentType.name()));
     }
-
-    private static void displayWeapon(Weapon weapon){
-        displayNameType();
-
-        displayInfo(new TextureRegionDrawable(weapon.region), weapon.name);
-    }
-
 }

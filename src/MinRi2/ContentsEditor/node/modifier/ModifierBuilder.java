@@ -17,20 +17,20 @@ import mindustry.ui.*;
 public interface ModifierBuilder<T>{
     ModifierBuilder<String> textBuilder = (table, consumer) -> {
         // lambda????
-        final String[] value = {consumer.getData()};
+        final String[] value = {consumer.getValue()};
 
         TextField field = table.field(value[0], consumer::onModify)
         .valid(consumer::checkValue).pad(4f).width(100f).get();
 
         addResetButton(table, consumer, () -> {
-            value[0] = consumer.getData();
+            value[0] = consumer.getValue();
             field.setText(value[0]);
         });
     };
 
     ModifierBuilder<Boolean> booleanBuilder = (table, consumer) -> {
         // lambda????
-        final boolean[] value = {consumer.getData()};
+        final boolean[] value = {consumer.getValue()};
 
         BorderImage image = new BorderImage();
         image.addAction(Actions.color(value[0] ? Color.green : Color.red, 0.3f));
@@ -48,7 +48,7 @@ public interface ModifierBuilder<T>{
             consumer.onModify(value[0]);
         }).grow();
 
-        addResetButton(table, consumer, () -> setColor.get(consumer.getData()));
+        addResetButton(table, consumer, () -> setColor.get(consumer.getValue()));
     };
 
     ModifierBuilder<UnlockableContent> contentBuilder = (table, consumer) -> {
@@ -76,7 +76,7 @@ public interface ModifierBuilder<T>{
                 b.add(displayName).pad(4f).ellipsis(true).width(64f);
             };
 
-            setValue[0].get(consumer.getData());
+            setValue[0].get(consumer.getValue());
         }, Styles.clearNonei, () -> {
             Class<?> dataType = consumer.getDataType();
             ContentType contentType = ContentTypeModifier.contentClassTypeMap.get(dataType);
@@ -88,7 +88,7 @@ public interface ModifierBuilder<T>{
             });
         }).grow();
 
-        addResetButton(table, consumer, () -> setValue[0].get(consumer.getData()));
+        addResetButton(table, consumer, () -> setValue[0].get(consumer.getValue()));
     };
 
     static void addResetButton(Table table, ModifyConsumer<?> consumer, Runnable clicked){

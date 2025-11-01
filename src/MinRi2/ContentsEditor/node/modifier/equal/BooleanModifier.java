@@ -9,7 +9,7 @@ import arc.util.serialization.JsonValue.*;
  * Create by 2024/4/4
  */
 public class BooleanModifier extends EqualModifier<Boolean>{
-    protected BooleanModifier(){
+    public BooleanModifier(){
         builder = ModifierBuilder.booleanBuilder;
         valueType = ValueType.booleanValue;
     }
@@ -25,7 +25,7 @@ public class BooleanModifier extends EqualModifier<Boolean>{
     }
 
     @Override
-    public Boolean parse(Object object){
+    public Boolean cast(Object object){
         return (Boolean)object;
     }
 }

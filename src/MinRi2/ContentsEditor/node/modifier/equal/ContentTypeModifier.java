@@ -25,7 +25,7 @@ public class ContentTypeModifier extends EqualModifier<UnlockableContent>{
 
     private ContentType contentType;
 
-    protected ContentTypeModifier(){
+    public ContentTypeModifier(){
         builder = ModifierBuilder.contentBuilder;
         valueType = ValueType.stringValue;
     }
@@ -33,9 +33,7 @@ public class ContentTypeModifier extends EqualModifier<UnlockableContent>{
     @Override
     public void setNodeData(NodeData data){
         super.setNodeData(data);
-
-        Class<?> type = nodeData.getObjInfo().getType();
-        contentType = contentClassTypeMap.get(type);
+        contentType = contentClassTypeMap.get(getDataType());
     }
 
     @Override
@@ -49,7 +47,7 @@ public class ContentTypeModifier extends EqualModifier<UnlockableContent>{
     }
 
     @Override
-    public UnlockableContent parse(Object object){
+    public UnlockableContent cast(Object object){
         return (UnlockableContent)object;
     }
 

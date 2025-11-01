@@ -1,49 +1,80 @@
 package MinRi2.ContentsEditor.node.modifier;
 
 import MinRi2.ContentsEditor.node.*;
+import MinRi2.ContentsEditor.node.modifier.BaseModifier.*;
+import MinRi2.ContentsEditor.node.modifier.equal.*;
+import MinRi2.ContentsEditor.node.modifier.equal.EqualModifier.*;
 import MinRi2.ContentsEditor.ui.*;
 import MinRi2.ContentsEditor.ui.editor.*;
+import arc.func.*;
 import arc.graphics.*;
 import arc.scene.actions.*;
 import arc.scene.ui.layout.*;
-import cf.wayzer.contentsTweaker.*;
+import arc.struct.*;
+import arc.util.pooling.*;
+import mindustry.ctype.*;
 import mindustry.gen.*;
+import mindustry.type.*;
+import mindustry.world.*;
+
+import java.lang.reflect.*;
 
 /**
  * @author minri2
  * Create by 2024/2/16
  */
 public class NodeModifier{
-    private NodeModifier(){
+    public static final Seq<ModifierConfig> modifyConfig = new Seq<>();
+
+    static {
+        modifyConfig.addAll(
+        new ModifierConfig(StringModifier.class, StringModifier::new, String.class),
+
+        new ModifierConfig(NumberModifier.class, NumberModifier::new,
+        Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
+        byte.class, short.class, int.class, long.class, float.class, double.class),
+
+        new ModifierConfig(BooleanModifier.class, BooleanModifier::new, Boolean.class, boolean.class),
+
+        new ModifierConfig(ContentTypeModifier.class, ContentTypeModifier::new,
+        Block.class, Item.class, Liquid.class, StatusEffect.class, UnitType.class)
+        );
     }
 
-    public static boolean modifiable(CTNode node){
-        return BaseModifier.modifiable(node);
+    public static BaseModifier<?> getModifier(NodeData node){
+        for(ModifierConfig config : modifyConfig){
+            if(config.canModify(node)) return config.getModifier(node);
+        }
+        return null;
     }
 
-    public static void setupModifierTable(Table table, NodeData nodeData){
-        BaseModifier<?> modifier = BaseModifier.getModifier(nodeData);
-        assert modifier != null;
-
-        table.table(infoTable -> {
-            // Add node info
-            NodeDisplay.displayNameType(infoTable, nodeData);
-        }).fill();
-
-        table.table(modifier::build).pad(4).grow();
-
-        table.image().width(4f).color(Color.darkGray).growY().right();
-        table.row();
-        Cell<?> horizontalLine = table.image().height(4f).color(Color.darkGray).growX();
-        horizontalLine.colspan(table.getColumns());
-
-        table.background(Tex.whiteui);
-        table.setColor(modifier.isModified() ? EPalettes.modified : EPalettes.unmodified);
-
-        modifier.onModified(modified -> {
-            Color color = modified ? EPalettes.modified : EPalettes.unmodified;
-            table.addAction(Actions.color(color, 0.2f));
-        });
+    public static int getModifierIndex(NodeData node){
+        int i = 0;
+        for(ModifierConfig config : modifyConfig){
+            if(config.canModify(node)) return i;
+            i++;
+        }
+        return -1;
     }
 
+    public static class ModifierConfig{
+        public final Seq<Class<?>> modifierTypes = new Seq<>();
+        private final Pool<BaseModifier<?>> pool;
+
+        @SuppressWarnings("unchecked")
+        public ModifierConfig(Class<? extends BaseModifier<?>> clazz, Prov<? extends BaseModifier<?>> prov, Class<?>... types){
+            pool = Pools.get((Class)clazz, prov);
+            modifierTypes.addAll(types);
+        }
+
+        public boolean canModify(NodeData node){
+            return node.object != null && modifierTypes.contains(NodeHelper.getType(node));
+        }
+
+        public BaseModifier<?> getModifier(NodeData nodeData){
+            BaseModifier<?> modifier = pool.obtain();
+            modifier.setNodeData(nodeData);
+            return modifier;
+        }
+    }
 }

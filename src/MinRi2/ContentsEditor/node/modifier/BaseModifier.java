@@ -1,16 +1,11 @@
 package MinRi2.ContentsEditor.node.modifier;
 
 import MinRi2.ContentsEditor.node.*;
-import MinRi2.ContentsEditor.node.modifier.equal.*;
 import arc.func.*;
 import arc.scene.ui.layout.*;
-import arc.struct.*;
-import arc.util.pooling.*;
 import arc.util.pooling.Pool.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
-import cf.wayzer.contentsTweaker.*;
-import cf.wayzer.contentsTweaker.CTNode.*;
 
 import java.util.*;
 
@@ -19,43 +14,10 @@ import java.util.*;
  * Create by 2024/4/4
  */
 public abstract class BaseModifier<T> implements ModifyConsumer<T>, Poolable{
-    public static final Seq<ModifierConfig> modifyConfig = new Seq<>();
-
-    static{
-        EqualModifier.init();
-    }
-
     protected ModifierBuilder<T> builder;
     protected ValueType valueType;
     protected NodeData nodeData;
     private Boolc onModified;
-
-    public static boolean modifiable(CTNode node){
-        ObjInfo<?> objInfo = NodeHelper.getObjectInfo(node);
-
-        if(objInfo == null){
-            return false;
-        }
-
-        for(ModifierConfig config : modifyConfig){
-            if(config.canModify(node)){
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static BaseModifier<?> getModifier(NodeData nodeData){
-        CTNode node = nodeData.node;
-        for(ModifierConfig config : modifyConfig){
-            if(config.canModify(node)){
-                return config.getModifier(nodeData);
-            }
-        }
-
-        return null;
-    }
 
     public void build(Table table){
         builder.build(table, this);
@@ -68,8 +30,7 @@ public abstract class BaseModifier<T> implements ModifyConsumer<T>, Poolable{
     public abstract JsonValue getJsonValue();
 
     public T getDefaultValue(){
-        Object object = nodeData.getObjInfo().getObj();
-        return parse(object);
+        return cast(nodeData.object);
     }
 
     /**
@@ -101,7 +62,7 @@ public abstract class BaseModifier<T> implements ModifyConsumer<T>, Poolable{
         return true;
     }
 
-    public abstract T parse(Object object);
+    public abstract T cast(Object object);
 
     @Override
     public void reset(){
@@ -114,16 +75,16 @@ public abstract class BaseModifier<T> implements ModifyConsumer<T>, Poolable{
 
     @Override
     public boolean isModified(){
-        return isModified(getData());
+        return isModified(getValue());
     }
 
     @Override
     public Class<?> getDataType(){
-        return nodeData.getObjInfo().getType();
+        return NodeHelper.getType(nodeData);
     }
 
     @Override
-    public T getData(){
+    public T getValue(){
         JsonValue jsonValue = nodeData.jsonData;
         if(jsonValue == null || (!jsonValue.isValue() && nodeData.jsonData.size == 0)){
             return getDefaultValue();
@@ -134,6 +95,8 @@ public abstract class BaseModifier<T> implements ModifyConsumer<T>, Poolable{
 
     @Override
     public final void onModify(T value){
+        nodeData.initJsonData();
+
         boolean modified = isModified(value);
         if(modified){
             setDataJson(getJsonValue(), value);
@@ -142,7 +105,7 @@ public abstract class BaseModifier<T> implements ModifyConsumer<T>, Poolable{
                 onModified.get(true);
             }
         }else{
-            this.resetModify();
+            resetModify();
         }
     }
 
@@ -157,43 +120,6 @@ public abstract class BaseModifier<T> implements ModifyConsumer<T>, Poolable{
 
     @Override
     public final boolean checkValue(T value){
-        Class<?> type = nodeData.getObjInfo().getType();
-        return checkTypeValid(value, type);
-    }
-
-    public static class ModifierConfig{
-        public final Seq<Class<?>> modifierTypes = new Seq<>();
-        private final BaseModifier<?> example;
-        private final Pool<BaseModifier<?>> pool;
-
-        public ModifierConfig(Prov<BaseModifier<?>> modifierProv, Class<?>... types){
-            example = modifierProv.get();
-
-            Class<BaseModifier<?>> modifierClass = (Class<BaseModifier<?>>)example.getClass();
-            pool = Pools.get(modifierClass, modifierProv);
-
-            modifierTypes.addAll(types);
-        }
-
-        public boolean canModify(CTNode node){
-            ObjInfo<?> objInfo = NodeHelper.getObjectInfo(node);
-
-            if(objInfo == null){
-                return false;
-            }
-
-            node.collectAll();
-            return canModified(node) && modifierTypes.contains(objInfo.getType());
-        }
-
-        protected boolean canModified(CTNode node){
-            return true;
-        }
-
-        public BaseModifier<?> getModifier(NodeData nodeData){
-            BaseModifier<?> modifier = pool.obtain();
-            modifier.setNodeData(nodeData);
-            return modifier;
-        }
+        return checkTypeValid(value, getDataType());
     }
 }

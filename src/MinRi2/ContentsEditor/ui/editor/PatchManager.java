@@ -1,62 +1,43 @@
 package MinRi2.ContentsEditor.ui.editor;
 
+import MinRi2.ContentsEditor.node.*;
 import MinRi2.ContentsEditor.ui.*;
 import arc.*;
-import arc.flabel.*;
 import arc.graphics.*;
-import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.util.*;
-import arc.util.pooling.*;
-import arc.util.pooling.Pool.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonWriter.*;
+import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.Jval.*;
 import mindustry.*;
-import mindustry.editor.*;
 import mindustry.gen.*;
+import mindustry.mod.ContentPatcher.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
+
+import static mindustry.Vars.state;
 
 /**
  * @author minri2
  * Create by 2024/2/17
  */
 public class PatchManager extends BaseDialog{
-    private static final JsonReader reader = new JsonReader();
-
-    private static final Pool<Patch> patchPool = Pools.get(Patch.class, Patch::new);
-    public static String contentsPatchTag = "ContentsPatch", patchSuffix = "CT@";
-
-    private final PatchEditor editor;
+    private final PatchEditor editor = new PatchEditor();
     private final Table patchContainer, patchTable;
-    private final Seq<Patch> patchSeq = new Seq<>();
-
-    private StringMap tags;
+    private Seq<PatchSet> patches;
 
     public PatchManager(){
         super("");
 
-        editor = new PatchEditor();
-
         patchContainer = new Table();
         patchTable = new Table();
 
-        setup();
-
+        hidden(this::savePatch);
         resized(this::rebuildCont);
         shown(() -> {
-            tags = Vars.editor.tags;
-
-            readPatch();
+            patches = state.patcher.patches;
+            if(!cont.hasChildren()) setup();
             rebuildCont();
-        });
-
-        hidden(() -> {
-            savePatch();
-
-            patchPool.freeAll(patchSeq);
-            patchSeq.clear();
         });
 
         editor.hidden(this::savePatch);
@@ -74,37 +55,13 @@ public class PatchManager extends BaseDialog{
         addCloseButton();
     }
 
-    private void readPatch(){
-        String contentsPatch = tags.get(contentsPatchTag);
-
-        if(contentsPatch == null){
-            return;
-        }
-
-        String[] patchNames = contentsPatch.split(";");
-        for(String patchName : patchNames){
-            String patchJson = tags.get(patchSuffix + patchName);
-
-            if(patchJson == null){
-                continue;
-            }
-
-            Patch patch = patchPool.obtain();
-            patch.set(patchName, patchJson);
-            patchSeq.add(patch);
-        }
-
-//        Log.info("Read patches: @", patchSeq.toString(";", p -> p.name));
-    }
-
     private void savePatch(){
-        String contentsPatch = patchSeq.toString(";", p -> p.name);
-
-        tags.put(contentsPatchTag, contentsPatch);
-        for(Patch patch : patchSeq){
-            tags.put(patchSuffix + patch.name, patch.json);
+        try{
+            state.patcher.apply(patches.map(p -> p.patch));
+        }catch(Exception e){
+            Vars.ui.showException(e);
         }
-//        Log.info("Save patches: @", contentsPatch);
+        rebuildPatchTable();
     }
 
     private void rebuildCont(){
@@ -126,12 +83,7 @@ public class PatchManager extends BaseDialog{
             buttonTable.defaults().minWidth(130f).height(40f).margin(8f).growX();
 
             buttonTable.button("@add-patch", Icon.add, Styles.cleart, () -> {
-                String name = findPatchName();
-                Patch patch = patchPool.obtain().set(name, "{}");
-
-                patchSeq.add(patch);
-                rebuildPatchTable();
-
+                patches.add(new PatchSet("name: " + findPatchName(), new JsonValue("error")));
                 savePatch();
             });
 
@@ -139,14 +91,8 @@ public class PatchManager extends BaseDialog{
                 String text = Core.app.getClipboardText();
 
                 try{
-                    reader.parse(text);
-
-                    String name = findPatchName();
-                    Patch patch = patchPool.obtain().set(name, text);
-
-                    patchSeq.add(patch);
-                    rebuildPatchTable();
-
+                    JsonValue value = NodeHelper.getParser().getJson().fromJson(null, Jval.read(text).toString(Jformat.plain));
+                    patches.add(new PatchSet(text, value));
                     savePatch();
 
                     EUI.infoToast("@import-patch.succeed");
@@ -161,24 +107,20 @@ public class PatchManager extends BaseDialog{
         patchTable.clearChildren();
 
         int index = 0;
-        for(Patch patch : patchSeq){
+        for(PatchSet patch : patches){
             patchTable.table(Tex.whiteui, t -> {
-                t.field(patch.name, text -> patch.name = text)
-                .valid(text -> !patchSeq.contains(p -> p != patch && p.name.equals(text))).growX();
+                t.add(patch.name.isEmpty() ? "<unnamed>" : patch.name).growX();
 
                 t.table(buttons -> {
                     buttons.defaults().size(32f).pad(4f);
 
                     buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
-                        patchPool.free(patch);
-                        patchSeq.remove(patch);
-
+                        patches.remove(patch);
                         savePatch();
-                        rebuildPatchTable();
                     }).tooltip("@patch.remove", true);
 
                     buttons.button(Icon.copySmall, Styles.clearNonei, () -> {
-                        Core.app.setClipboardText(patch.getFormattedJson());
+                        Core.app.setClipboardText(patch.patch);
                         EUI.infoToast("[green]Copy: []" + patch.name);
                     }).tooltip("@patch.copy", true);
 
@@ -203,34 +145,9 @@ public class PatchManager extends BaseDialog{
         String base = "Patch";
 
         int[] index = {0};
-        while(patchSeq.contains(p -> p.name.equals(base + index[0]))){
+        while(patches.contains(p -> p.name.equals(base + index[0]))){
             index[0]++;
         }
         return base + index[0];
-    }
-
-    public static class Patch implements Poolable{
-        public String name;
-        public String json;
-
-        public Patch set(String name, String json){
-            this.name = name;
-            this.json = json;
-            return this;
-        }
-
-        @Override
-        public void reset(){
-            name = null;
-            json = null;
-        }
-
-        public JsonValue getJsonValue(){
-            return reader.parse(json);
-        }
-
-        public String getFormattedJson(){
-            return getJsonValue().prettyPrint(OutputType.json, 0);
-        }
     }
 }

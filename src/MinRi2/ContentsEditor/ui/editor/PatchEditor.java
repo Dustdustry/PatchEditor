@@ -5,9 +5,14 @@ import MinRi2.ContentsEditor.ui.*;
 import MinRi2.ContentsEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
+import arc.util.serialization.*;
+import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.JsonWriter.*;
+import arc.util.serialization.Jval.*;
 import mindustry.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
+import mindustry.mod.ContentPatcher.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
@@ -19,7 +24,7 @@ public class PatchEditor extends BaseDialog{
     private final NodeData rootData;
     private final NodeCard card;
 
-    private Patch editPatch;
+    private PatchSet editPatch;
 
     public PatchEditor(){
         super("@contents-editor");
@@ -31,11 +36,7 @@ public class PatchEditor extends BaseDialog{
 
         resized(this::rebuild);
         shown(this::rebuild);
-        hidden(() -> {
-            if(editPatch != null){
-                editPatch.json = rootData.jsonData.toJson(OutputType.minimal);
-            }
-        });
+        hidden(() -> editPatch.patch = rootData.jsonData.toJson(OutputType.json));
 
         update(() -> {
             if(Core.scene.getDialog() == this
@@ -57,12 +58,12 @@ public class PatchEditor extends BaseDialog{
         addCloseListener();
     }
 
-    public void edit(Patch patch){
+    public void edit(PatchSet patch){
         editPatch = patch;
 
         rootData.clearJson();
-        rootData.jsonData = editPatch.getJsonValue();
-        rootData.readJson();
+        JsonValue value = NodeHelper.getParser().getJson().fromJson(null, Jval.read(patch.patch).toString(Jformat.plain));
+        rootData.setJsonData(value);
 
         show();
     }

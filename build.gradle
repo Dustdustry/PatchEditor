@@ -17,7 +17,7 @@ java{
 
 ext{
     //the build number that this mod is made for
-    mindustryVersion = 'v152.2'
+    mindustryVersion = 'v153'
     minModCoreVersion = "774565478f"
     jabelVersion = "93fde537c7"
     //windows sucks
@@ -37,12 +37,7 @@ allprojects{
 
 dependencies{
     compileOnly "com.github.anuken.arc:arc-core:$mindustryVersion"
-    compileOnly "com.github.anuken.arc:flabel:$mindustryVersion"
-    compileOnly("com.github.anuken.mindustry:core:$mindustryVersion"){
-        exclude group: 'com.github.Anuken.Arc', module: 'flabel'
-    }
-
-    compileOnly files("libs/ContentsTweaker-3.0.3.jar")
+    compileOnly "com.github.anuken.mindustry:core:$mindustryVersion"
 
     annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
 }

@@ -9,7 +9,7 @@ import arc.util.serialization.JsonValue.*;
  * Create by 2024/4/4
  */
 public class StringModifier extends EqualModifier<String>{
-    protected StringModifier(){
+    public StringModifier(){
         builder = ModifierBuilder.textBuilder;
         valueType = ValueType.stringValue;
     }
@@ -25,7 +25,7 @@ public class StringModifier extends EqualModifier<String>{
     }
 
     @Override
-    public String parse(Object object){
+    public String cast(Object object){
         return String.valueOf(object);
     }
 }

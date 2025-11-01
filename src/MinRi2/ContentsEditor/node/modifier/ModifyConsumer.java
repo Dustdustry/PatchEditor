@@ -4,7 +4,7 @@ public interface ModifyConsumer<T>{
     /**
      * 获取当前或默认的数据
      */
-    T getData();
+    T getValue();
 
     /**
      * 获取数据的类型

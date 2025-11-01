@@ -1,59 +1,61 @@
 package MinRi2.ContentsEditor.node;
 
 import arc.struct.*;
-import cf.wayzer.contentsTweaker.*;
-import cf.wayzer.contentsTweaker.CTNode.*;
+import arc.util.*;
+import arc.util.serialization.*;
+import arc.util.serialization.Json.*;
 import mindustry.ctype.*;
+import mindustry.mod.*;
 
-import java.util.*;
-import java.util.Map.*;
+import java.lang.reflect.*;
 
 /**
  * @author minri2
  * Create by 2024/2/15
  */
 public class NodeHelper{
-    private static final ObjectMap<CTNode, ObjInfo<?>> objInfoCache = new ObjectMap<>();
-    public static CTNode root = CTNode.Companion.getRoot();
+    private static Object root;
+    private static ContentParser parser;
+    private static ObjectMap<String, ContentType> nameToType;
 
-    public static ObjInfo<?> getObjectInfo(CTNode node){
-        ObjInfo<?> objInfo = objInfoCache.get(node);
-
-        if(objInfo != null) return objInfo;
-
-        List<CTExtInfo> mixins = node.getMixins();
-        for(Object mixin : mixins){
-            if(mixin instanceof ObjInfo<?> info){
-                objInfoCache.put(node, info);
-                return info;
-            }
-        }
-
-        return null;
+    public static Object getRootObj(){
+        if(root == null) root = Reflect.get(ContentPatcher.class, "root");
+        return root;
     }
 
-    public static String getDisplayName(CTNode node){
-        ObjInfo<?> objInfo = getObjectInfo(node);
-
-        if(objInfo == null) return "";
-
-        Object obj = objInfo.getObj();
-        if(obj instanceof UnlockableContent content){
-            return content.localizedName;
-        }
-
-        return "";
+    public static ContentParser getParser(){
+        if(parser == null) parser = Reflect.get(ContentPatcher.class, "parser");
+        return parser;
     }
 
-    public static void getEntries(CTNode node, Seq<Entry<String, CTNode>> out){
-        node.collectAll();
+    public static OrderedMap<String, FieldMetadata> getFields(Class<?> type){
+        return getParser().getJson().getFields(type);
+    }
 
-        Set<Entry<String, CTNode>> set = node.getChildren().entrySet();
+    public static ObjectMap<String, ContentType> getNameToType(){
+        if(nameToType == null) nameToType = Reflect.get(ContentPatcher.class, "nameToType");
+        return nameToType;
+    }
 
-        @SuppressWarnings("unchecked")
-        Entry<String, CTNode>[] entries = new Entry[set.size()];
-        set.toArray(entries);
+    public static Class<?> getType(NodeData node){
+        if(node.meta != null) return node.meta.field.getType();
+        if(node.object == null) return null;
+        Class<?> clazz = node.object.getClass();
+        while(clazz.isAnonymousClass()) clazz = clazz.getSuperclass();
+        return clazz;
+    }
 
-        out.set(entries);
+    public static String getKeyName(Object object){
+        if(object instanceof MappableContent mc) return mc.name;
+        if(object instanceof Enum<?> e) return e.name();
+        if(object instanceof Class<?> clazz) clazz.getName();
+        return object.toString();
+    }
+
+    public static boolean fieldEditable(Field field){
+        if(field.isAnnotationPresent(NoPatch.class) || field.getDeclaringClass().isAnnotationPresent(NoPatch.class)){
+            return false;
+        }
+        return true;
     }
 }

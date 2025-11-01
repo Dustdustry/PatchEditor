@@ -3,19 +3,20 @@ package MinRi2.ContentsEditor.ui.editor;
 import MinRi2.ContentsEditor.node.*;
 import MinRi2.ContentsEditor.node.modifier.*;
 import MinRi2.ContentsEditor.ui.*;
-import MinRi2.ContentsEditor.ui.EUI.*;
 import arc.*;
 import arc.graphics.*;
+import arc.scene.actions.*;
 import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import cf.wayzer.contentsTweaker.*;
 import mindustry.*;
+import mindustry.ctype.ContentType;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import org.w3c.dom.*;
 
 import java.util.Map.*;
 
@@ -28,10 +29,10 @@ public class NodeCard extends Table{
     public static float buttonHeight = buttonWidth / 3f;
 
     private final Table cardCont, nodesTable; // workingTable / childrenNodesTable
-    public boolean isChild, editing;
+    public boolean editing;
     public NodeCard parent, childCard;
     private NodeData nodeData;
-    private Seq<Entry<String, CTNode>> sortedChildren;
+    private Seq<NodeData> sortedChildren;
 
     private NodeData lastChildData;
 
@@ -50,11 +51,6 @@ public class NodeCard extends Table{
         this.nodeData = nodeData;
     }
 
-    public void setParent(NodeCard parent){
-        isChild = parent != null;
-        this.parent = parent;
-    }
-
     public NodeCard getFrontCard(){
         NodeCard card = this;
 
@@ -68,7 +64,7 @@ public class NodeCard extends Table{
     private void editChildNode(NodeData childNodeData){
         if(childCard == null){
             childCard = new NodeCard();
-            childCard.setParent(this);
+            childCard.parent = this;
         }else if(childCard.editing){
             childCard.editChildNode(null);
         }
@@ -163,26 +159,22 @@ public class NodeCard extends Table{
 
         nodesTable.defaults().size(buttonWidth, buttonWidth / 4).pad(4f).margin(8f).top().left();
 
-        Seq<Entry<String, CTNode>> children = getSortedChildren();
-
         int index = 0;
-        for(Entry<String, CTNode> entry : children){
-            CTNode childNode = entry.getValue();
-            String childNodeName = entry.getKey();
-
+        for(NodeData child : sortChildren()){
             if(!searchText.isEmpty()){
-                String displayName = NodeHelper.getDisplayName(childNode);
+                String displayName = NodeDisplay.getDisplayName(child.object);
 
-                if(!Strings.matches(searchText, childNodeName)
+                if(!Strings.matches(searchText, child.name)
                 && (displayName == null || !Strings.matches(searchText, displayName))){
                     continue;
                 }
             }
 
-            if(NodeModifier.modifiable(childNode)){
-                addEditTable(nodesTable, childNodeName);
+            BaseModifier<?> modifier = NodeModifier.getModifier(child);
+            if(modifier != null && !(nodeData.depth < 2 && nodeData.object instanceof ContentType)){
+                addEditTable(nodesTable, child, modifier);
             }else{
-                addChildButton(nodesTable, childNode, childNodeName);
+                addChildButton(nodesTable, child);
             }
 
             if(++index % columns == 0){
@@ -191,32 +183,49 @@ public class NodeCard extends Table{
         }
     }
 
-    private void addEditTable(Table table, String childNodeName){
-        NodeData childNodeData = nodeData.getChild(childNodeName);
+    private void addEditTable(Table table, NodeData childData, BaseModifier<?> modifier){
+        table.table(t -> {
+            t.table(infoTable -> {
+                // Add node info
+                NodeDisplay.displayNameType(infoTable, childData);
+            }).fill();
 
-        table.table(t -> NodeModifier.setupModifierTable(t, childNodeData));
+            t.table(modifier::build).pad(4).grow();
+
+            t.image().width(4f).color(Color.darkGray).growY().right();
+            t.row();
+            Cell<?> horizontalLine = t.image().height(4f).color(Color.darkGray).growX();
+            horizontalLine.colspan(t.getColumns());
+
+            t.background(Tex.whiteui);
+            t.setColor(modifier.isModified() ? EPalettes.modified : EPalettes.unmodified);
+
+            modifier.onModified(modified -> {
+                Color color = modified ? EPalettes.modified : EPalettes.unmodified;
+                t.addAction(Actions.color(color, 0.2f));
+            });
+        });
     }
 
-    private void addChildButton(Table table, CTNode childNode, String childNodeName){
-        ImageButtonStyle style = nodeData.hasJsonChild(childNodeName) ? EStyles.cardModifiedButtoni : EStyles.cardButtoni;
+    private void addChildButton(Table table, NodeData childData){
+        ImageButtonStyle style = nodeData.hasJsonChild(childData.name) ? EStyles.cardModifiedButtoni : EStyles.cardButtoni;
 
         table.button(b -> {
-            NodeDisplay.display(b, childNode, childNodeName);
+            NodeDisplay.display(b, childData);
 
             b.image().width(4f).color(Color.darkGray).growY().right();
             b.row();
             Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
             horizontalLine.colspan(b.getColumns());
         }, style, () -> {
-            NodeData childNodeData = nodeData.getChild(childNodeName);
-            editChildNode(childNodeData);
+            editChildNode(childData);
 
             rebuildCont();
         });
     }
 
     private void buildTitle(Table table){
-        Color titleColor = !isChild ? EPalettes.purpleAccent2 : EPalettes.purpleAccent3;
+        Color titleColor = parent != null ? EPalettes.purpleAccent2 : EPalettes.purpleAccent3;
         table.table(Tex.whiteui, nodeTitle -> {
             nodeTitle.table(Tex.whiteui, nameTable -> {
                 NodeDisplay.display(nameTable, nodeData);
@@ -232,7 +241,7 @@ public class NodeCard extends Table{
 
                 // Clear data
                 buttonTable.button(Icon.refresh, Styles.cleari, () -> {
-                    Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", nodeData.nodeName), () -> {
+                    Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", nodeData.name), () -> {
                         nodeData.clearJson();
                         getFrontCard().rebuildNodesTable();
                     });
@@ -245,25 +254,18 @@ public class NodeCard extends Table{
         }).color(titleColor);
     }
 
-    private Seq<Entry<String, CTNode>> getSortedChildren(){
+    private Seq<NodeData> sortChildren(){
         if(sortedChildren == null){
             sortedChildren = new Seq<>();
         }
 
-        NodeHelper.getEntries(nodeData.node, sortedChildren);
+        sortedChildren.clear();
+        nodeData.getChildren().values().toSeq(sortedChildren);
 
-        sortedChildren.sort((e1, e2) -> {
-            CTNode n1 = e1.getValue();
-            CTNode n2 = e2.getValue();
-
-            int modifiable = Boolean.compare(!NodeModifier.modifiable(n1), !NodeModifier.modifiable(n2));
-            if(modifiable != 0) return modifiable;
-
-            String name1 = e1.getKey();
-            String name2 = e2.getKey();
-
-            return Boolean.compare(!nodeData.hasJsonChild(name1), !nodeData.hasJsonChild(name2));
-        });
+        sortedChildren.sort(Structs.comps(
+            Structs.comparingBool(n -> n.jsonData == null),
+            Structs.comparingInt(NodeModifier::getModifierIndex).reversed()
+        ));
 
         return sortedChildren;
     }

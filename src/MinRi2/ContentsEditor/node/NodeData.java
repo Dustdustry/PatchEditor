@@ -4,10 +4,13 @@ import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
 import arc.util.serialization.*;
+import arc.util.serialization.Json.*;
 import arc.util.serialization.JsonValue.*;
-import cf.wayzer.contentsTweaker.*;
-import cf.wayzer.contentsTweaker.CTNode.*;
-import org.jetbrains.annotations.Nullable;
+import mindustry.*;
+import mindustry.ctype.*;
+
+import java.lang.reflect.*;
+import java.util.*;
 
 /**
  * @author minri2
@@ -16,26 +19,182 @@ import org.jetbrains.annotations.Nullable;
 public class NodeData{
     private static NodeData rootData;
 
-    public final CTNode node;
-    public final String nodeName;
+    public int depth;
+
+    public final String name;
+    public final Object object;
+    public final @Nullable FieldMetadata meta;
     public JsonValue jsonData;
 
-    protected ObjectMap<String, NodeData> children = new ObjectMap<>();
+    public @Nullable NodeData parentData;
+    private final OrderedMap<String, NodeData> children = new OrderedMap<>();
+    private final OrderedMap<String, NodeData> dynamicChildren = new OrderedMap<>();
 
-    /** Null when {@link CTNode} is Root */
-    protected @Nullable NodeData parentData;
+    private NodeData(String name, Object object){
+        this(name, object, null);
+    }
 
-    private NodeData(String nodeName, CTNode node){
-        this.nodeName = nodeName;
-        this.node = node;
+    private NodeData(String name, Object object, FieldMetadata meta){
+        this.name = name;
+        this.object = object;
+        this.meta = meta;
     }
 
     public static NodeData getRootData(){
         if(rootData == null){
-            rootData = new NodeData("Root", NodeHelper.root);
-            rootData.jsonData = new JsonValue(ValueType.object);
+            rootData = new NodeData("root", NodeHelper.getRootObj(), null);
+            rootData.initJsonData();
         }
         return rootData;
+    }
+
+    public boolean isRoot(){
+        return this == rootData;
+    }
+
+    public ObjectMap<String, NodeData> getChildren(){
+        if(children.isEmpty()) resolve(object);
+        return children;
+    }
+
+    private void addChild(NodeData node){
+        children.put(node.name, node);
+        node.parentData = this;
+        node.depth = depth + 1;
+    }
+
+    private void resolve(Object object){
+        if(object == null) return; // ignore null?
+
+        if(object == NodeHelper.getRootObj()){
+            addChild(new NodeData("name", "root"));
+            var map = NodeHelper.getNameToType();
+            for(ContentType type : ContentType.all){
+                if(map.containsValue(type, true)){
+                    addChild(new NodeData(type.toString().toLowerCase(Locale.ROOT), type));
+                }
+            }
+        }else if(object instanceof Object[] arr){
+            int i = 0;
+            for(Object o : arr){
+                String name = "" + i++;
+                addChild(new NodeData(name, o));
+            }
+        }else if(object instanceof Seq<?> seq){
+            resolve(seq.items);
+        }else if(object instanceof ObjectSet<?> set){
+            int i = 0;
+            for(Object o : set){
+                String name = "" + i++;
+                addChild(new NodeData(name, o));
+            }
+        }else if(object instanceof ObjectMap<?, ?> map){
+            for(var entry : map){
+                String name = NodeHelper.getKeyName(entry.key);
+                addChild(new NodeData(name, entry.value));
+            }
+        }else if(object instanceof ContentType ctype){
+            OrderedMap<String, Content> map = new OrderedMap<>(); // in order
+            for(Content content : Vars.content.getBy(ctype)){
+                map.put(NodeHelper.getKeyName(content), content);
+            }
+            resolve(map);
+        }else{
+            for(var entry : NodeHelper.getFields(object.getClass())){
+                String name = entry.key;
+                Field field = entry.value.field;
+                if(!NodeHelper.fieldEditable(field)) continue;
+                Object childObj = Reflect.get(object, field);
+                addChild(new NodeData(name, childObj, entry.value));
+            }
+        }
+    }
+
+    public void initJsonData(){
+        if(jsonData != null) return;
+        if(parentData == null){
+            jsonData = new JsonValue(ValueType.object);
+        }else{
+            parentData.initJsonData();
+            jsonData = parentData.getJson(name);
+        }
+    }
+
+    public JsonValue getJson(String name){
+        initJsonData();
+
+        JsonValue data = jsonData.get(name);
+        if(data != null){
+            return data;
+        }
+
+        ValueType type = ValueType.object;
+        if(object instanceof Object[] || object instanceof Seq || object instanceof ObjectSet<?>){
+            type = ValueType.array;
+        }
+
+        data = new JsonValue(type);
+        addChildValue(jsonData, name, data);
+        return data;
+    }
+
+    public void setJsonData(JsonValue value){
+        jsonData = value;
+
+        if(value == null || value.isValue()){
+            return;
+        }
+
+        for(JsonValue childValue : value){
+            String childName = childValue.name;
+
+            NodeData current = this;
+            JsonValue currentValue = value;
+
+            String[] childrenName = childName.split("\\.");
+            for(String name : childrenName){
+                NodeData childData = current.getChildren().get(name);
+                if(childData == null){
+                    Log.warn("Couldn't resolve @.@", current.name, name);
+                    break;
+                }
+
+                currentValue = value.get(name);
+                current = childData;
+            }
+
+            current.setJsonData(currentValue);
+        }
+    }
+
+    public void removeJson(String name){
+        if(jsonData == null) return;
+        jsonData.remove(name);
+
+        // keep tree clean
+        if(jsonData.child == null && parentData != null){
+            parentData.removeJson(this.name);
+            jsonData = null;
+        }
+    }
+
+    public void clearJson(){
+        for(var entry : children){
+            NodeData childNodeData = entry.value;
+
+            if(childNodeData.jsonData != null){
+                childNodeData.clearJson();
+            }
+        }
+
+        if(parentData != null){
+            parentData.removeJson(name);
+            jsonData = null;
+        }
+    }
+
+    public boolean hasJsonChild(String name){
+        return jsonData != null && jsonData.has(name);
     }
 
     /**
@@ -59,161 +218,5 @@ public class NodeData{
                 current = current.next;
             }
         }
-    }
-
-    public void initJsonData(){
-        if(parentData == null || jsonData != null){
-            return;
-        }
-
-        parentData.initJsonData();
-
-        // 都是对象
-        JsonValue jsonData = new JsonValue(ValueType.object);
-        addChildValue(parentData.jsonData, nodeName, jsonData);
-
-        this.jsonData = jsonData;
-    }
-
-    public NodeData getChild(String childName){
-        node.collectAll();
-
-        CTNode child = node.getChildren().get(childName);
-
-        if(child != null){
-            return children.get(childName, () -> {
-                NodeData nodeData = new NodeData(childName, child);
-                nodeData.setParent(this);
-
-                return nodeData;
-            });
-        }
-
-        if(!childName.startsWith("#")){
-            ObjInfo<?> objInfo = getObjInfo();
-            if(objInfo != null && objInfo.getElementType() != null){
-                return getChild("#" + childName);
-            }
-        }
-
-        Log.warn("'@' don't have child '@'", nodeName, childName);
-
-        return null;
-    }
-
-    public void setParent(NodeData parentData){
-        this.parentData = parentData;
-    }
-
-    public JsonValue getJson(String name, ValueType valueType){
-        initJsonData();
-
-        JsonValue data = jsonData.get(name);
-
-        if(data != null){
-            return data;
-        }
-
-        // 对象，数组特殊类型需要创建JsonValue
-        if(valueType == ValueType.object || valueType == ValueType.array){
-            data = new JsonValue(valueType);
-            addChildValue(jsonData, name, data);
-            return data;
-        }else{
-            return jsonData;
-        }
-    }
-
-    public void readJson(){
-        for(JsonValue childData : jsonData){
-            String jsonName = childData.name;
-
-            if(jsonName.contains(".")){
-                String[] names = jsonName.split("\\.");
-
-                readDotJson(names, childData);
-
-                continue;
-            }
-
-            NodeData nodeData = getChild(jsonName);
-
-            if(nodeData == null){
-                Log.warn("'@' don't have child '@'", getObjInfo().getObj(), jsonName);
-                continue;
-            }
-
-            nodeData.jsonData = childData;
-            nodeData.readJson();
-        }
-    }
-
-    private void readDotJson(String[] names, JsonValue childData){
-        NodeData currentData = this;
-        JsonValue currentJsonValue = jsonData;
-
-        for(int i = 0, len = names.length; i < len; i++){
-            String name = names[i];
-            NodeData nodeData = currentData.getChild(name);
-
-            if(nodeData == null){
-                Log.warn("'@' don't have child '@'", currentData.getObjInfo().getObj(), name);
-                continue;
-            }
-
-            // TODO: StackOverflow
-            JsonValue childJsonValue = i != len - 1 ? new JsonValue(ValueType.object) : childData;
-            currentJsonValue.addChild(name, childJsonValue);
-            nodeData.jsonData = childJsonValue;
-
-            currentData = nodeData;
-            currentJsonValue = childJsonValue;
-        }
-    }
-
-    public void removeJson(String name){
-        if(!hasJsonChild(name)){
-            return;
-        }
-
-        jsonData.remove(name);
-
-        // 删除子数据后 该jsonData就没有子数据了 清除掉
-        if(jsonData.child == null && parentData != null){
-            parentData.removeJson(nodeName);
-            jsonData = null;
-        }
-    }
-
-    public void clearJson(){
-        for(Entry<String, NodeData> entry : children){
-            NodeData childNodeData = entry.value;
-
-            if(childNodeData.jsonData != null){
-                childNodeData.clearJson();
-            }
-        }
-
-        if(parentData != null){
-            parentData.removeJson(nodeName);
-            jsonData = null;
-        }
-    }
-
-    public boolean hasJsonChild(String name){
-        return jsonData != null && jsonData.has(name);
-    }
-
-    public boolean isRoot(){
-        return this == rootData;
-    }
-
-    public ObjInfo<?> getObjInfo(){
-        return NodeHelper.getObjectInfo(node);
-    }
-
-    @Override
-    public String toString(){
-        return nodeName + ": ";// + jsonData.toJson(OutputType.json);
     }
 }
