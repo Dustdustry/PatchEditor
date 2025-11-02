@@ -82,7 +82,7 @@ public class NodeData{
             }
         }else if(object instanceof Seq<?> seq){
             for(int i = 0; i < seq.size; i++){
-                String name = "" + i++;
+                String name = "" + i;
                 addChild(new NodeData(name, seq.get(i)));
             }
         }else if(object instanceof ObjectSet<?> set){
