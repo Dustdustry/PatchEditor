@@ -159,7 +159,7 @@ public class NodeCard extends Table{
         int index = 0;
         for(NodeData child : sortChildren()){
             if(!searchText.isEmpty()){
-                String displayName = NodeDisplay.getDisplayName(child.object);
+                String displayName = NodeDisplay.getDisplayName(child.getObject());
 
                 if(!Strings.matches(searchText, child.name)
                 && (displayName == null || !Strings.matches(searchText, displayName))){
@@ -168,7 +168,7 @@ public class NodeCard extends Table{
             }
 
             BaseModifier<?> modifier = NodeModifier.getModifier(child);
-            if(modifier != null && !(nodeData.depth < 2 && nodeData.object instanceof ContentType)){
+            if(modifier != null && !(nodeData.depth < 2 && nodeData.getObject() instanceof ContentType)){
                 addEditTable(nodesTable, child, modifier);
             }else{
                 addChildButton(nodesTable, child);

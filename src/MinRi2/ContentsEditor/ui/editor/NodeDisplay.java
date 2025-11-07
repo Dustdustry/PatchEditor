@@ -55,20 +55,14 @@ public class NodeDisplay{
 
     public static void display(Table table, NodeData node){
         set(table, node);
-
-        if(node.object == null){
-            displayName();
-            return;
-        }
-
-        displayObject(node.object);
+        displayObject(node.getObject());
         reset();
     }
 
     public static void displayNameType(Table table, NodeData node){
         set(table, node);
 
-        if(node.object == null){
+        if(node.getObject() == null){
             displayName();
             return;
         }

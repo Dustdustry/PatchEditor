@@ -68,7 +68,7 @@ public class NodeModifier{
         }
 
         public boolean canModify(NodeData node){
-            return node.object != null && modifierTypes.contains(NodeHelper.getType(node));
+            return modifierTypes.contains(NodeHelper.getType(node));
         }
 
         public BaseModifier<?> getModifier(NodeData nodeData){

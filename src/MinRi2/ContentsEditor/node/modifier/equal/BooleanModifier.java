@@ -20,11 +20,6 @@ public class BooleanModifier extends EqualModifier<Boolean>{
     }
 
     @Override
-    protected Boolean getDataJson(JsonValue jsonData){
-        return jsonData.asBoolean();
-    }
-
-    @Override
     public Boolean cast(Object object){
         return (Boolean)object;
     }

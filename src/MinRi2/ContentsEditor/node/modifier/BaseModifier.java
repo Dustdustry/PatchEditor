@@ -30,7 +30,7 @@ public abstract class BaseModifier<T> implements ModifyConsumer<T>, Poolable{
     public abstract JsonValue getJsonValue();
 
     public T getDefaultValue(){
-        return cast(nodeData.object);
+        return cast(nodeData.getObject());
     }
 
     /**
@@ -47,13 +47,6 @@ public abstract class BaseModifier<T> implements ModifyConsumer<T>, Poolable{
      * @param jsonData 保存到的JsonValue
      */
     protected abstract void setDataJson(JsonValue jsonData, T value);
-
-    /**
-     * 从JsonValue中读取数据
-     * 由子类实现
-     * @param jsonData 读取的JsonValue
-     */
-    protected abstract T getDataJson(JsonValue jsonData);
 
     /**
      * 给定类型 判断数据是否符合类型
@@ -90,7 +83,7 @@ public abstract class BaseModifier<T> implements ModifyConsumer<T>, Poolable{
             return getDefaultValue();
         }
 
-        return getDataJson(getJsonValue());
+        return cast(nodeData.getDataObject());
     }
 
     @Override

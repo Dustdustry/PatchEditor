@@ -20,11 +20,6 @@ public class StringModifier extends EqualModifier<String>{
     }
 
     @Override
-    protected String getDataJson(JsonValue jsonData){
-        return jsonData.asString();
-    }
-
-    @Override
     public String cast(Object object){
         return String.valueOf(object);
     }

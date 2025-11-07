@@ -5,7 +5,6 @@ import MinRi2.ContentsEditor.node.modifier.*;
 import arc.struct.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
-import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -39,11 +38,6 @@ public class ContentTypeModifier extends EqualModifier<UnlockableContent>{
     @Override
     protected void setDataJson(JsonValue jsonData, UnlockableContent value){
         jsonData.set(value.name);
-    }
-
-    @Override
-    protected UnlockableContent getDataJson(JsonValue jsonData){
-        return Vars.content.getByName(contentType, jsonData.asString());
     }
 
     @Override

@@ -1,7 +1,6 @@
 package MinRi2.ContentsEditor.node;
 
 import arc.struct.*;
-import arc.struct.ObjectMap.*;
 import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
@@ -22,13 +21,14 @@ public class NodeData{
     public int depth;
 
     public final String name;
-    public final Object object;
+    private final Object object; // original
+    private Object dataObject;
     public final @Nullable FieldMetadata meta;
     public JsonValue jsonData;
 
     public @Nullable NodeData parentData;
     private final OrderedMap<String, NodeData> children = new OrderedMap<>();
-    private final OrderedMap<String, NodeData> dynamicChildren = new OrderedMap<>();
+    private boolean resolved;
 
     private NodeData(String name, Object object){
         this(name, object, null);
@@ -37,12 +37,13 @@ public class NodeData{
     private NodeData(String name, Object object, FieldMetadata meta){
         this.name = name;
         this.object = object;
+        dataObject = object;
         this.meta = meta;
     }
 
     public static NodeData getRootData(){
         if(rootData == null){
-            rootData = new NodeData("root", NodeHelper.getRootObj(), null);
+            rootData = new NodeData("root", NodeHelper.getRootObj());
             rootData.initJsonData();
         }
         return rootData;
@@ -52,65 +53,36 @@ public class NodeData{
         return this == rootData;
     }
 
+    public boolean isSign(){
+        return Structs.contains(ModifierSign.all, name);
+    }
+
     public ObjectMap<String, NodeData> getChildren(){
-        if(children.isEmpty()) resolve(object);
+        if(!resolved){
+            NodeHelper.resolveFrom(this, getObject());
+            resolved = true;
+        }
         return children;
     }
 
-    private void addChild(NodeData node){
-        children.put(node.name, node);
-        node.parentData = this;
-        node.depth = depth + 1;
+    public NodeData addChild(String name, Object object){
+        return addChild(name, object, null);
     }
 
-    private void resolve(Object object){
-        if(object == null) return; // ignore null?
+    public NodeData addChild(String name, Object object, FieldMetadata meta){
+        NodeData child = new NodeData(name, object, meta);
+        children.put(name, child);
+        child.parentData = this;
+        child.depth = depth + 1;
+        return child;
+    }
 
-        if(object == NodeHelper.getRootObj()){
-            addChild(new NodeData("name", "root"));
-            var map = NodeHelper.getNameToType();
-            for(ContentType type : ContentType.all){
-                if(map.containsValue(type, true)){
-                    addChild(new NodeData(type.toString().toLowerCase(Locale.ROOT), type));
-                }
-            }
-        }else if(object instanceof Object[] arr){
-            int i = 0;
-            for(Object o : arr){
-                String name = "" + i++;
-                addChild(new NodeData(name, o));
-            }
-        }else if(object instanceof Seq<?> seq){
-            for(int i = 0; i < seq.size; i++){
-                String name = "" + i;
-                addChild(new NodeData(name, seq.get(i)));
-            }
-        }else if(object instanceof ObjectSet<?> set){
-            int i = 0;
-            for(Object o : set){
-                String name = "" + i++;
-                addChild(new NodeData(name, o));
-            }
-        }else if(object instanceof ObjectMap<?, ?> map){
-            for(var entry : map){
-                String name = NodeHelper.getKeyName(entry.key);
-                addChild(new NodeData(name, entry.value));
-            }
-        }else if(object instanceof ContentType ctype){
-            OrderedMap<String, Content> map = new OrderedMap<>(); // in order
-            for(Content content : Vars.content.getBy(ctype)){
-                map.put(NodeHelper.getKeyName(content), content);
-            }
-            resolve(map);
-        }else{
-            for(var entry : NodeHelper.getFields(object.getClass())){
-                String name = entry.key;
-                Field field = entry.value.field;
-                if(!NodeHelper.fieldEditable(field)) continue;
-                Object childObj = Reflect.get(object, field);
-                addChild(new NodeData(name, childObj, entry.value));
-            }
-        }
+    public Object getObject(){
+        return object;
+    }
+
+    public Object getDataObject(){
+        return dataObject;
     }
 
     public void initJsonData(){
@@ -140,8 +112,10 @@ public class NodeData{
 
     public void setJsonData(JsonValue value){
         jsonData = value;
+        if(value == null) return;
 
-        if(value == null || value.isValue()){
+        if(value.isValue()){
+            if(meta != null) dataObject = NodeHelper.getParser().getJson().readValue(meta.field.getType(), value);
             return;
         }
 
@@ -150,7 +124,7 @@ public class NodeData{
 
             if(childName == null){
                 if(childValue.isArray()){
-
+                    // TODO
                 }
                 continue;
             }
@@ -163,7 +137,7 @@ public class NodeData{
                 NodeData childData = current.getChildren().get(name);
                 if(childData == null){
                     Log.warn("Couldn't resolve @.@", current.name, name);
-                    break;
+                    return;
                 }
 
                 currentValue = value.get(name);
