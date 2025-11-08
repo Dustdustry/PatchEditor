@@ -15,6 +15,7 @@ import static mindustry.ui.Styles.cleari;
  */
 public class EStyles{
     public static ImageButtonStyle cardButtoni, cardModifiedButtoni;
+    public static ImageButtonStyle addButtoni;
     public static ScrollPaneStyle cardGrayPane, cardPane;
 
     public static void init(){
@@ -25,6 +26,10 @@ public class EStyles{
 
         cardModifiedButtoni = new ImageButtonStyle(cardButtoni){{
             up = colored(EPalettes.modified);
+        }};
+
+        addButtoni = new ImageButtonStyle(cardButtoni){{
+            up = colored(EPalettes.add);
         }};
 
         cardGrayPane = new ScrollPaneStyle(){{

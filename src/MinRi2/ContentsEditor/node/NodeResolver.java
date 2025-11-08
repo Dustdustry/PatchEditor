@@ -6,6 +6,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.serialization.Json.*;
 import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.mod.*;
@@ -27,52 +28,71 @@ public class NodeResolver{
             var map = NodeHelper.getNameToType();
             for(ContentType ctype : ContentType.all){
                 if(map.containsValue(ctype, true)){
-                    node.addChild(ctype.toString().toLowerCase(Locale.ROOT), ctype, new FieldData(ContentType.class, ctype.contentClass, null));
+                    node.addChild(map.findKey(ctype, true), ctype, new FieldData(ContentType.class, ctype.contentClass, null));
                 }
             }
-        }else if(object instanceof Object[] arr){
-            if(node.meta != null && typeBlack(node.meta.elementType)) return;
+            return;
+        }
+
+        if(object instanceof MapEntry<?,?> entry){
+            object = entry.value;
+        }
+
+        FieldData meta = node.meta;
+        if(object instanceof Object[] arr){
+            if(meta != null && typeBlack(meta.elementType)) return;
 
             int i = 0;
             for(Object o : arr){
                 String name = "" + i++;
                 node.addChild(name, o);
             }
-            node.addChild(ModifierSign.PLUS.sign, null, node.meta); // extend field meta
+            node.addChild(ModifierSign.PLUS.sign, null, meta); // extend field meta
         }else if(object instanceof Seq<?> seq){
-            if(node.meta != null && typeBlack(node.meta.elementType)) return;
+            if(meta != null && typeBlack(meta.elementType)) return;
 
             for(int i = 0; i < seq.size; i++){
                 Object o = seq.get(i);
                 node.addChild("" + i, o);
             }
-            node.addChild(ModifierSign.PLUS.sign, null, node.meta);
+
+            FieldData signMeta = meta == null ? null : new FieldData(null, meta.elementType, null);
+            node.addChild(ModifierSign.PLUS.sign, null, signMeta);
         }else if(object instanceof ObjectSet<?> set){
-            if(node.meta != null && typeBlack(node.meta.elementType)) return;
+            if(meta != null && typeBlack(meta.elementType)) return;
 
             int i = 0;
             for(Object o : set){
                 node.addChild("" + i++, o);
             }
-            node.addChild(ModifierSign.PLUS.sign, null);
-        }else if(object instanceof ObjectMap<?, ?> map){
-            if(node.meta != null && typeBlack(node.meta.elementType)) return;
 
+            FieldData signMeta = meta == null ? null : new FieldData(null, meta.elementType, meta.keyType);
+            node.addChild(ModifierSign.PLUS.sign, signMeta);
+        }else if(object instanceof ObjectMap<?, ?> map){
+            if(meta != null && typeBlack(meta.elementType)) return;
+
+            FieldData childMeta = meta == null ? null : new FieldData(meta.elementType, meta.elementType, meta.keyType);
             for(var entry : map){
                 String name = PatchJsonIO.getKeyName(entry.key);
-                NodeData child = node.addChild(name, entry.value);
-                child.addChild(ModifierSign.REMOVE.sign, null, node.meta);
+                NodeData child = node.addChild(name, new MapEntry<>(entry), childMeta);
+                if(meta != null){
+                    child.addChild(ModifierSign.REMOVE.sign, null, childMeta);
+                }
             }
             // unaccessible
             if(!(node.getObject() instanceof Content)){
-                node.addChild(ModifierSign.PLUS.sign, null, node.meta);
+                node.addChild(ModifierSign.PLUS.sign, null, childMeta);
             }
         }else if(object instanceof ContentType ctype){
             OrderedMap<String, Content> map = new OrderedMap<>(); // in order
             for(Content content : Vars.content.getBy(ctype)){
                 map.put(PatchJsonIO.getKeyName(content), content);
             }
-            resolveFrom(node, map);
+
+            for(var entry : map){
+                String name = PatchJsonIO.getKeyName(entry.key);
+                node.addChild(name, entry.value);
+            }
         }else{
             for(var entry : NodeHelper.getFields(object.getClass())){
                 String name = entry.key;

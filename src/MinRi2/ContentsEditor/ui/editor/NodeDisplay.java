@@ -19,19 +19,19 @@ import mindustry.type.*;
  */
 public class NodeDisplay{
     public static final float labelWidth = 120f;
-    private static ObjectMap<ContentType, Drawable> contentSymbolMap;
+    private static ObjectMap<ContentType, TextureRegion> contentSymbolMap;
 
     private static Table table;
     private static NodeData node;
 
     private static void intiSymbol(){
         contentSymbolMap = ObjectMap.of(
-        ContentType.item, new TextureRegionDrawable(Items.copper.uiIcon),
-        ContentType.block, new TextureRegionDrawable(Blocks.sand.uiIcon),
-        ContentType.liquid, new TextureRegionDrawable(Liquids.water.uiIcon),
-        ContentType.status, new TextureRegionDrawable(StatusEffects.overclock.uiIcon),
-        ContentType.unit, new TextureRegionDrawable(UnitTypes.alpha.uiIcon),
-        ContentType.planet, Icon.icons.get(Planets.serpulo.icon)
+        ContentType.item, Items.copper.uiIcon,
+        ContentType.block, Blocks.sand.uiIcon,
+        ContentType.liquid, Liquids.water.uiIcon,
+        ContentType.status, StatusEffects.overclock.uiIcon,
+        ContentType.unit, UnitTypes.alpha.uiIcon,
+        ContentType.planet, Icon.icons.get(Planets.serpulo.icon).getRegion()
         );
     }
 
@@ -73,59 +73,52 @@ public class NodeDisplay{
 
         if(object instanceof UnlockableContent content){
             displayNameType();
-            displayInfo(new TextureRegionDrawable(content.uiIcon), content.localizedName);
+            table.add().expandX();
+            displayInfo(content.uiIcon, content.localizedName);
         }else if(object instanceof ContentType contentType
         && contentType.contentClass != null
         && UnlockableContent.class.isAssignableFrom(contentType.contentClass)){
-            displayContentType(contentType);
+            displayNameType();
+            table.add().expandX();
+
+            Seq<?> seq = Vars.content.getBy(contentType);
+            if(seq.isEmpty()) return;
+            if(contentSymbolMap == null) intiSymbol();
+            TextureRegion icon = ((UnlockableContent)seq.first()).uiIcon;
+            displayInfo(contentSymbolMap.get(contentType, icon), Strings.capitalize(contentType.name()));
         }else if(object instanceof Weapon weapon){
             displayNameType();
-            displayInfo(new TextureRegionDrawable(weapon.region), weapon.name);
+            table.add().expandX();
+            displayInfo(weapon.region, weapon.name);
         }else{
             displayNameType();
         }
     }
 
-
     private static void displayNameType(){
         table.table(nodeInfoTable -> {
-            nodeInfoTable.defaults().expandX().left();
+            nodeInfoTable.defaults().width(labelWidth).left();
 
             Class<?> type = NodeHelper.getType(node);
             String typeName = type == null ? "unknown" : type.getSimpleName();
 
-            nodeInfoTable.add(node.name).wrap().width(labelWidth);
+            nodeInfoTable.add(node.name).ellipsis(true).tooltip(node.name);
             nodeInfoTable.row();
-            nodeInfoTable.add(typeName).fontScale(0.85f).color(EPalettes.type).wrap().width(labelWidth).padTop(4f);
-        }).pad(4f).left();
+            nodeInfoTable.add(typeName).fontScale(0.85f).color(EPalettes.type).ellipsis(true).padTop(4f).tooltip(typeName);
+        });
+    }
+
+    private static void displayInfo(TextureRegion region, String value){
+        displayInfo(new TextureRegionDrawable(region), value);
     }
 
     private static void displayInfo(Drawable icon, String value){
         table.table(valueTable -> {
-            valueTable.defaults().expandX().right();
+            valueTable.defaults().right();
 
             valueTable.image(icon).scaling(Scaling.fit).size(Vars.iconLarge);
             valueTable.row();
-            valueTable.add(value).labelAlign(Align.right).ellipsis(true).width(labelWidth).padTop(4f);
-        }).width(labelWidth).pad(4f).right();
-    }
-
-    private static void displayContentType(ContentType contentType){
-        displayNameType();
-
-        Seq<?> seq = Vars.content.getBy(contentType);
-        if(seq.isEmpty()){
-            return;
-        }
-
-        if(contentSymbolMap == null){
-            intiSymbol();
-        }
-
-        TextureRegion region = ((UnlockableContent)seq.first()).uiIcon;
-        Drawable icon = new TextureRegionDrawable(region);
-        icon = contentSymbolMap.get(contentType, icon);
-
-        displayInfo(icon, Strings.capitalize(contentType.name()));
+            valueTable.add(value).labelAlign(Align.right).ellipsis(true).padTop(4f).width(labelWidth);
+        });
     }
 }

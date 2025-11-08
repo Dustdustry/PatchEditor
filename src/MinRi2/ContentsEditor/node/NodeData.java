@@ -1,6 +1,7 @@
 package MinRi2.ContentsEditor.node;
 
 import arc.struct.*;
+import arc.struct.ObjectMap.*;
 import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
@@ -46,7 +47,19 @@ public class NodeData{
     }
 
     public boolean isSign(){
-        return Structs.contains(ModifierSign.all, name);
+        return Structs.contains(ModifierSign.all, sign -> sign.sign.equals(name));
+    }
+
+    public boolean hasSign(){
+        return Structs.contains(ModifierSign.all, this::hasSign);
+    }
+
+    public boolean hasSign(ModifierSign sign){
+        return getSign(sign) != null;
+    }
+
+    public NodeData getSign(ModifierSign sign){
+        return getChildren().get(sign.sign);
     }
 
     public ObjectMap<String, NodeData> getChildren(){

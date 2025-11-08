@@ -12,9 +12,9 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.ctype.ContentType;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.mod.*;
 import mindustry.ui.*;
 
 /**
@@ -158,6 +158,9 @@ public class NodeCard extends Table{
 
         int index = 0;
         for(NodeData child : sortChildren()){
+            // sign have its table
+            if(child.isSign()) continue;
+
             if(!searchText.isEmpty()){
                 String displayName = NodeDisplay.getDisplayName(child.getObject());
 
@@ -178,14 +181,21 @@ public class NodeCard extends Table{
                 nodesTable.row();
             }
         }
+
+        NodeData plusData = nodeData.getSign(ModifierSign.PLUS);
+        if(plusData != null) addPlusButton(nodesTable, plusData);
+
+        if(++index % columns == 0){
+            nodesTable.row();
+        }
     }
 
     private void addEditTable(Table table, NodeData childData, DataModifier<?> modifier){
         table.table(t -> {
             t.table(infoTable -> {
-                // Add node info
+                infoTable.left();
                 NodeDisplay.displayNameType(infoTable, childData);
-            }).fill();
+            }).pad(8f).fill();
 
             t.table(modifier::build).pad(4).grow();
 
@@ -208,7 +218,10 @@ public class NodeCard extends Table{
         ImageButtonStyle style = nodeData.hasJsonChild(childData.name) ? EStyles.cardModifiedButtoni : EStyles.cardButtoni;
 
         table.button(b -> {
-            NodeDisplay.display(b, childData);
+            b.table(infoTable -> {
+                infoTable.left();
+                NodeDisplay.display(infoTable, childData);
+            }).pad(8f).grow();
 
             b.image().width(4f).color(Color.darkGray).growY().right();
             b.row();
@@ -221,33 +234,63 @@ public class NodeCard extends Table{
         });
     }
 
+    private void addPlusButton(Table table, NodeData plusData){
+        table.button(b -> {
+            b.image(Icon.add).pad(8f).padRight(16f);
+
+            b.add(nodeData.meta.elementType.getSimpleName()).color(EPalettes.type)
+            .style(Styles.outlineLabel).ellipsis(true).fillX();
+
+            b.image().width(4f).color(Color.darkGray).growY().right();
+            b.row();
+            Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
+            horizontalLine.colspan(b.getColumns());
+        }, EStyles.addButtoni, () -> {
+            editChildNode(plusData);
+        });
+    }
+
     private void buildTitle(Table table){
         Color titleColor = parent == null ? EPalettes.main2 : EPalettes.main3;
         table.table(Tex.whiteui, nodeTitle -> {
+            nodeTitle.defaults().pad(8f);
+
             nodeTitle.table(Tex.whiteui, nameTable -> {
-                NodeDisplay.display(nameTable, nodeData);
+                nameTable.table(t -> {
+                    t.left();
+                    NodeDisplay.display(t, nodeData);
+                }).pad(8f).grow();
 
                 nameTable.image().width(4f).color(Color.darkGray).growY().right();
                 nameTable.row();
                 Cell<?> horizontalLine = nameTable.image().height(4f).color(Color.darkGray).growX();
                 horizontalLine.colspan(nameTable.getColumns());
-            }).color(Pal.darkestGray).size(buttonWidth, buttonHeight).pad(8f).expandX().left();
+            }).color(Pal.darkestGray).size(buttonWidth, buttonHeight);
 
-            nodeTitle.table(buttonTable -> {
-                buttonTable.defaults().size(64f).pad(8f);
+            // Clear data
+            nodeTitle.button(Icon.refresh, Styles.cleari, () -> {
+                Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", nodeData.name), () -> {
+                    nodeData.clearJson();
+                    getFrontCard().rebuildNodesTable();
+                });
+            }).size(64f).tooltip("@node-card.clear-data", true);
 
-                // Clear data
-                buttonTable.button(Icon.refresh, Styles.cleari, () -> {
-                    Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", nodeData.name), () -> {
-                        nodeData.clearJson();
-                        getFrontCard().rebuildNodesTable();
-                    });
-                }).tooltip("@node-card.clear-data", true);
+            boolean removeSign = nodeData.hasSign(ModifierSign.REMOVE);
+            if(removeSign) nodeTitle.table(Tex.whiteui, cont -> {
+                cont.defaults().pad(8f);
+
+                cont.table(Tex.whiteui, t -> {
+                    t.button(Icon.cancelSmall, Styles.clearNonei, () -> {}).size(48f);
+                }).color(EPalettes.remove);
+            }).color(Pal.darkestGray).padLeft(32f);
+
+            nodeTitle.table(cardButtons -> {
+                cardButtons.defaults().size(64f).pad(8f);
 
                 if(parent != null){
-                    buttonTable.button(Icon.upOpen, Styles.cleari, this::extractWorking).tooltip("@node-card.extract", false);
+                    cardButtons.button(Icon.upOpen, Styles.cleari, this::extractWorking).tooltip("@node-card.extract", false);
                 }
-            }).growY();
+            }).expandX().right().growY();
         }).color(titleColor);
     }
 
