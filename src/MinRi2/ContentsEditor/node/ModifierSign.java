@@ -4,7 +4,9 @@ public enum ModifierSign{
     // used for Array, Seq, ObjectSet as field
     PLUS("+"),
     // used for ObjectMap as the value
-    REMOVE("-");
+    REMOVE("-"),
+    // mark as modifiable
+    MODIFY("=");
 
     public final String sign;
 

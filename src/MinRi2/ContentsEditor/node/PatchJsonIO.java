@@ -7,8 +7,10 @@ import mindustry.ctype.*;
 public class PatchJsonIO{
 
     public static Object readData(NodeData data){
-        if(data.jsonData == null || data.meta == null) return null;
-        return NodeHelper.getParser().getJson().readValue(data.meta.type, data.jsonData);
+        if(data.jsonData == null) return null;
+        Class<?> type = NodeHelper.getType(data);
+        if(type == null) return null;
+        return NodeHelper.getParser().getJson().readValue(type, data.jsonData);
     }
 
     public static String getKeyName(Object object){

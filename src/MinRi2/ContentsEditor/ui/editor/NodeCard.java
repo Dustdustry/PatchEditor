@@ -168,7 +168,7 @@ public class NodeCard extends Table{
             }
 
             DataModifier<?> modifier = NodeModifier.getModifier(child);
-            if(modifier != null && !(nodeData.depth < 2 && nodeData.getObject() instanceof ContentType)){
+            if(modifier != null){
                 addEditTable(nodesTable, child, modifier);
             }else{
                 addChildButton(nodesTable, child);

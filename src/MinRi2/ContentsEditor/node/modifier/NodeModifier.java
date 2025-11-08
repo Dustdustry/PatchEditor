@@ -31,19 +31,27 @@ public class NodeModifier{
     }
 
     public static DataModifier<?> getModifier(NodeData node){
-        for(ModifierConfig config : modifyConfig){
-            if(config.canModify(node)) return config.getModifier(node);
+        if(canModify(node)){
+            for(ModifierConfig config : modifyConfig){
+                if(config.canModify(node)) return config.getModifier(node);
+            }
         }
         return null;
     }
 
     public static int getModifierIndex(NodeData node){
-        int i = 0;
-        for(ModifierConfig config : modifyConfig){
-            if(config.canModify(node)) return i;
-            i++;
+        if(canModify(node)){
+            int i = 0;
+            for(ModifierConfig config : modifyConfig){
+                if(config.canModify(node)) return i;
+                i++;
+            }
         }
         return -1;
+    }
+
+    public static boolean canModify(NodeData node){
+        return node.getChildren().containsKey(ModifierSign.MODIFY.sign);
     }
 
     public static class ModifierConfig{

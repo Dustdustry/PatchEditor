@@ -22,7 +22,8 @@ public class NodeResolver{
         if(object == null) return; // ignore null?
 
         if(object == NodeHelper.getRootObj()){
-            node.addChild("name", "root");
+            node.addChild("name", "root", new FieldData(String.class, null, null))
+            .addChild(ModifierSign.MODIFY.sign, null);
             var map = NodeHelper.getNameToType();
             for(ContentType ctype : ContentType.all){
                 if(map.containsValue(ctype, true)){
@@ -78,7 +79,12 @@ public class NodeResolver{
                 Field field = entry.value.field;
                 if(!fieldEditable(field)) continue;
                 Object childObj = Reflect.get(object, field);
-                node.addChild(name, childObj, new FieldData(entry.value));
+                NodeData child = node.addChild(name, childObj, new FieldData(entry.value));
+
+                // not array or map
+                if(child.meta.elementType == null){
+                    child.addChild(ModifierSign.MODIFY.sign, null, child.meta);
+                }
             }
         }
     }
