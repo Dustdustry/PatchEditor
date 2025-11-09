@@ -75,7 +75,42 @@ public class PatchJsonIO{
         return clazz;
     }
 
-    public static JsonValue transformPatch(JsonValue value){
+    public static void parseFrom(NodeData data, JsonValue value){
+        data.clearDynamicChildren();
+
+        data.jsonData = value;
+        if(value == null || value.isValue()) return;
+
+        for(JsonValue childValue : value){
+            String childName = childValue.name;
+
+            if(childName == null){
+                if(childValue.isArray()){
+                    // TODO
+                }
+                continue;
+            }
+
+            NodeData current = data;
+            JsonValue currentValue = value;
+
+            String[] childrenName = childName.split("\\.");
+            for(String name : childrenName){
+                NodeData childData = current.getChild(name);
+                if(childData == null){
+                    Log.warn("Couldn't resolve @.@", current.name, name);
+                    return;
+                }
+
+                currentValue = value.get(name);
+                current = childData;
+            }
+
+            parseFrom(current, currentValue);
+        }
+    }
+
+    public static JsonValue processPatch(JsonValue value){
         if(ModifierSign.PLUS.sign.equals(value.name)){
             JsonValue fieldData = value.parent;
             fieldData.remove(value.name);
@@ -83,11 +118,11 @@ public class PatchJsonIO{
             JsonValue parent = fieldData.parent;
             if(fieldData.size == 0) parent.remove(fieldData.name);
 
-            parent.addChild(fieldData.name + "." + value.name, value);
+            addChildValue(parent, fieldData.name + "." + value.name, value);
         }
 
         for(JsonValue child : value){
-            transformPatch(child);
+            processPatch(child);
         }
         return value;
     }
@@ -95,7 +130,7 @@ public class PatchJsonIO{
     public static JsonValue simplifyPatch(JsonValue value){
         int singleCount = 0;
         JsonValue singleEnd = value;
-        while(singleEnd.child != null && singleEnd.size == 1 && !singleEnd.isValue()){
+        while(singleEnd.child != null && singleEnd.size == 1){
             singleEnd = singleEnd.child;
             singleCount++;
         }
@@ -106,17 +141,42 @@ public class PatchJsonIO{
             while(true){
                 name.append(current.name);
                 current = current.child;
-                if(current != singleEnd) name.append("."); // dot syntax
+                if(current != null) name.append("."); // dot syntax
                 else break;
             }
 
-            value.setName(name.toString());
-            value.child = singleEnd;
+            JsonValue parent = value.parent;
+            parent.remove(value.name);
+            addChildValue(parent, name.toString(), singleEnd);
+            return singleEnd;
         }
 
         for(JsonValue child : value){
             simplifyPatch(child);
         }
         return value;
+    }
+
+    /**
+     * Function 'addChild' doesn't set the child's previous jsonValue.
+     * see {@link JsonValue}
+     */
+    public static void addChildValue(JsonValue jsonValue, String name, JsonValue childValue){
+        childValue.name = name;
+        childValue.parent = jsonValue;
+
+        JsonValue current = jsonValue.child;
+        if(current == null){
+            jsonValue.child = childValue;
+        }else{
+            while(true){
+                if(current.next == null){
+                    current.next = childValue;
+                    childValue.prev = current;
+                    return;
+                }
+                current = current.next;
+            }
+        }
     }
 }

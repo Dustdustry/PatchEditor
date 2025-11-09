@@ -13,8 +13,6 @@ import mindustry.mod.ContentPatcher.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
-import javax.sound.midi.*;
-
 /**
  * @author minri2
  * Create by 2024/2/15
@@ -36,7 +34,7 @@ public class PatchEditor extends BaseDialog{
         resized(this::rebuild);
         shown(this::rebuild);
         hidden(() -> {
-            JsonValue data = PatchJsonIO.transformPatch(rootData.jsonData);
+            JsonValue data = PatchJsonIO.processPatch(rootData.jsonData);
             editPatch.patch = PatchJsonIO.simplifyPatch(data).toJson(OutputType.json);
         });
 
@@ -65,7 +63,7 @@ public class PatchEditor extends BaseDialog{
 
         rootData.clearJson();
         JsonValue value = PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(patch.patch).toString(Jformat.plain));
-        rootData.setJsonData(value);
+        PatchJsonIO.parseFrom(rootData, value);
 
         show();
     }
