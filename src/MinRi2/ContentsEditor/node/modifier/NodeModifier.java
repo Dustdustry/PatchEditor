@@ -117,19 +117,9 @@ public class NodeModifier{
         Object example = exampleMap.get(type);
         if(example != null) return example;
 
-        for(Entry<String, Class<?>> entry : ClassMap.classes){
-            Class<?> clazz = entry.value;
-            int modifiers = clazz.getModifiers();
-            if(!Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers)
-            && type.isAssignableFrom(clazz)){
-                type = clazz;
-                break;
-            }
-        }
-
         try{
-            example = type.getConstructor().newInstance();
-        }catch(Exception e){
+            example = PatchJsonIO.getParser().getJson().fromJson(type, "{}");
+        }catch(Exception ignored){
             return null;
         }
 

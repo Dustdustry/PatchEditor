@@ -8,6 +8,7 @@ public class NumberModifier extends StringModifier{
 
     @Override
     public boolean checkTypeValid(String string, Class<?> type){
+        if(string.isEmpty()) return false;
         try{
             if(type == byte.class || type == Byte.class){
                 Byte.parseByte(string);

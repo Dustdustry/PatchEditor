@@ -2,6 +2,7 @@ package MinRi2.ContentsEditor.ui.editor;
 
 import MinRi2.ContentsEditor.node.*;
 import MinRi2.ContentsEditor.ui.*;
+import MinRi2.ContentsEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
 import arc.util.serialization.*;
@@ -21,7 +22,7 @@ public class PatchEditor extends BaseDialog{
     private final NodeData rootData;
     private final NodeCard card;
 
-    private PatchSet editPatch;
+    private EditorPatch editPatch;
 
     public PatchEditor(){
         super("@contents-editor");
@@ -59,7 +60,7 @@ public class PatchEditor extends BaseDialog{
         addCloseListener();
     }
 
-    public void edit(PatchSet patch){
+    public void edit(EditorPatch patch){
         editPatch = patch;
         PatchJsonIO.parseJson(rootData, patch.patch);
         show();

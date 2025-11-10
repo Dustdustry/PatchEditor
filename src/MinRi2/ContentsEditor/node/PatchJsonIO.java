@@ -100,7 +100,7 @@ public class PatchJsonIO{
                 for(JsonValue elemValue : value){
                     NodeData childData = NodeModifier.addCustomChild(data);
                     if(childData == null) return; // getaway
-                    parseJson(data, elemValue);
+                    parseJson(childData, elemValue);
                 }
             }
             return;
@@ -185,7 +185,7 @@ public class PatchJsonIO{
             while(true){
                 name.append(current.name);
                 current = current.child;
-                if(current != null) name.append("."); // dot syntax
+                if(current != singleEnd.child) name.append("."); // dot syntax
                 else break;
             }
 
@@ -222,7 +222,5 @@ public class PatchJsonIO{
                 current = current.next;
             }
         }
-
-        jsonValue.size++;
     }
 }

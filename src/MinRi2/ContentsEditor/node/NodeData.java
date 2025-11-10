@@ -7,6 +7,7 @@ import arc.util.serialization.JsonValue.*;
 import mindustry.mod.*;
 
 /**
+ * Store the json nodes with untree-structured data.
  * @author minri2
  * Create by 2024/2/15
  */
@@ -16,9 +17,12 @@ public class NodeData{
     public int depth;
 
     public final String name;
-    private final Object object; // original
+
+    /** Original object */
+    private final Object object;
     public final @Nullable FieldData meta;
 
+    /** untree-structured，Use {@link PatchJsonIO#toJson(NodeData)} to transform to tree data */
     private JsonValue jsonData;
 
     public @Nullable NodeData parentData;
@@ -106,7 +110,7 @@ public class NodeData{
     public void initJsonData(){
         if(jsonData != null) return;
 
-        ValueType type = name.equals(ModifierSign.PLUS.sign) && PatchJsonIO.isArray(this) ? ValueType.array : ValueType.object;
+        ValueType type = name.equals(ModifierSign.PLUS.sign) && PatchJsonIO.isArray(parentData) ? ValueType.array : ValueType.object;
         jsonData = new JsonValue(type);
         if(!isRoot()) jsonData.setName(name);
 
@@ -120,6 +124,7 @@ public class NodeData{
         clearDynamicChildren();
 
         for(NodeData child : children){
+            child.clearDynamicChildren();
             if(child.jsonData != null) child.clearJson();
         }
 

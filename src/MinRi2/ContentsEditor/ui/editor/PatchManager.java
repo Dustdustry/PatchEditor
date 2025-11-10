@@ -23,7 +23,7 @@ import static mindustry.Vars.state;
 public class PatchManager extends BaseDialog{
     private final PatchEditor editor = new PatchEditor();
     private final Table patchContainer, patchTable;
-    private Seq<PatchSet> patches;
+    private final Seq<EditorPatch> editorPatches = new Seq<>();
 
     public PatchManager(){
         super("");
@@ -34,7 +34,7 @@ public class PatchManager extends BaseDialog{
         hidden(this::savePatch);
         resized(this::rebuildCont);
         shown(() -> {
-            patches = state.patcher.patches;
+            editorPatches.set(state.patcher.patches.map(p -> new EditorPatch(p)));
             if(!cont.hasChildren()) setup();
             rebuildCont();
         });
@@ -56,7 +56,7 @@ public class PatchManager extends BaseDialog{
 
     private void savePatch(){
         try{
-            state.patcher.apply(patches.map(p -> p.patch));
+            state.patcher.apply(editorPatches.map(p -> p.patch));
         }catch(Exception e){
             Vars.ui.showException(e);
         }
@@ -82,7 +82,7 @@ public class PatchManager extends BaseDialog{
             buttonTable.defaults().minWidth(130f).height(40f).margin(8f).growX();
 
             buttonTable.button("@add-patch", Icon.add, Styles.cleart, () -> {
-                patches.add(new PatchSet("name: " + findPatchName(), new JsonValue("error")));
+                editorPatches.add(new EditorPatch("name: " + findPatchName(), "error"));
                 savePatch();
             });
 
@@ -90,8 +90,8 @@ public class PatchManager extends BaseDialog{
                 String text = Core.app.getClipboardText();
 
                 try{
-                    JsonValue value = PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(text).toString(Jformat.plain));
-                    patches.add(new PatchSet(text, value));
+                    PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(text).toString(Jformat.plain));
+                    editorPatches.add(new EditorPatch(text, text));
                     savePatch();
 
                     EUI.infoToast("@import-patch.succeed");
@@ -106,7 +106,7 @@ public class PatchManager extends BaseDialog{
         patchTable.clearChildren();
 
         int index = 0;
-        for(PatchSet patch : patches){
+        for(EditorPatch patch : editorPatches){
             patchTable.table(Tex.whiteui, t -> {
                 t.add(patch.name.isEmpty() ? "<unnamed>" : patch.name).growX();
 
@@ -114,7 +114,7 @@ public class PatchManager extends BaseDialog{
                     buttons.defaults().size(32f).pad(4f);
 
                     buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
-                        patches.remove(patch);
+                        editorPatches.remove(patch, true);
                         savePatch();
                     }).tooltip("@patch.remove", true);
 
@@ -143,10 +143,28 @@ public class PatchManager extends BaseDialog{
     private String findPatchName(){
         String base = "Patch";
 
-        int[] index = {0};
-        while(patches.contains(p -> p.name.equals(base + index[0]))){
-            index[0]++;
+        int index = 0;
+        while(true){
+            String name = base + index;
+            if(editorPatches.contains(p -> name.equals(p.name))){
+                index++;
+            }else{
+                return name;
+            }
         }
-        return base + index[0];
+    }
+
+    public static class EditorPatch{
+        public String name;
+        public String patch;
+
+        public EditorPatch(String name, String patch){
+            this.name = name;
+            this.patch = patch;
+        }
+
+        public EditorPatch(PatchSet patchSet){
+            this(patchSet.name, patchSet.patch);
+        }
     }
 }
