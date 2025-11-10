@@ -1,9 +1,12 @@
 package MinRi2.ContentsEditor.node;
 
+import MinRi2.ContentsEditor.node.modifier.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
+import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.Jval.*;
 import mindustry.ctype.*;
 import mindustry.mod.*;
 import mindustry.type.*;
@@ -75,38 +78,69 @@ public class PatchJsonIO{
         return clazz;
     }
 
-    public static void parseFrom(NodeData data, JsonValue value){
-        data.clearDynamicChildren();
+    public static void parseJson(NodeData data, String patch){
+        JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
 
-        data.jsonData = value;
+        data.clearJson();
+        parseJson(data, value);
+    }
+
+    private static void parseJson(NodeData data, JsonValue value){
+        data.setJsonData(value);
         if(value == null || value.isValue()) return;
+
+        if(value.isArray()){
+            if(!data.isSign()) return;
+
+            FieldData meta = data.meta;
+            if(data.isSign(ModifierSign.PLUS) && meta.elementType != null){
+                // copied
+                Seq<JsonValue> children = new Seq<>();
+                for(JsonValue jsonValue : value){
+                    children.add(jsonValue);
+                }
+                for(JsonValue elemValue : children){
+                    NodeData childData = NodeModifier.addCustomChild(data);
+                    if(childData == null) return; // getaway
+                    childData.setJsonData(elemValue);
+                }
+            }
+            return;
+        }
+
+        // extract dot syntax
+        JsonIterator iterator = value.iterator();
+        while(iterator.hasNext()){
+            JsonValue childValue = iterator.next();
+            if(childValue.name == null || childValue.isValue()) continue;
+
+            String[] children = childValue.name.split("\\.");
+            if(children.length == 1) continue;
+            iterator.remove();
+
+            JsonValue current = value;
+            for(int i = 0; i < children.length - 1; i++){
+                JsonValue extractedValue = new JsonValue(ValueType.object);
+                addChildValue(current, children[i], extractedValue);
+                current = extractedValue;
+            }
+            addChildValue(current, children[children.length - 1], childValue);
+        }
+
 
         for(JsonValue childValue : value){
             String childName = childValue.name;
 
-            if(childName == null){
-                if(childValue.isArray()){
-                    // TODO
-                }
-                continue;
+            // impossible?
+            if(childName == null) continue;
+
+            NodeData childData = data.getChild(childName);
+            if(childData == null){
+                Log.warn("Couldn't resolve @.@", data.name, childName);
+                return;
             }
 
-            NodeData current = data;
-            JsonValue currentValue = value;
-
-            String[] childrenName = childName.split("\\.");
-            for(String name : childrenName){
-                NodeData childData = current.getChild(name);
-                if(childData == null){
-                    Log.warn("Couldn't resolve @.@", current.name, name);
-                    return;
-                }
-
-                currentValue = value.get(name);
-                current = childData;
-            }
-
-            parseFrom(current, currentValue);
+            parseJson(childData, childValue);
         }
     }
 

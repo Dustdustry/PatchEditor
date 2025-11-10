@@ -60,11 +60,7 @@ public class PatchEditor extends BaseDialog{
 
     public void edit(PatchSet patch){
         editPatch = patch;
-
-        rootData.clearJson();
-        JsonValue value = PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(patch.patch).toString(Jformat.plain));
-        PatchJsonIO.parseFrom(rootData, value);
-
+        PatchJsonIO.parseJson(rootData, patch.patch);
         show();
     }
 

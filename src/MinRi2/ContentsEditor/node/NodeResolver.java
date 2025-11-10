@@ -7,8 +7,10 @@ import arc.graphics.g2d.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.mod.*;
+import mindustry.mod.ContentPatcher.*;
 
 import java.lang.reflect.*;
 
@@ -17,11 +19,27 @@ public class NodeResolver{
     Prov.class, Class.class, Texture.class, TextureRegion.class, Fi.class, Boolf.class
     );
 
-    public static void resolveFrom(NodeData node, Object object){
-        resolveFrom(node, object, PatchJsonIO.getType(node));
+    public static void resolveNode(NodeData node, Object object){
+        boolean unpatch = object instanceof Content && Vars.state.patcher.patches.any();
+        if(unpatch) Vars.state.patcher.unapply();
+
+        resolveNode(node, object, PatchJsonIO.getType(node));
+
+        if(unpatch){
+            Seq<PatchSet> patches = Vars.state.patcher.patches;
+
+            try{
+                Vars.state.patcher.apply(patches.map(p -> p.patch));
+            }catch(Exception ignored){
+            }
+        }
     }
 
-    public static void resolveFrom(NodeData node, @Nullable Object object, Class<?> clazz){
+    public static void resolveNode(NodeData node, @Nullable Object object, Class<?> clazz){
+        resolveFrom(node, object, clazz);
+    }
+
+    private static void resolveFrom(NodeData node, @Nullable Object object, Class<?> clazz){
         if(node.isRoot()){
             node.addChild("name", "root", new FieldData(String.class, null, null))
             .addChild(ModifierSign.MODIFY.sign, null);

@@ -54,9 +54,13 @@ public class NodeData{
         return isSign;
     }
 
+    public boolean isSign(ModifierSign sign){
+        return sign.sign.equals(name);
+    }
+
     public Seq<NodeData> getChildren(){
         if(!resolved){
-            NodeResolver.resolveFrom(this, getObject());
+            NodeResolver.resolveNode(this, getObject());
             resolved = true;
         }
         return children;
@@ -99,27 +103,38 @@ public class NodeData{
         if(parentData == null){
             jsonData = new JsonValue(ValueType.object);
         }else{
-            parentData.initJsonData();
-            jsonData = parentData.getJson(name);
+            jsonData = parentData.createChildData(name);
         }
     }
 
-    public JsonValue getJson(String name){
+    public JsonValue createChildData(String name){
         initJsonData();
-
-        JsonValue data = jsonData.get(name);
-        if(data != null){
-            return data;
-        }
 
         ValueType type = ValueType.object;
         if(name.equals(ModifierSign.PLUS.sign) && PatchJsonIO.isArray(this)){
             type = ValueType.array;
         }
 
-        data = new JsonValue(type);
+        JsonValue data = new JsonValue(type);
         PatchJsonIO.addChildValue(jsonData, name, data);
         return data;
+    }
+
+    public void setJsonData(JsonValue data){
+        if(parentData == null){
+            jsonData = data;
+            return;
+        }
+
+        parentData.initJsonData();
+        if(jsonData == null){
+            PatchJsonIO.addChildValue(parentData.jsonData, name, data);
+        }else{
+            JsonValue old = jsonData;
+            if(old.prev != null) old.prev.next = data;
+            if(old.next != null) old.next.prev = data;
+            jsonData = data;
+        }
     }
 
     public void removeJson(String name){
@@ -129,7 +144,6 @@ public class NodeData{
         // keep tree clean
         if(jsonData.child == null && parentData != null){
             parentData.removeJson(this.name);
-            clearDynamicChildren();
             jsonData = null;
         }
     }
@@ -138,6 +152,7 @@ public class NodeData{
         clearDynamicChildren();
 
         for(var child : children){
+            child.clearDynamicChildren();
             if(child.jsonData != null){
                 child.clearJson();
             }
@@ -154,13 +169,8 @@ public class NodeData{
     }
 
     public void clearDynamicChildren(){
-        if(jsonData != null && !jsonData.isValue() && jsonData.size > 0){
-            for(var child : getChildren()){
-                if(child.isSign()){
-                    // clear sign's dynamic children
-                    child.children.clear();
-                }
-            }
+        if(isSign){
+            children.clear();
         }
     }
 

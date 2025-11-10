@@ -4,11 +4,17 @@ import MinRi2.ContentsEditor.node.*;
 import MinRi2.ContentsEditor.node.modifier.equal.*;
 import arc.func.*;
 import arc.struct.*;
+import arc.struct.ObjectMap.*;
 import arc.util.pooling.*;
+import arc.util.serialization.*;
+import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.ctype.*;
+import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.*;
+
+import java.lang.reflect.*;
 
 /**
  * @author minri2
@@ -81,8 +87,11 @@ public class NodeModifier{
         FieldData meta = signNode.meta;
         if(nextIndex != -1){
             int index = nextIndex + signNode.getChildren().size;
-            signNode.getJson("" + index); // init child's json
-            return signNode.addChild("" + index, getExample(meta.elementType), new FieldData(meta.elementType, null, null));
+            Object example = getExample(meta.elementType);
+            if(example == null) return null;
+            NodeData childData = signNode.addChild("" + index, example, new FieldData(example.getClass(), null, null));
+            childData.initJsonData();
+            return childData;
         }
 
         if(object instanceof ObjectMap<?,?>){
@@ -93,7 +102,12 @@ public class NodeModifier{
                     name = PatchJsonIO.getKeyName(Vars.content.getBy(contentType).first());
                 }
             }
-            return signNode.addChild(name, getExample(meta.elementType), meta);
+
+            Object example = getExample(meta.elementType);
+            if(example == null) return null;
+            NodeData childData = signNode.addChild(name, example, new FieldData(example.getClass(), example.getClass(), meta.keyType));
+            childData.initJsonData();
+            return childData;
         }
 
         return null;
@@ -102,6 +116,16 @@ public class NodeModifier{
     public static Object getExample(Class<?> type){
         Object example = exampleMap.get(type);
         if(example != null) return example;
+
+        for(Entry<String, Class<?>> entry : ClassMap.classes){
+            Class<?> clazz = entry.value;
+            int modifiers = clazz.getModifiers();
+            if(!Modifier.isAbstract(modifiers) && !Modifier.isInterface(modifiers)
+            && type.isAssignableFrom(clazz)){
+                type = clazz;
+                break;
+            }
+        }
 
         try{
             example = type.getConstructor().newInstance();
