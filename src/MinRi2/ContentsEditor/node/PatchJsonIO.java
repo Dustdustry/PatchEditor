@@ -159,7 +159,7 @@ public class PatchJsonIO{
             fieldData.remove(value.name);
 
             JsonValue parent = fieldData.parent;
-            if(fieldData.size == 0) parent.remove(fieldData.name);
+            if(fieldData.size < 0) parent.remove(fieldData.name);
 
             addChildValue(parent, fieldData.name + "." + value.name, value);
         }
@@ -174,7 +174,7 @@ public class PatchJsonIO{
     public static JsonValue simplifyPatch(JsonValue value){
         int singleCount = 0;
         JsonValue singleEnd = value;
-        while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null){
+        while(singleEnd.child != null && singleEnd.child.isObject() && singleEnd.child.next == null && singleEnd.child.prev == null){
             singleEnd = singleEnd.child;
             singleCount++;
         }
