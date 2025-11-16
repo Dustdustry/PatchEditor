@@ -7,10 +7,14 @@ import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
 import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.Jval.*;
+import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.consumers.*;
+
+import static mindustry.Vars.content;
 
 public class PatchJsonIO{
     public static final int simplifySingleCount = 3;
@@ -86,6 +90,7 @@ public class PatchJsonIO{
     }
 
     private static void parseJson(NodeData data, JsonValue value){
+        if(value != null) desugarJson(data, value);
         if(value == null || value.isValue()){
             data.setJsonData(value);
             return;
@@ -126,6 +131,23 @@ public class PatchJsonIO{
 
             childValue.setName(current.name);
             parseJson(current, childValue);
+        }
+    }
+
+    private static void desugarJson(NodeData data, JsonValue value){
+        Class<?> type = getType(data);
+        if(type == ItemStack.class || type == PayloadStack.class){
+            if(!value.isString() || !value.asString().contains("/")) return;
+            String[] split = value.asString().split("/");
+            value.setType(ValueType.object);
+            addChildValue(value, "item", new JsonValue(split[0]));
+            addChildValue(value, "amount", new JsonValue(split[1]));
+        }else if(type == LiquidStack.class || type == ConsumeLiquid.class){
+            if(!value.isString() || !value.asString().contains("/")) return;
+            String[] split = value.asString().split("/");
+            value.setType(ValueType.object);
+            addChildValue(value, "liquid", new JsonValue(split[0]));
+            addChildValue(value, "amount", new JsonValue(split[1]));
         }
     }
 
