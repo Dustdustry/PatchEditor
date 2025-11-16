@@ -157,7 +157,7 @@ public class PatchJsonIO{
     public static JsonValue toJson(NodeData data){
         JsonValue jsonData = data.getJsonData();
         if(jsonData == null) return new JsonValue(ValueType.object);
-        return toJson(data, new JsonValue(jsonData.type()));
+        return processPatch(toJson(data, new JsonValue(jsonData.type())));
     }
 
     private static JsonValue toJson(NodeData node, JsonValue json){
@@ -192,7 +192,8 @@ public class PatchJsonIO{
         }
     }
 
-    public static JsonValue processPatch(JsonValue value){
+    private static JsonValue processPatch(JsonValue value){
+        // plus syntax must be used in dot syntax
         if(ModifierSign.PLUS.sign.equals(value.name)){
             JsonValue fieldData = value.parent;
             fieldData.remove(value.name);
