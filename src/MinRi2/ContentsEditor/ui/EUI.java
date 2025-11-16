@@ -65,7 +65,7 @@ public class EUI{
     }
 
     public static void infoToast(String text){
-        infoToast(text, 1.5f);
+        infoToast(text, 0.7f);
     }
 
     public static void infoToast(String text, float duration){

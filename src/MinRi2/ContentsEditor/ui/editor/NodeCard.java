@@ -192,14 +192,16 @@ public class NodeCard extends Table{
         if(plusData != null) addPlusButton(nodesTable, plusData);
     }
 
-    private void addEditTable(Table table, NodeData childData, DataModifier<?> modifier){
+    private void addEditTable(Table table, NodeData node, DataModifier<?> modifier){
+        Color modifiedColor = EPalettes.modified, unmodifiedColor = node.isDynamic() ? EPalettes.add : EPalettes.unmodified;
         table.table(t -> {
             t.table(infoTable -> {
                 infoTable.left();
-                NodeDisplay.displayNameType(infoTable, childData);
+                NodeDisplay.displayNameType(infoTable, node);
             }).pad(8f).fill();
 
             t.table(modifier::build).pad(4).grow();
+            t.table(btn -> setupEditButton(btn, node)).pad(6f).growY();
 
             t.image().width(4f).color(Color.darkGray).growY().right();
             t.row();
@@ -207,18 +209,17 @@ public class NodeCard extends Table{
             horizontalLine.colspan(t.getColumns());
 
             t.background(Tex.whiteui);
-            t.setColor(modifier.isModified() ? EPalettes.modified : EPalettes.unmodified);
+            t.setColor(modifier.isModified() ? modifiedColor : unmodifiedColor);
 
             modifier.onModified(modified -> {
-                Color color = modified ? EPalettes.modified : EPalettes.unmodified;
-                t.addAction(Actions.color(color, 0.2f));
+                t.addAction(Actions.color(modifier.isModified() ? modifiedColor : unmodifiedColor, 0.2f));
             });
         });
     }
 
     private void addChildButton(Table table, NodeData childData){
         ImageButtonStyle style = EStyles.cardButtoni;
-        if(childData.parentData != null && childData.parentData.isSign()){
+        if(childData.isDynamic()){
             style = EStyles.addButtoni;
         }else if(nodeData.hasJsonChild(childData.name)){
             style = EStyles.cardModifiedButtoni;
@@ -256,6 +257,13 @@ public class NodeCard extends Table{
             NodeModifier.addCustomChild(plusData);
             rebuildNodesTable();
         });
+    }
+
+    private void setupEditButton(Table table, NodeData data){
+        if(data.isDynamic()) table.button(Icon.cancel, Styles.clearNonei, () -> {
+            data.clearJson();
+            rebuildNodesTable();
+        }).grow();
     }
 
     private void buildTitle(Table table){

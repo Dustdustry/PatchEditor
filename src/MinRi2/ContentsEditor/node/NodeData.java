@@ -63,6 +63,10 @@ public class NodeData{
         return sign.sign.equals(name);
     }
 
+    public boolean isDynamic(){
+        return parentData != null && parentData.isSign();
+    }
+
     public Seq<NodeData> getChildren(){
         if(!resolved){
             NodeResolver.resolveNode(this, getObject());

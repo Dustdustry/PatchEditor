@@ -96,7 +96,11 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>, Poolable{
 
     @Override
     public void resetModify(){
-        nodeData.clearJson();
+        if(nodeData.isDynamic()){
+            nodeData.getJsonData().set(PatchJsonIO.getKeyName(nodeData.getObject()));
+        }else{
+            nodeData.clearJson();
+        }
 
         if(onModified != null){
             onModified.get(false);
