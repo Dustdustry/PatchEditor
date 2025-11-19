@@ -65,7 +65,7 @@ public class NodeData{
     }
 
     public boolean isDynamic(){
-        return parentData != null && parentData.isSign();
+        return parentData != null && parentData.isSign(ModifierSign.PLUS);
     }
 
     public Seq<NodeData> getChildren(){
@@ -123,8 +123,6 @@ public class NodeData{
     }
 
     public void clearJson(){
-        if(jsonData == null) return;
-
         jsonData = null;
 
         if(parentData != null && !parentData.isDynamic() && !parentData.children.contains(c -> c.jsonData != null)){
@@ -132,8 +130,7 @@ public class NodeData{
         }
 
         if(isDynamic()){
-            parentData.getChildren().remove(this, true);
-            parentData = null;
+            remove();
         }else if(isSign){
             for(NodeData child : children){
                 child.parentData = null;
@@ -144,6 +141,12 @@ public class NodeData{
                 if(child.jsonData != null) child.clearJson();
             }
         }
+    }
+
+    public void remove(){
+        if(parentData == null) return;
+        parentData.getChildren().remove(this, true);
+        parentData = null;
     }
 
     public void setJsonData(JsonValue value){

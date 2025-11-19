@@ -151,27 +151,28 @@ public class PatchJsonIO{
     public static JsonValue toJson(NodeData data){
         JsonValue jsonData = data.getJsonData();
         if(jsonData == null) return new JsonValue(ValueType.object);
-        return processPatch(toJson(data, new JsonValue(jsonData.type())));
+        return toJson(data, new JsonValue(jsonData.type()));
     }
 
     private static JsonValue toJson(NodeData node, JsonValue json){
         JsonValue data = node.getJsonData();
         if(data == null) return json;
-        json.setName(data.name);
 
         if(data.isValue()){
             json.set(data.asString());
             return json;
         }
 
+        processData(node, json);
+
         for(NodeData child : node.getChildren()){
             JsonValue childData = child.getJsonData();
             if(childData == null) continue;
-            JsonValue childJson = toJson(child, new JsonValue(childData.type()));
-            addChildValue(json, childJson.name, childJson);
+            JsonValue childJson = new JsonValue(childData.type());
+            addChildValue(json, child.name, childJson);
+            toJson(child, childJson);
         }
 
-        processData(node, json);
         return json;
     }
 
@@ -183,31 +184,29 @@ public class PatchJsonIO{
             if(typeName == null) typeName = type.getName();
             addChildValue(value, "type", new JsonValue(typeName));
         }
-    }
 
-    private static JsonValue processPatch(JsonValue value){
-        // plus syntax must be used in dot syntax
-        if(ModifierSign.PLUS.sign.equals(value.name)){
-            JsonValue fieldData = value.parent;
-            fieldData.remove(value.name);
+        if(node.isSign(ModifierSign.MODIFY)){
+            JsonValue effectValue = value.parent;
+            JsonValue effectParentValue = effectValue.parent;
+            removeValue(effectValue);
+            addChildValue(effectParentValue, effectValue.name, value);
+        }else if(node.isSign(ModifierSign.PLUS)){
+            JsonValue effectValue = value.parent;
+            JsonValue effectParentValue = effectValue.parent;
+            removeValue(value);
 
-            JsonValue parent = fieldData.parent;
-            if(fieldData.child == null) parent.remove(fieldData.name);
+            // clean empty object
+            if(effectValue.child == null) removeValue(effectValue);
 
-            addChildValue(parent, fieldData.name + "." + value.name, value);
+            // plus syntax must be used in dot syntax
+            addChildValue(effectParentValue, effectValue.name + "." + value.name, value);
         }
-
-        for(JsonValue child : value){
-            processPatch(child);
-        }
-
-        return value;
     }
 
     public static JsonValue simplifyPatch(JsonValue value){
         int singleCount = 1;
         JsonValue singleEnd = value;
-        while(singleEnd.isObject() && singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null){
+        while(singleEnd.isObject() && singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null && !singleEnd.has("type")){
             singleEnd = singleEnd.child;
             singleCount++;
         }
@@ -223,7 +222,7 @@ public class PatchJsonIO{
             }
 
             JsonValue parent = value.parent;
-            parent.remove(value.name);
+            removeValue(value);
             addChildValue(parent, name.toString(), singleEnd);
             return singleEnd;
         }
@@ -255,5 +254,13 @@ public class PatchJsonIO{
                 current = current.next;
             }
         }
+    }
+
+    public static void removeValue(JsonValue value){
+        JsonValue prev = value.prev, next = value.next;
+        if(prev != null) prev.next = next;
+        if(next != null) next.prev = prev;
+        if(prev == null && next == null) value.parent.child = null;
+        value.parent = value.prev = value.next = null;
     }
 }

@@ -101,14 +101,22 @@ public class NodeModifier{
         if(!typeMeta.isAssignableFrom(newType)){
             throw new RuntimeException("Couldn't change " + node.name + "'s type '" + typeMeta.getName() + "' due to unassignable type '" + newType.getName() + "'.");
         }
+
+        Object example = getExample(typeMeta, newType);
+        if(example == null) return null;
+
         JsonValue value = PatchJsonIO.toJson(node);
         value.remove("type");
 
-        NodeData childData = NodeModifier.addDynamicChild(node.parentData, newType);
-        PatchJsonIO.parseJson(childData, value);
+        // remove old
+        NodeData parent = node.parentData;
         node.clearJson();
+        node.remove();
 
-        return childData;
+        NodeData newData = parent.addChild(node.name, example, node.meta.cpy());
+        newData.initJsonData();
+        PatchJsonIO.parseJson(newData, value);
+        return newData;
     }
 
     public static NodeData addDynamicChild(NodeData node){
@@ -131,12 +139,13 @@ public class NodeModifier{
         }
 
         FieldData meta = node.meta;
-        Class<?> actualElemType = type != null ? type : meta.elementType;
+        Class<?> baseType = meta.elementType;
+        Class<?> actualElemType = type != null ? type : baseType;
         if(nextIndex != -1){
             int index = nextIndex + node.getChildren().size;
-            Object example = getExample(actualElemType);
+            Object example = getExample(baseType, actualElemType);
             if(example == null) return null;
-            NodeData childData = node.addChild("" + index, example, new FieldData(meta.elementType));
+            NodeData childData = node.addChild("" + index, example, new FieldData(baseType));
             childData.initJsonData();
             childData.addChild(ModifierSign.MODIFY.sign, new FieldData(example.getClass()));
             handleDynamicData(childData);
@@ -152,9 +161,9 @@ public class NodeModifier{
                 }
             }
 
-            Object example = getExample(actualElemType);
+            Object example = getExample(baseType, actualElemType);
             if(example == null) return null;
-            NodeData childData = node.addChild(name, example, new FieldData(meta.elementType, meta.elementType, meta.keyType));
+            NodeData childData = node.addChild(name, example, new FieldData(baseType, baseType, meta.keyType));
             childData.initJsonData();
             childData.addChild(ModifierSign.MODIFY.sign, new FieldData(example.getClass()));
             handleDynamicData(childData);
@@ -164,7 +173,7 @@ public class NodeModifier{
         return null;
     }
 
-    public static Object getExample(Class<?> type){
+    public static Object getExample(Class<?> base, Class<?> type){
         if(type.isArray()) return Reflect.newArray(type.getComponentType(), 0);
 
         type = handleType(type);
@@ -181,8 +190,10 @@ public class NodeModifier{
         }
 
         if(example == null){
+            String typeName = ClassMap.classes.findKey(type, true);
+            if(typeName == null) typeName = type.getName();
             try{
-                example = PatchJsonIO.getParser().getJson().fromJson(type, "{}");
+                example = PatchJsonIO.getParser().getJson().fromJson(base, "{" + "type:" + typeName + "}");
             }catch(Exception ignored){
                 return null;
             }

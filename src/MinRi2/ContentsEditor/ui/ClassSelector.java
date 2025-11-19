@@ -3,18 +3,20 @@ package MinRi2.ContentsEditor.ui;
 import arc.*;
 import arc.func.*;
 import arc.scene.ui.layout.*;
+import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
 import mindustry.mod.*;
 import mindustry.ui.dialogs.*;
 
 public class ClassSelector extends BaseDialog{
-    private Boolf<Class<?>> selectable, consumer;
-    private @Nullable Class<?> superClass;
+    private Boolf<Class<?>> consumer;
+    private final ObjectSet<Class<?>> classes = new ObjectSet<>();
 
     public ClassSelector(){
-        super("@class-selector");
+        super("##@class-selector");
         shown(this::rebuild);
+        addCloseButton();
     }
 
     private void rebuild(){
@@ -25,12 +27,8 @@ public class ClassSelector extends BaseDialog{
         float width = Core.scene.getWidth() * (Core.scene.getWidth() > 1000 ? 0.8f : 0.95f);
         cont.pane(pane).scrollX(false).width(width).grow();
 
-        int index = 0, columns = (int)(width / 80f);
-        for(var entry : ClassMap.classes){
-            Class<?> clazz = entry.value;
-            if(superClass != null && !superClass.isAssignableFrom(clazz)) continue;
-            if(selectable != null && !selectable.get(clazz)) return;
-
+        int index = 0, columns = (int)(width / 240f);
+        for(Class<?> clazz : classes){
             pane.button(table -> {
                 table.add(clazz.getSimpleName());
             }, EStyles.cardButtoni, () -> {
@@ -43,6 +41,8 @@ public class ClassSelector extends BaseDialog{
                 pane.row();
             }
         }
+
+        classes.clear();
     }
 
     public void select(Boolf<Class<?>> selectable, Boolf<Class<?>> consumer){
@@ -50,10 +50,20 @@ public class ClassSelector extends BaseDialog{
     }
 
     public void select(Boolf<Class<?>> selectable, Class<?> superClass, Boolf<Class<?>> consumer){
-        this.selectable = selectable;
-        this.superClass = superClass;
         this.consumer = consumer;
 
-        show();
+        classes.clear();
+        for(var entry : ClassMap.classes){
+            Class<?> clazz = entry.value;
+            if(superClass != null && !superClass.isAssignableFrom(clazz)) continue;
+            if(selectable != null && !selectable.get(clazz)) return;
+            classes.add(clazz);
+        }
+
+        if(classes.isEmpty()){
+            consumer.get(superClass);
+        }else{
+            show();
+        }
     }
 }

@@ -67,7 +67,8 @@ public class NodeCard extends Table{
 
         editing = childNodeData != null;
         childCard.setData(childNodeData);
-        rebuild();
+
+        rebuildCont();
     }
 
     public void extractWorking(){
@@ -168,7 +169,7 @@ public class NodeCard extends Table{
 
             int index = 0;
             for(NodeData child : children){
-                // sign have its table
+                // sign have its own place
                 if(child.isSign()) continue;
 
                 if(!searchText.isEmpty()){
@@ -212,7 +213,7 @@ public class NodeCard extends Table{
             }).pad(8f).fill();
 
             t.table(modifier::build).pad(4).grow();
-            t.table(btn -> setupEditButton(btn, node)).pad(6f).growY();
+            t.table(btn -> setupEditButton(btn, node, true)).pad(6f).growY();
 
             t.image().width(4f).color(Color.darkGray).growY().right();
             t.row();
@@ -242,16 +243,15 @@ public class NodeCard extends Table{
                 NodeDisplay.display(infoTable, node);
             }).pad(8f).grow();
 
-            b.table(btn -> setupEditButton(btn, node)).pad(6f).growY();
+            b.table(btn -> setupEditButton(btn, node, false)).pad(6f).growY();
 
             b.image().width(4f).color(Color.darkGray).growY().right();
             b.row();
             Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
             horizontalLine.colspan(b.getColumns());
         }, style, () -> {
-            editChildNode(node);
-
-            rebuildCont();
+            NodeData modifyData = node.getSign(ModifierSign.MODIFY);
+            editChildNode(modifyData == null || modifyData.getJsonData() == null ? node : modifyData);
         }).disabled(node.getObject() == null);
     }
 
@@ -274,22 +274,45 @@ public class NodeCard extends Table{
         });
     }
 
-    private void setupEditButton(Table table, NodeData data){
+    private void setupEditButton(Table table, NodeData data, boolean hasModifier){
         table.defaults().width(32f).pad(4f).growY();
+
+        NodeData modifyData = data.getSign(ModifierSign.MODIFY);
+        if(modifyData != null && modifyData.getJsonData() != null){
+            table.button(Icon.cancel, Styles.clearNonei, () -> {
+                modifyData.clearJson();
+                rebuildNodesTable();
+            }).grow();
+            return;
+        }
 
         if(data.isDynamic()){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, PatchJsonIO.getTypeMeta(data), clazz -> {
+                EUI.classSelector.select(null, PatchJsonIO.getTypeIn(data), clazz -> {
                     NodeModifier.changeType(data, clazz);
                     rebuildNodesTable();
                     return true;
                 });
-            });
+            }).tooltip("##changeType");
 
             table.button(Icon.cancel, Styles.clearNonei, () -> {
                 data.clearJson();
                 rebuildNodesTable();
             }).grow().row();
+        }else if(!hasModifier && modifyData != null){
+            if(modifyData.getJsonData() == null){
+                table.button(Icon.wrench, Styles.clearNonei, () -> {
+                    EUI.classSelector.select(null, PatchJsonIO.getTypeIn(data), clazz -> {
+                        NodeData newData = NodeModifier.changeType(modifyData, clazz);
+                        if(newData != null){
+                            editChildNode(newData);
+                        }else{
+                            Log.err("Type '@' not available.", clazz.getSimpleName());
+                        }
+                        return true;
+                    });
+                }).tooltip("##override");
+            }
         }
 
         if(data.hasSign(ModifierSign.REMOVE)){
@@ -349,7 +372,7 @@ public class NodeCard extends Table{
         }
 
         for(NodeData child : data.getChildren()){
-            if(child.isSign()){
+            if(child.isSign(ModifierSign.PLUS)){
                 mappedChildren.get(Object.class).addAll(child.getChildren());
                 continue;
             }
