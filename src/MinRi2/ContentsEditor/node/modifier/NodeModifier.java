@@ -92,8 +92,27 @@ public class NodeModifier{
         }
     }
 
-    public static NodeData addDynamicChild(NodeData signNode){
-        return addDynamicChild(signNode, null);
+    public static NodeData changeType(NodeData node, Class<?> newType){
+        Class<?> typeMeta = PatchJsonIO.getTypeMeta(node);
+        if(typeMeta == null){
+            throw new RuntimeException("Couldn't change " + node.name + "'s type due to the null type of meta.");
+        }
+
+        if(!typeMeta.isAssignableFrom(newType)){
+            throw new RuntimeException("Couldn't change " + node.name + "'s type '" + typeMeta.getName() + "' due to unassignable type '" + newType.getName() + "'.");
+        }
+        JsonValue value = PatchJsonIO.toJson(node);
+        value.remove("type");
+
+        NodeData childData = NodeModifier.addDynamicChild(node.parentData, newType);
+        PatchJsonIO.parseJson(childData, value);
+        node.clearJson();
+
+        return childData;
+    }
+
+    public static NodeData addDynamicChild(NodeData node){
+        return addDynamicChild(node, null);
     }
 
     public static NodeData addDynamicChild(NodeData node, @Nullable Class<?> type){
@@ -117,7 +136,7 @@ public class NodeModifier{
             int index = nextIndex + node.getChildren().size;
             Object example = getExample(actualElemType);
             if(example == null) return null;
-            NodeData childData = node.addChild("" + index, example, new FieldData(example.getClass()));
+            NodeData childData = node.addChild("" + index, example, new FieldData(meta.elementType));
             childData.initJsonData();
             childData.addChild(ModifierSign.MODIFY.sign, new FieldData(example.getClass()));
             handleDynamicData(childData);
@@ -127,7 +146,7 @@ public class NodeModifier{
         if(object instanceof ObjectMap<?,?>){
             String name = "<key>";
             if(MappableContent.class.isAssignableFrom(meta.keyType)){
-                ContentType contentType = PatchJsonIO.contentClassTypeMap.get(meta.keyType);
+                ContentType contentType = PatchJsonIO.getContentType(meta.keyType);
                 if(contentType != null){
                     name = PatchJsonIO.getKeyName(Vars.content.getBy(contentType).first());
                 }
@@ -135,7 +154,7 @@ public class NodeModifier{
 
             Object example = getExample(actualElemType);
             if(example == null) return null;
-            NodeData childData = node.addChild(name, example, new FieldData(example.getClass(), example.getClass(), meta.keyType));
+            NodeData childData = node.addChild(name, example, new FieldData(meta.elementType, meta.elementType, meta.keyType));
             childData.initJsonData();
             childData.addChild(ModifierSign.MODIFY.sign, new FieldData(example.getClass()));
             handleDynamicData(childData);
@@ -155,7 +174,7 @@ public class NodeModifier{
         if(example != null) return example;
 
         if(MappableContent.class.isAssignableFrom(type)){
-            ContentType contentType = PatchJsonIO.contentClassTypeMap.get(type);
+            ContentType contentType = PatchJsonIO.getContentType(type);
             if(contentType != null){
                 example = Vars.content.getBy(contentType).first();
             }
@@ -184,7 +203,7 @@ public class NodeModifier{
         }
 
         public boolean canModify(Class<?> type){
-            return modifierTypes.contains(type);
+            return modifierTypes.contains(c -> c.isAssignableFrom(type));
         }
 
         public DataModifier<?> getModifier(NodeData nodeData){

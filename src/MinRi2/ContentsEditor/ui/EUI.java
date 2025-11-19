@@ -22,12 +22,14 @@ import mindustry.ui.*;
 public class EUI{
     public static PatchManager manager;
     public static ContentSelector selector;
+    public static ClassSelector classSelector;
 
     public static void init(){
         EStyles.init();
 
         manager = new PatchManager();
         selector = new ContentSelector();
+        classSelector = new ClassSelector();
 
         addUI();
     }

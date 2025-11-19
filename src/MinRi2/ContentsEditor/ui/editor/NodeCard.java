@@ -275,10 +275,27 @@ public class NodeCard extends Table{
     }
 
     private void setupEditButton(Table table, NodeData data){
-        if(data.isDynamic()) table.button(Icon.cancel, Styles.clearNonei, () -> {
-            data.clearJson();
-            rebuildNodesTable();
-        }).grow();
+        table.defaults().width(32f).pad(4f).growY();
+
+        if(data.isDynamic()){
+            table.button(Icon.wrench, Styles.clearNonei, () -> {
+                EUI.classSelector.select(null, PatchJsonIO.getTypeMeta(data), clazz -> {
+                    NodeModifier.changeType(data, clazz);
+                    rebuildNodesTable();
+                    return true;
+                });
+            });
+
+            table.button(Icon.cancel, Styles.clearNonei, () -> {
+                data.clearJson();
+                rebuildNodesTable();
+            }).grow().row();
+        }
+
+        if(data.hasSign(ModifierSign.REMOVE)){
+            table.button(Icon.cancelSmall, Styles.clearNonei, () -> {}).size(48f);
+        }
+
     }
 
     private void buildTitle(Table table){
@@ -305,15 +322,6 @@ public class NodeCard extends Table{
                     getFrontCard().rebuildNodesTable();
                 });
             }).size(64f).tooltip("@node-card.clear-data", true);
-
-            boolean removeSign = nodeData.hasSign(ModifierSign.REMOVE);
-            if(removeSign) nodeTitle.table(Tex.whiteui, cont -> {
-                cont.defaults().pad(8f);
-
-                cont.table(Tex.whiteui, t -> {
-                    t.button(Icon.cancelSmall, Styles.clearNonei, () -> {}).size(48f);
-                }).color(EPalettes.remove);
-            }).color(Pal.darkestGray).padLeft(32f);
 
             nodeTitle.table(cardButtons -> {
                 cardButtons.defaults().size(64f).pad(8f);

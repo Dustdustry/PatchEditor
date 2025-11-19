@@ -2,6 +2,7 @@ package MinRi2.ContentsEditor.ui.editor;
 
 import MinRi2.ContentsEditor.node.*;
 import MinRi2.ContentsEditor.ui.*;
+import arc.*;
 import arc.graphics.g2d.*;
 import arc.scene.style.*;
 import arc.scene.ui.layout.*;
@@ -19,6 +20,7 @@ import mindustry.type.*;
  */
 public class NodeDisplay{
     public static final float labelWidth = 100f;
+    public static final float imageSize = Vars.iconLarge;
     private static ObjectMap<ContentType, TextureRegion> contentSymbolMap;
 
     private static Table table;
@@ -68,10 +70,12 @@ public class NodeDisplay{
     private static void displayObject(Object object){
         if(object == null){
             displayNameType();
-            return;
-        }
-
-        if(object instanceof UnlockableContent content){
+            table.add().expandX();
+            table.table(t -> {
+                t.image(Icon.none).size(imageSize).row();
+                t.add("null").padTop(8f);
+            });
+        }else if(object instanceof UnlockableContent content){
             displayNameType();
             table.add().expandX();
             displayInfo(content.uiIcon, content.localizedName);
@@ -89,7 +93,7 @@ public class NodeDisplay{
         }else if(object instanceof Weapon weapon){
             displayNameType();
             table.add().expandX();
-            displayInfo(weapon.region, weapon.name);
+            displayInfo(Core.atlas.find(weapon.name, weapon.region), weapon.name);
         }else{
             displayNameType();
         }
@@ -116,7 +120,7 @@ public class NodeDisplay{
         table.table(valueTable -> {
             valueTable.defaults().right();
 
-            valueTable.image(icon).scaling(Scaling.fit).size(Vars.iconLarge);
+            valueTable.image(icon).scaling(Scaling.fit).size(imageSize);
             valueTable.row();
             valueTable.add(value).labelAlign(Align.right).ellipsis(true).padTop(8f).width(labelWidth);
         });

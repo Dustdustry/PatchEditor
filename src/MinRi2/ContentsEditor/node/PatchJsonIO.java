@@ -19,14 +19,6 @@ public class PatchJsonIO{
     private static ContentParser parser;
     private static ObjectMap<String, ContentType> nameToType;
 
-    public static final ObjectMap<Class<?>, ContentType> contentClassTypeMap = ObjectMap.of(
-        Block.class, ContentType.block,
-        Item.class, ContentType.item,
-        Liquid.class, ContentType.liquid,
-        StatusEffect.class, ContentType.status,
-        UnitType.class, ContentType.unit
-    );
-
     /** Classes that type is partial when node is dynamic. */
     public static final Seq<Class<?>> partialTypeClass = Seq.with(
         ItemStack.class, LiquidStack.class, PayloadStack.class
@@ -72,6 +64,15 @@ public class PatchJsonIO{
         return ClassHelper.unoymousClass(node.getObject().getClass());
     }
 
+    public static ContentType getContentType(Class<?> type){
+        if(Block.class.isAssignableFrom(type)) return ContentType.block;
+        if(Item.class.isAssignableFrom(type)) return ContentType.item;
+        if(Liquid.class.isAssignableFrom(type)) return ContentType.liquid;
+        if(StatusEffect.class.isAssignableFrom(type)) return ContentType.status;
+        if(UnitType.class.isAssignableFrom(type)) return ContentType.unit;
+        return null;
+    }
+
     public static boolean isArray(NodeData data){
         return ClassHelper.isArray(getType(data));
     }
@@ -87,7 +88,7 @@ public class PatchJsonIO{
         parseJson(data, value);
     }
 
-    private static void parseJson(NodeData data, JsonValue value){
+    public static void parseJson(NodeData data, JsonValue value){
         if(value != null) desugarJson(data, value);
         if(value == null || value.isValue()){
             data.setJsonData(value);
@@ -162,8 +163,6 @@ public class PatchJsonIO{
             return json;
         }
 
-        processData(node, json);
-
         for(NodeData child : node.getChildren()){
             JsonValue childData = child.getJsonData();
             if(childData == null) continue;
@@ -171,6 +170,7 @@ public class PatchJsonIO{
             addChildValue(json, childJson.name, childJson);
         }
 
+        processData(node, json);
         return json;
     }
 
