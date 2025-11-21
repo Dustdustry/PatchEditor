@@ -108,6 +108,29 @@ public class PatchJsonIO{
                 parseJson(childData, elemValue);
             }
             return;
+        }else if(value.has("type")){
+            NodeData modifyData = data.getSign(ModifierSign.MODIFY);
+            if(modifyData == null){
+                Log.warn("@.@ is unmodifiable.", data.parentData.name, data.name);
+                return;
+            }
+
+            Class<?> typeIn = getTypeIn(modifyData);
+            if(typeIn == null){
+                Log.warn("@.@ is unmodifiable.", data.parentData.name, data.name);
+                return;
+            }
+
+            JsonValue typeValue = value.remove("type");
+            Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
+            if(type == null || !typeIn.isAssignableFrom(type)){
+                Log.warn("Type '@' is unsustainable to '@'.", type, typeIn);
+                return;
+            }
+
+            NodeData newData = NodeModifier.changeType(modifyData, type);
+            parseJson(newData, value);
+            return;
         }
 
         outer:
@@ -179,10 +202,11 @@ public class PatchJsonIO{
     private static void processData(NodeData node, JsonValue value){
         if(value.type() == ValueType.object && (node.isSign(ModifierSign.MODIFY) || node.isDynamic())){
             Class<?> type = getTypeOut(node);
-            if(type == null || partialTypes.contains(type)) return;
-            String typeName = ClassMap.classes.findKey(type, true);
-            if(typeName == null) typeName = type.getName();
-            addChildValue(value, "type", new JsonValue(typeName));
+            if(type != null && !partialTypes.contains(type)){
+                String typeName = ClassMap.classes.findKey(type, true);
+                if(typeName == null) typeName = type.getName();
+                addChildValue(value, "type", new JsonValue(typeName));
+            }
         }
 
         if(node.isSign(ModifierSign.MODIFY)){
