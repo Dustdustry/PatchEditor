@@ -66,7 +66,7 @@ public class NodeResolver{
             FieldData childMeta = meta == null ? null : new FieldData(meta.elementType);
             for(int i = 0; i < seq.size; i++){
                 Object o = seq.get(i);
-                node.addChild("" + i, o).addChild(ModifierSign.MODIFY.sign, childMeta);
+                node.addChild("" + i, o, childMeta).addChild(ModifierSign.MODIFY.sign, childMeta);
             }
 
             FieldData signMeta = meta == null ? null : new FieldData(meta.type, meta.elementType, null);
