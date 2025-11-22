@@ -1,7 +1,6 @@
 package MinRi2.ContentsEditor.node.modifier;
 
 import MinRi2.ContentsEditor.node.*;
-import MinRi2.ContentsEditor.node.modifier.equal.*;
 import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
@@ -28,15 +27,15 @@ public class NodeModifier{
 
     static {
         modifyConfig.addAll(
-        new ModifierConfig(StringModifier.class, StringModifier::new, String.class),
+        new ModifierConfig(EqualModifier.StringModifier.class, EqualModifier.StringModifier::new, String.class),
 
-        new ModifierConfig(NumberModifier.class, NumberModifier::new,
+        new ModifierConfig(EqualModifier.NumberModifier.class, EqualModifier.NumberModifier::new,
         Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
         byte.class, short.class, int.class, long.class, float.class, double.class),
 
-        new ModifierConfig(BooleanModifier.class, BooleanModifier::new, Boolean.class, boolean.class),
+        new ModifierConfig(EqualModifier.BooleanModifier.class, EqualModifier.BooleanModifier::new, Boolean.class, boolean.class),
 
-        new ModifierConfig(ContentTypeModifier.class, ContentTypeModifier::new,
+        new ModifierConfig(EqualModifier.ContentTypeModifier.class, EqualModifier.ContentTypeModifier::new,
         Block.class, Item.class, Liquid.class, StatusEffect.class, UnitType.class)
         );
 
