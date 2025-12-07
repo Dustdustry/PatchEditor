@@ -1,15 +1,11 @@
 package MinRi2.ContentsEditor.node.modifier;
 
 import MinRi2.ContentsEditor.node.*;
-import MinRi2.ContentsEditor.node.modifier.EqualModifier.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.struct.*;
-import arc.struct.ObjectMap.*;
 import arc.util.*;
-import arc.util.pooling.*;
 import arc.util.serialization.*;
-import arc.util.serialization.Json.*;
 import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.ctype.*;
@@ -34,18 +30,18 @@ public class NodeModifier{
 
     static {
         modifyConfig.addAll(
-        new ModifierConfig(StringModifier.class, StringModifier::new, String.class),
+        new ModifierConfig(StringModifier::new, String.class),
 
-        new ModifierConfig(NumberModifier.class, NumberModifier::new,
+        new ModifierConfig(NumberModifier::new,
         Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
         byte.class, short.class, int.class, long.class, float.class, double.class),
 
-        new ModifierConfig(BooleanModifier.class, BooleanModifier::new, Boolean.class, boolean.class),
+        new ModifierConfig(BooleanModifier::new, Boolean.class, boolean.class),
 
-        new ModifierConfig(ContentTypeModifier.class, ContentTypeModifier::new,
+        new ModifierConfig(ContentTypeModifier::new,
         Block.class, Item.class, Liquid.class, StatusEffect.class, UnitType.class),
 
-        new ModifierConfig(ColorModifier.class, ColorModifier::new, Color.class)
+        new ModifierConfig(ColorModifier::new, Color.class)
 
         );
 
@@ -224,11 +220,10 @@ public class NodeModifier{
 
     public static class ModifierConfig{
         public final Seq<Class<?>> modifierTypes = new Seq<>();
-        private final Pool<DataModifier<?>> pool;
+        private final Prov<DataModifier<?>> prov;
 
-        @SuppressWarnings("unchecked")
-        public ModifierConfig(Class<? extends DataModifier<?>> clazz, Prov<? extends DataModifier<?>> prov, Class<?>... types){
-            pool = Pools.get((Class)clazz, prov);
+        public ModifierConfig(Prov<DataModifier<?>> prov, Class<?>... types){
+            this.prov = prov;
             modifierTypes.addAll(types);
         }
 
@@ -237,7 +232,7 @@ public class NodeModifier{
         }
 
         public DataModifier<?> getModifier(NodeData nodeData){
-            DataModifier<?> modifier = pool.obtain();
+            DataModifier<?> modifier = prov.get();
             modifier.setNodeData(nodeData);
             return modifier;
         }

@@ -20,7 +20,6 @@ public abstract class EqualModifier<T> extends DataModifier<T>{
         public UnlockableContent cast(Object object){
             return (UnlockableContent)object;
         }
-
     }
 
     public static class BooleanModifier extends EqualModifier<Boolean>{

@@ -8,6 +8,8 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
+import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
 import mindustry.*;
 import mindustry.gen.*;
@@ -39,10 +41,7 @@ public class PatchManager extends BaseDialog{
             if(!cont.hasChildren()) setup();
             rebuildCont();
 
-            boolean unpatch = Vars.state.patcher.patches.any();
-            if(unpatch){
-                Vars.state.patcher.unapply();
-            }
+            Vars.state.patcher.unapply();
         });
 
         editor.hidden(this::savePatch);
@@ -90,10 +89,11 @@ public class PatchManager extends BaseDialog{
 
             buttonTable.button("@add-patch", Icon.add, Styles.cleart, () -> {
                 String name = findPatchName();
-                String initialPatch = Strings.format("{name:\"@\"}", name);
-                editorPatches.add(new EditorPatch(name, initialPatch));
-            savePatch();
-        });
+                JsonValue json = new JsonValue(ValueType.object);
+                json.addChild("name", new JsonValue(name));
+                editorPatches.add(new EditorPatch(name, json.toJson(OutputType.json)));
+                savePatch();
+            });
 
             buttonTable.button("@import-patch", Icon.add, Styles.cleart, () -> {
                 String text = Core.app.getClipboardText();

@@ -14,7 +14,7 @@ import java.util.*;
  * @author minri2
  * Create by 2024/4/4
  */
-public abstract class DataModifier<T> implements ModifyConsumer<T>, Poolable{
+public abstract class DataModifier<T> implements ModifyConsumer<T>{
     protected ModifierBuilder<T> builder;
     protected ValueType valueType;
     protected NodeData nodeData;
@@ -48,11 +48,6 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>, Poolable{
     }
 
     public abstract T cast(Object object);
-
-    @Override
-    public void reset(){
-        this.nodeData = null;
-    }
 
     public void setNodeData(NodeData data){
         this.nodeData = data;
