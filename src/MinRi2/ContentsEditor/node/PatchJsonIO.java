@@ -351,8 +351,8 @@ public class PatchJsonIO{
     public static void removeValue(JsonValue value){
         JsonValue prev = value.prev, next = value.next;
         if(prev != null) prev.next = next;
+        else value.parent.child = next;
         if(next != null) next.prev = prev;
-        if(prev == null && next == null) value.parent.child = null;
         value.parent = value.prev = value.next = null;
     }
 }
