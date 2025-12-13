@@ -6,10 +6,14 @@ import MinRi2.ContentsEditor.node.modifier.EqualModifier.*;
 import MinRi2.ContentsEditor.ui.*;
 import arc.*;
 import arc.graphics.*;
+import arc.input.*;
+import arc.scene.*;
 import arc.scene.actions.*;
+import arc.scene.event.*;
 import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import arc.scene.utils.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
@@ -17,6 +21,7 @@ import mindustry.ctype.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 
 /**
  * @author minri2
@@ -240,11 +245,16 @@ public class NodeCard extends Table{
     }
 
     private void addChildButton(Table table, NodeData node){
+        NodeData removeData = node.getSign(ModifierSign.REMOVE);
+        boolean isKeyRemoved = removeData != null && removeData.getJsonData() != null;
+
         ImageButtonStyle style = EStyles.cardButtoni;
         if(isRequired(node)){
             style = EStyles.cardRequiredi;
         }else if(node.isDynamic()){
             style = EStyles.addButtoni;
+        }else if(isKeyRemoved){
+            style = EStyles.cardRemovedi;
         }else if(data.hasJsonChild(node.name)){
             style = EStyles.cardModifiedButtoni;
         }
@@ -255,7 +265,7 @@ public class NodeCard extends Table{
                 NodeDisplay.display(infoTable, node);
             }).pad(8f).grow();
 
-            b.table(btn -> setupEditButton(btn, node, false)).pad(6f).growY();
+            b.table(buttons -> setupEditButton(buttons, node, false)).pad(6f).growY();
 
             b.image().width(4f).color(Color.darkGray).growY().right();
             b.row();
@@ -264,7 +274,7 @@ public class NodeCard extends Table{
         }, style, () -> {
             NodeData modifyData = node.getSign(ModifierSign.MODIFY);
             editChildNode(modifyData == null || modifyData.getJsonData() == null ? node : modifyData);
-        }).disabled(node.getObject() == null);
+        }).disabled(node.getObject() == null || (removeData != null && removeData.getJsonData() != null));
     }
 
     private void addPlusButton(Table table, NodeData plusData){
@@ -304,12 +314,25 @@ public class NodeCard extends Table{
         table.defaults().width(32f).pad(4f).growY();
 
         NodeData modifyData = data.getSign(ModifierSign.MODIFY);
-        if(modifyData != null && modifyData.getJsonData() != null){
-            table.button(Icon.cancel, Styles.clearNonei, () -> {
+        NodeData removeData = data.getSign(ModifierSign.REMOVE);
+
+        boolean isOverride = modifyData != null && modifyData.getJsonData() != null;
+        if(isOverride){
+            table.button(Icon.undo, Styles.clearNonei, () -> {
                 modifyData.clearJson();
                 rebuildNodesTable();
-            }).grow();
+            }).tooltip("#revertOverride").grow();
             return;
+        }
+
+        if(removeData != null){
+            boolean isRemoved = removeData.getJsonData() != null;
+            table.button(isRemoved ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
+                if(!isRemoved) removeData.initJsonData();
+                else removeData.clearJson();
+                rebuildNodesTable();
+            }).tooltip(isRemoved ? "##revertRemove" : "##removeKey");
+            if(isRemoved) return;
         }
 
         if(data.isDynamic()){
@@ -325,30 +348,23 @@ public class NodeCard extends Table{
                 data.clearJson();
                 rebuildNodesTable();
             }).grow().row();
-        }else if(!hasModifier && modifyData != null){
-            if(modifyData.getJsonData() == null){
-                table.button(Icon.wrench, Styles.clearNonei, () -> {
-                    EUI.classSelector.select(null, PatchJsonIO.getTypeIn(data), clazz -> {
-                        NodeData newData = NodeModifier.changeType(modifyData, clazz);
-                        if(newData != null){
-                            editChildNode(newData);
-                        }else{
-                            Log.err("Type '@' not available.", clazz.getSimpleName());
-                        }
-                        return true;
-                    });
-                }).tooltip("##override");
-            }
+        }else if(!hasModifier && modifyData != null && modifyData.getJsonData() == null){
+            table.button(Icon.wrench, Styles.clearNonei, () -> {
+                EUI.classSelector.select(null, PatchJsonIO.getTypeIn(data), clazz -> {
+                    NodeData newData = NodeModifier.changeType(modifyData, clazz);
+                    if(newData != null){
+                        editChildNode(newData);
+                    }else{
+                        Vars.ui.showErrorMessage("Type '" + clazz.getSimpleName() + "' not available.");
+                    }
+                    return true;
+                });
+            }).tooltip("##override");
         }
 
         if(isRequired(data)){
-            table.image(Icon.infoCircle).size(48f).tooltip("##mayRequired");
+            table.image(Icon.infoCircle).height(32f).tooltip("##mayRequired");
         }
-
-        if(data.hasSign(ModifierSign.REMOVE)){
-            table.button(Icon.cancelSmall, Styles.clearNonei, () -> {}).size(48f);
-        }
-
     }
 
     private void buildTitle(Table table){

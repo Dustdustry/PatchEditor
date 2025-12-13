@@ -14,6 +14,7 @@ public class EPalettes{
     main3 = Pal.gray,
     main4 = Pal.lightishGray,
     type = Color.valueOf("d8d8d8"),
+    value = type,
     add = Color.valueOf("#6A8C6A"),
     remove = Color.valueOf("#8C6A6A"),
     required = Color.valueOf("#8c8069"),

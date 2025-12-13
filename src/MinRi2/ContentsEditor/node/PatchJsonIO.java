@@ -110,6 +110,11 @@ public class PatchJsonIO{
 
     public static void parseJson(NodeData data, JsonValue value){
         if(value != null) desugarJson(data, value);
+        if(value != null && value.isString() && ModifierSign.REMOVE.sign.equals(value.asString())){
+            NodeData removeSign = data.getSign(ModifierSign.REMOVE);
+            if(removeSign != null) removeSign.initJsonData();
+            return;
+        }
         if(value == null || value.isValue()){
             data.setJsonData(value);
             return;
@@ -166,7 +171,7 @@ public class PatchJsonIO{
                     continue;
                 }
 
-                // map's key only support when in the end
+                // map's key only support in the end
                 if(i == childNames.length - 1 && isMap(current)){
                     current = parseDynamicChild(current, childNames[i], childValue);
                     if(current == null) continue outer;
@@ -218,6 +223,8 @@ public class PatchJsonIO{
             addChildValue(value, "liquid", new JsonValue(split[0]));
             addChildValue(value, "amount", new JsonValue(split[1]));
         }
+
+        // TODO: More sugar syntaxes support
     }
 
     public static JsonValue toJson(NodeData node){
@@ -254,6 +261,7 @@ public class PatchJsonIO{
             if(child != null) processData(child, childValue);
         }
 
+        // add type for modify sign
         if(value.type() == ValueType.object && (node.isSign(ModifierSign.MODIFY) || node.isDynamic())){
             Class<?> type = getTypeOut(node);
             if(type != null && !partialTypes.contains(type)){
@@ -263,6 +271,7 @@ public class PatchJsonIO{
             }
         }
 
+        // then apply sign
         if(node.isSign(ModifierSign.MODIFY)){
             JsonValue effectValue = value.parent;
             JsonValue effectParentValue = effectValue.parent;
@@ -282,6 +291,13 @@ public class PatchJsonIO{
                 // plus syntax must be used in dot syntax
                 addChildValue(effectParentValue, effectValue.name + "." + value.name, value);
             }
+        }else if(node.isSign(ModifierSign.REMOVE)){
+            JsonValue effectValue = value.parent;
+            JsonValue effectParentValue = effectValue.parent;
+
+            removeValue(value);
+            if(effectValue.child == null) removeValue(effectValue);
+            addChildValue(effectParentValue, effectValue.name, new JsonValue("-"));
         }
     }
 

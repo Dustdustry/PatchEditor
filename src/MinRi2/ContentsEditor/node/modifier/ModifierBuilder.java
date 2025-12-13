@@ -73,7 +73,7 @@ public abstract class ModifierBuilder<T>{
 
             table.button(b -> {
                 b.add(image).size(32f).pad(8f).expandX().left();
-                b.label(() -> value ? "[green]true" : "[red]false").expandX();
+                b.label(() -> value ? "true" : "false").color(EPalettes.value).expandX();
             }, Styles.clearNonei, () -> {
                 setColorUI.get(!value);
                 consumer.onModify(value);
@@ -158,13 +158,14 @@ public abstract class ModifierBuilder<T>{
 
             image.addAction(Actions.color(color, 0.3f));
             table.button(b -> {
-                b.add(image).grow();
+                b.add(image).size(32f).pad(8f);
+                b.label(() -> "#" + value).color(EPalettes.value);
             }, Styles.clearNonei, () -> {
-                Vars.ui.picker.show(color, (c) -> {
+                Vars.ui.picker.show(color, c -> {
                     setColorUI.get(c);
                     consumer.onModify(value);
                 });
-            }).size(40f).expandX();
+            }).height(48f).growX();
 
             addResetButton(table, () -> setColorUI.get(Color.valueOf(consumer.getValue())));
         }
