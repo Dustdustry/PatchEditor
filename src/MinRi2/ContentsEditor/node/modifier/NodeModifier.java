@@ -13,6 +13,7 @@ import mindustry.entities.abilities.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.blocks.payloads.*;
 
 import java.lang.reflect.*;
 
@@ -92,9 +93,31 @@ public class NodeModifier{
 
     private static void handleDynamicData(NodeData node){
         Object object = node.getObject();
+
+        JsonValue value = new JsonValue("");
+
+        // set default value
         if(object instanceof MappableContent mc){
-            node.getJsonData().set(PatchJsonIO.getKeyName(mc));
+            value.set(PatchJsonIO.getKeyName(mc));
         }
+
+        if(object instanceof ItemStack){
+            ItemStack stack = (ItemStack)getExample(null, ItemStack.class);
+            if(stack == null) return;
+            value.set(PatchJsonIO.getKeyName(stack.item) + "/" + 0);
+        }else if(object instanceof PayloadStack){
+            PayloadStack stack = (PayloadStack)getExample(null, PayloadStack.class);
+            if(stack == null) return;
+            value.set(PatchJsonIO.getKeyName(stack.item) + "/" + 0);
+        }else if(object instanceof LiquidStack){
+            LiquidStack stack = (LiquidStack)getExample(null, LiquidStack.class);
+            if(stack == null) return;
+            value.set(PatchJsonIO.getKeyName(stack.liquid) + "/" + 0);
+        }
+
+        if(value.isString() && value.asString().isEmpty()) return;
+
+        PatchJsonIO.parseJson(node, value);
     }
 
     public static NodeData changeType(NodeData node, Class<?> newType){
@@ -192,6 +215,7 @@ public class NodeModifier{
 
         type = handleType(type);
         if(type == null) return null;
+        if(base == null) base = type;
 
         Object example = exampleMap.get(type);
         if(example != null) return example;

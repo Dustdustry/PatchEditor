@@ -136,6 +136,7 @@ public class NodeData{
                 child.parentData = null;
             }
             children.clear();
+            resolved = false;
         }else{
             for(NodeData child : children){
                 if(child.jsonData != null) child.clearJson();

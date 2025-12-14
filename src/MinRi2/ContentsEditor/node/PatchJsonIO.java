@@ -124,8 +124,8 @@ public class PatchJsonIO{
             if(!isArrayLike(data)) return;
 
             // If overriding the array, move children to modifyData.
-            NodeData modifyDaya = data.getSign(ModifierSign.MODIFY);
-            NodeData targetData = modifyDaya == null || data.isSign(ModifierSign.PLUS) ? data : modifyDaya;
+            NodeData modifyData = data.getSign(ModifierSign.MODIFY);
+            NodeData targetData = modifyData == null || !modifyData.hasSign(ModifierSign.PLUS) ? data : modifyData.getSign(ModifierSign.PLUS);
 
             data.setJsonData(value);
             for(JsonValue elemValue : value){
@@ -332,6 +332,15 @@ public class PatchJsonIO{
             value = singleEnd;
         }
 
+        sugarJson(value);
+
+        for(JsonValue childValue : value){
+            simplifyPatch(childValue);
+        }
+        return value;
+    }
+
+    private static void sugarJson(JsonValue value){
         if(value.isObject()){
             // duck like
             if(value.has("item") && value.has("amount")){
@@ -340,11 +349,6 @@ public class PatchJsonIO{
                 value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
             }
         }
-
-        for(JsonValue child : value){
-            simplifyPatch(child);
-        }
-        return value;
     }
 
     private static boolean dotSimplifiable(JsonValue singleEnd){
