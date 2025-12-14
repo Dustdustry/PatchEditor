@@ -30,8 +30,4 @@ public class FieldData{
 
         this.field = metadata.field;
     }
-
-    public FieldData cpy(){
-        return new FieldData(type, elementType, keyType);
-    }
 }

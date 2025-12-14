@@ -118,7 +118,7 @@ public class NodeModifier{
         node.clearJson();
         node.remove();
 
-        NodeData newData = parent.addChild(node.name, example, node.meta.cpy());
+        NodeData newData = parent.addChild(node.name, example, new FieldData(node.meta.type, node.meta.elementType, node.meta.keyType));
         newData.initJsonData();
         PatchJsonIO.parseJson(newData, value);
         return newData;
@@ -139,6 +139,10 @@ public class NodeModifier{
         Object object = node.getObject();
         if(node.isSign()) object = node.parentData.getObject();
 
+        FieldData meta = node.meta;
+        Class<?> baseType = meta.elementType;
+        Class<?> actualElemType = type != null ? type : baseType;
+
         int nextIndex = -1;
         if(object instanceof Object[] arr){
             nextIndex = arr.length;
@@ -148,9 +152,6 @@ public class NodeModifier{
             nextIndex = set.size;
         }
 
-        FieldData meta = node.meta;
-        Class<?> baseType = meta.elementType;
-        Class<?> actualElemType = type != null ? type : baseType;
         if(nextIndex != -1){
             int index = nextIndex + node.getChildren().size;
             Object example = getExample(baseType, actualElemType);

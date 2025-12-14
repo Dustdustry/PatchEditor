@@ -123,11 +123,15 @@ public class PatchJsonIO{
         if(value.isArray()){
             if(!isArrayLike(data)) return;
 
+            // If overriding the array, move children to modifyData.
+            NodeData modifyDaya = data.getSign(ModifierSign.MODIFY);
+            NodeData targetData = modifyDaya == null || data.isSign(ModifierSign.PLUS) ? data : modifyDaya;
+
             data.setJsonData(value);
             for(JsonValue elemValue : value){
                 JsonValue typeValue = elemValue.remove("type");
                 Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-                NodeData childData = NodeModifier.addDynamicChild(data, type);
+                NodeData childData = NodeModifier.addDynamicChild(targetData, type);
                 if(childData == null) return; // getaway
                 parseJson(childData, elemValue);
             }
@@ -256,13 +260,8 @@ public class PatchJsonIO{
     }
 
     private static void processData(NodeData node, JsonValue value){
-        for(JsonValue childValue : value){
-            NodeData child = node.getChild(childValue.name);
-            if(child != null) processData(child, childValue);
-        }
-
         // add type for modify sign
-        if(value.type() == ValueType.object && (node.isSign(ModifierSign.MODIFY) || node.isDynamic())){
+        if(!isArrayLike(node) && (node.isSign(ModifierSign.MODIFY) || node.isDynamic())){
             Class<?> type = getTypeOut(node);
             if(type != null && !partialTypes.contains(type)){
                 String typeName = ClassMap.classes.findKey(type, true);
@@ -288,8 +287,10 @@ public class PatchJsonIO{
                 removeValue(value);
                 // clean empty object
                 if(effectValue.child == null) removeValue(effectValue);
-                // plus syntax must be used in dot syntax
-                addChildValue(effectParentValue, effectValue.name + "." + value.name, value);
+                // If not overriding the array, plus syntax must be used with dot syntax.
+                boolean overriding = node.parentData.isSign(ModifierSign.MODIFY);
+                String name = effectValue.name + (!overriding ? "." + value.name : "");
+                addChildValue(effectParentValue, name, value);
             }
         }else if(node.isSign(ModifierSign.REMOVE)){
             JsonValue effectValue = value.parent;
@@ -299,13 +300,18 @@ public class PatchJsonIO{
             if(effectValue.child == null) removeValue(effectValue);
             addChildValue(effectParentValue, effectValue.name, new JsonValue("-"));
         }
+
+        for(JsonValue childValue : value){
+            NodeData child = node.getChild(childValue.name);
+            if(child != null) processData(child, childValue);
+        }
     }
 
     public static JsonValue simplifyPatch(JsonValue value){
         int singleCount = 1;
         JsonValue singleEnd = value;
         while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null){
-            if(singleEnd.isArray() || singleEnd.has("type")) break;
+            if(dotSimplifiable(singleEnd)) break;
             singleEnd = singleEnd.child;
             singleCount++;
         }
@@ -339,6 +345,10 @@ public class PatchJsonIO{
             simplifyPatch(child);
         }
         return value;
+    }
+
+    private static boolean dotSimplifiable(JsonValue singleEnd){
+        return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
     }
 
     /**

@@ -115,7 +115,7 @@ public class NodeData{
     public void initJsonData(){
         if(jsonData != null) return;
 
-        ValueType type = !hasSign(ModifierSign.PLUS) && PatchJsonIO.isArrayLike(this) ? ValueType.array : ValueType.object;
+        ValueType type = PatchJsonIO.isArrayLike(this) ? ValueType.array : ValueType.object;
         jsonData = new JsonValue(type);
         if(!isRoot()) jsonData.setName(name);
 
