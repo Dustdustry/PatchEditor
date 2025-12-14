@@ -123,15 +123,15 @@ public class PatchJsonIO{
         if(value.isArray()){
             if(!isArrayLike(data)) return;
 
-            // If overriding the array, move children to modifyData.
-            NodeData modifyData = data.getSign(ModifierSign.MODIFY);
-            NodeData targetData = modifyData == null || !modifyData.hasSign(ModifierSign.PLUS) ? data : modifyData.getSign(ModifierSign.PLUS);
+            // If overriding the array, also move children to plusData.
+            NodeData plusData = data.getSign(ModifierSign.PLUS);
+            if(plusData == null) return;
 
             data.setJsonData(value);
             for(JsonValue elemValue : value){
                 JsonValue typeValue = elemValue.remove("type");
                 Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-                NodeData childData = NodeModifier.addDynamicChild(targetData, type);
+                NodeData childData = NodeModifier.addDynamicChild(plusData, type);
                 if(childData == null) return; // getaway
                 parseJson(childData, elemValue);
             }
@@ -288,7 +288,8 @@ public class PatchJsonIO{
                 // clean empty object
                 if(effectValue.child == null) removeValue(effectValue);
                 // If not overriding the array, plus syntax must be used with dot syntax.
-                boolean overriding = node.parentData.isSign(ModifierSign.MODIFY);
+                boolean overriding = isOverride(node.parentData);
+
                 String name = effectValue.name + (!overriding ? "." + value.name : "");
                 addChildValue(effectParentValue, name, value);
             }
@@ -340,6 +341,10 @@ public class PatchJsonIO{
         return value;
     }
 
+    private static boolean dotSimplifiable(JsonValue singleEnd){
+        return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
+    }
+
     private static void sugarJson(JsonValue value){
         if(value.isObject()){
             // duck like
@@ -351,8 +356,15 @@ public class PatchJsonIO{
         }
     }
 
-    private static boolean dotSimplifiable(JsonValue singleEnd){
-        return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
+    private static boolean isOverride(NodeData node){
+        if(node.isSign(ModifierSign.MODIFY)) return true;
+
+        while(node != NodeData.getRootData()){
+            if(node.name.equals("consumes")) return true;
+            node = node.parentData;
+        }
+
+        return false;
     }
 
     /**
