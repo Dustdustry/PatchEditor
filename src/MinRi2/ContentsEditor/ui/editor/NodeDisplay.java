@@ -24,7 +24,7 @@ public class NodeDisplay{
     private static ObjectMap<ContentType, TextureRegion> contentSymbolMap;
 
     private static Table table;
-    private static NodeData node;
+    private static EditorNode node;
 
     private static void intiSymbol(){
         contentSymbolMap = ObjectMap.of(
@@ -37,7 +37,7 @@ public class NodeDisplay{
         );
     }
 
-    private static void set(Table table, NodeData node){
+    private static void set(Table table, EditorNode node){
         NodeDisplay.table = table;
         NodeDisplay.node = node;
     }
@@ -55,13 +55,13 @@ public class NodeDisplay{
         return "";
     }
 
-    public static void display(Table table, NodeData node){
+    public static void display(Table table, EditorNode node){
         set(table, node);
-        displayObject(node.getObject());
+        displayObject(node.getDisplayValue());
         reset();
     }
 
-    public static void displayNameType(Table table, NodeData node){
+    public static void displayNameType(Table table, EditorNode node){
         set(table, node);
         displayNameType();
         reset();
@@ -106,7 +106,7 @@ public class NodeDisplay{
             Class<?> type = PatchJsonIO.getTypeOut(node);
             String typeName = type == null ? "unknown" : ClassHelper.getDisplayName(type);
 
-            nodeInfoTable.add(node.name).wrap().tooltip(node.name);
+            nodeInfoTable.add(node.name()).wrap().tooltip(node.name());
             nodeInfoTable.row();
             nodeInfoTable.add(typeName).fontScale(0.85f).color(EPalettes.type).ellipsis(true).padTop(4f).tooltip(typeName);
         });

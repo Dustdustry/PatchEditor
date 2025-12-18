@@ -1,19 +1,15 @@
 package MinRi2.ContentsEditor.ui.editor;
 
 import MinRi2.ContentsEditor.node.*;
+import MinRi2.ContentsEditor.node.EditorNode.*;
 import MinRi2.ContentsEditor.node.modifier.*;
-import MinRi2.ContentsEditor.node.modifier.EqualModifier.*;
 import MinRi2.ContentsEditor.ui.*;
 import arc.*;
 import arc.graphics.*;
-import arc.input.*;
-import arc.scene.*;
 import arc.scene.actions.*;
-import arc.scene.event.*;
 import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import arc.scene.utils.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
@@ -21,7 +17,6 @@ import mindustry.ctype.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
-import mindustry.ui.dialogs.*;
 
 /**
  * @author minri2
@@ -34,10 +29,9 @@ public class NodeCard extends Table{
     private final Table cardCont, nodesTable; // workingTable / childrenNodesTable
     public boolean editing;
     public NodeCard parent, childCard;
-    private NodeData data;
-    private OrderedMap<Class<?>, Seq<NodeData>> mappedChildren;
 
-    private NodeData lastChildData;
+    private EditorNode editorNode, lastChildNode;
+    private OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren;
 
     private String searchText = "";
 
@@ -50,8 +44,8 @@ public class NodeCard extends Table{
         nodesTable.top().left();
     }
 
-    public void setData(NodeData data){
-        this.data = data;
+    public void setEditorNode(EditorNode editorNode){
+        this.editorNode = editorNode;
     }
 
     public NodeCard getFrontCard(){
@@ -64,7 +58,7 @@ public class NodeCard extends Table{
         return card;
     }
 
-    private void editChildNode(NodeData childNodeData){
+    private void editChildNode(EditorNode childNodeData){
         if(childCard == null){
             childCard = new NodeCard();
             childCard.parent = this;
@@ -73,28 +67,28 @@ public class NodeCard extends Table{
         }
 
         editing = childNodeData != null;
-        childCard.setData(childNodeData);
+        childCard.setEditorNode(childNodeData);
 
         rebuildCont();
     }
 
     public void extractWorking(){
         if(parent != null){
-            parent.lastChildData = data;
+            parent.lastChildNode = editorNode;
             parent.editChildNode(null);
         }
     }
 
     public void editLastData(){
         // 仅支持最前面的卡片
-        if((childCard == null || !childCard.editing) && lastChildData != null){
-            editChildNode(lastChildData);
+        if((childCard == null || !childCard.editing) && lastChildNode != null){
+            editChildNode(lastChildNode);
         }
     }
 
     public void rebuild(){
         clearChildren();
-        if(data == null) return;
+        if(editorNode == null) return;
 
         defaults().growX();
         buildTitle(this);
@@ -109,7 +103,7 @@ public class NodeCard extends Table{
         cardCont.defaults().padLeft(16f);
 
         if(editing){
-            if(childCard.data.parentData == null){
+            if(childCard.editorNode.getParent() == null){
                 Core.app.post(() -> editChildNode(null));
                 return;
             }
@@ -149,7 +143,7 @@ public class NodeCard extends Table{
         nodesTable.clearChildren();
 
         // 下一帧可能正好被清除
-        if(data == null){
+        if(editorNode == null){
             return;
         }
 
@@ -157,7 +151,7 @@ public class NodeCard extends Table{
 
         var map = mappedChildren();
         for(var entry : map){
-            Seq<NodeData> children = entry.value;
+            Seq<EditorNode> children = entry.value;
             Class<?> declareClass = entry.key;
             if(children.isEmpty() && declareClass != Object.class) continue;
 
@@ -175,14 +169,11 @@ public class NodeCard extends Table{
             cont.defaults().size(buttonWidth, buttonWidth / 4).pad(4f).margin(8f).top().left();
 
             int index = 0;
-            for(NodeData child : children){
-                // sign have its own place
-                if(child.isSign()) continue;
-
+            for(EditorNode child : children){
                 if(!searchText.isEmpty()){
-                    String displayName = NodeDisplay.getDisplayName(child.getObject());
+                    String displayName = NodeDisplay.getDisplayName(child.getDisplayValue());
 
-                    if(!Strings.matches(searchText, child.name)
+                    if(!Strings.matches(searchText, child.objectNode.name)
                     && (displayName == null || !Strings.matches(searchText, displayName))){
                         continue;
                     }
@@ -199,10 +190,10 @@ public class NodeCard extends Table{
                 }
             }
 
-            if(declareClass == Object.class){
-                NodeData plusData = data.getSign(ModifierSign.PLUS);
-                if(plusData != null) addPlusButton(cont, plusData);
-            }
+//            if(declareClass == Object.class){
+//                ObjectNode plusData = node.getOrResolve(ModifierSign.PLUS);
+//                if(plusData != null) addPlusButton(cont, plusData);
+//            }
 
             children.clear();
         }
@@ -210,10 +201,10 @@ public class NodeCard extends Table{
         map.clear();
     }
 
-    private void addEditTable(Table table, NodeData node, DataModifier<?> modifier){
+    private void addEditTable(Table table, EditorNode node, DataModifier<?> modifier){
         Color modifiedColor = EPalettes.modified, unmodifiedColor0 = EPalettes.unmodified;
-        if(node.isDynamic()) unmodifiedColor0 = EPalettes.add;
-        else if(isRequired(node)) unmodifiedColor0 = EPalettes.required;
+//        if(node.isDynamic()) unmodifiedColor0 = EPalettes.add;
+        if(isRequired(node)) unmodifiedColor0 = EPalettes.required;
 
         Color unmodifiedColor = unmodifiedColor0;
 
@@ -240,22 +231,22 @@ public class NodeCard extends Table{
         });
     }
 
-    private static boolean isRequired(NodeData node){
-        return node.getJsonData() == null && PatchJsonIO.fieldRequired(node);
+    private static boolean isRequired(EditorNode node){
+        return node.patchNode == null && PatchJsonIO.fieldRequired(node);
     }
 
-    private void addChildButton(Table table, NodeData node){
-        NodeData removeData = node.getSign(ModifierSign.REMOVE);
-        boolean isKeyRemoved = removeData != null && removeData.getJsonData() != null;
+    private void addChildButton(Table table, EditorNode node){
+        EditorNode removeData = node.getSign(ModifierSign.REMOVE);
+        boolean isKeyRemoved = removeData != null && removeData.patchNode != null;
 
         ImageButtonStyle style = EStyles.cardButtoni;
         if(isRequired(node)){
             style = EStyles.cardRequiredi;
-        }else if(node.isDynamic()){
+        }else if(node instanceof DynamicEditorNode){
             style = EStyles.addButtoni;
         }else if(isKeyRemoved){
             style = EStyles.cardRemovedi;
-        }else if(data.hasJsonChild(node.name)){
+        }else if(node.hasValue()){
             style = EStyles.cardModifiedButtoni;
         }
 
@@ -272,18 +263,18 @@ public class NodeCard extends Table{
             Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
             horizontalLine.colspan(b.getColumns());
         }, style, () -> {
-            NodeData modifyData = node.getSign(ModifierSign.MODIFY);
-            editChildNode(modifyData == null || modifyData.getJsonData() == null ? node : modifyData);
-        }).disabled(node.getObject() == null || (removeData != null && removeData.getJsonData() != null));
+            EditorNode modifyData = node.getSign(ModifierSign.MODIFY);
+            editChildNode(modifyData == null || modifyData.patchNode == null ? node : modifyData);
+        }).disabled(node.getObject() == null);
     }
 
-    private void addPlusButton(Table table, NodeData plusData){
-        if(plusData.meta == null || plusData.meta.elementType == null) return;
+    private void addPlusButton(Table table, ObjectNode plusData){
+        if(plusData.elementType == null) return;
 
         table.button(b -> {
             b.image(Icon.add).pad(8f).padRight(16f);
 
-            b.add(ClassHelper.getDisplayName(plusData.meta.elementType)).color(EPalettes.type)
+            b.add(ClassHelper.getDisplayName(plusData.elementType)).color(EPalettes.type)
             .style(Styles.outlineLabel).ellipsis(true).fillX();
 
             b.image().width(4f).color(Color.darkGray).growY().right();
@@ -291,32 +282,32 @@ public class NodeCard extends Table{
             Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
             horizontalLine.colspan(b.getColumns());
         }, EStyles.addButtoni, () -> {
-            Class<?> keyType = plusData.meta.keyType;
+            Class<?> keyType = plusData.keyType;
             if(keyType != null){
                 ContentType type = PatchJsonIO.getContentType(keyType);
                 if(type == null){
                     // TODO: unsupported key type
                     return;
                 }
-                EUI.selector.select(type, c -> true, c -> {
-                    NodeModifier.addDynamicChild(plusData, null, PatchJsonIO.getKeyName(c));
-                    rebuildNodesTable();
-                    return true;
-                });
+//                EUI.selector.select(type, c -> true, c -> {
+//                    NodeModifier.addDynamicChild(plusData, null, PatchJsonIO.getKeyName(c));
+//                    rebuildNodesTable();
+//                    return true;
+//                });
             }else{
-                NodeModifier.addDynamicChild(plusData);
-                rebuildNodesTable();
+//                NodeModifier.addDynamicChild(plusData);
+//                rebuildNodesTable();
             }
         });
     }
 
-    private void setupEditButton(Table table, NodeData data, boolean hasModifier){
+    private void setupEditButton(Table table, EditorNode data, boolean hasModifier){
         table.defaults().width(32f).pad(4f).growY();
 
-        NodeData modifyData = data.getSign(ModifierSign.MODIFY);
-        NodeData removeData = data.getSign(ModifierSign.REMOVE);
+        EditorNode modifyData = data.getSign(ModifierSign.MODIFY);
+        EditorNode removeData = data.getSign(ModifierSign.REMOVE);
 
-        boolean isOverride = modifyData != null && modifyData.getJsonData() != null;
+        boolean isOverride = modifyData != null && modifyData.patchNode != null;
         if(isOverride){
             table.button(Icon.undo, Styles.clearNonei, () -> {
                 modifyData.clearJson();
@@ -326,19 +317,19 @@ public class NodeCard extends Table{
         }
 
         if(removeData != null){
-            boolean isRemoved = removeData.getJsonData() != null;
+            boolean isRemoved = removeData.patchNode != null;
             table.button(isRemoved ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
-                if(!isRemoved) removeData.initJsonData();
+                if(!isRemoved) removeData.initJson();
                 else removeData.clearJson();
                 rebuildNodesTable();
             }).tooltip(isRemoved ? "##revertRemove" : "##removeKey");
             if(isRemoved) return;
         }
 
-        if(data.isDynamic()){
+        if(data instanceof PlusEditorNode){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
                 EUI.classSelector.select(null, PatchJsonIO.getTypeIn(data), clazz -> {
-                    NodeModifier.changeType(data, clazz);
+//                    NodeModifier.changeType(data, clazz);
                     rebuildNodesTable();
                     return true;
                 });
@@ -348,15 +339,15 @@ public class NodeCard extends Table{
                 data.clearJson();
                 rebuildNodesTable();
             }).grow().row();
-        }else if(!hasModifier && modifyData != null && modifyData.getJsonData() == null){
+        }else if(!hasModifier && modifyData != null && modifyData.patchNode == null){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
                 EUI.classSelector.select(null, PatchJsonIO.getTypeIn(data), clazz -> {
-                    NodeData newData = NodeModifier.changeType(modifyData, clazz);
-                    if(newData != null){
-                        editChildNode(newData);
-                    }else{
-                        Vars.ui.showErrorMessage("Type '" + clazz.getSimpleName() + "' not available.");
-                    }
+//                    EditorNode newData = NodeModifier.changeType(modifyData, clazz);
+//                    if(newData != null){
+//                        editChildNode(newData);
+//                    }else{
+//                        Vars.ui.showErrorMessage("Type '" + clazz.getSimpleName() + "' not available.");
+//                    }
                     return true;
                 });
             }).tooltip("##override");
@@ -375,7 +366,7 @@ public class NodeCard extends Table{
             nodeTitle.table(Tex.whiteui, nameTable -> {
                 nameTable.table(t -> {
                     t.left();
-                    NodeDisplay.display(t, data);
+                    NodeDisplay.display(t, editorNode);
                 }).pad(8f).grow();
 
                 nameTable.image().width(4f).color(Color.darkGray).growY().right();
@@ -386,8 +377,8 @@ public class NodeCard extends Table{
 
             // Clear data
             nodeTitle.button(Icon.refresh, Styles.cleari, () -> {
-                Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", data.name), () -> {
-                    data.clearJson();
+                Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", editorNode.name()), () -> {
+                    editorNode.clearJson();
                     getFrontCard().rebuildNodesTable();
                 });
             }).size(64f).tooltip("@node-card.clear-data", true);
@@ -402,14 +393,14 @@ public class NodeCard extends Table{
         }).color(titleColor);
     }
 
-    private OrderedMap<Class<?>, Seq<NodeData>> mappedChildren(){
+    private OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren(){
         if(mappedChildren == null) mappedChildren = new OrderedMap<>();
         for(var entry : mappedChildren){
             entry.value.clear();
         }
         mappedChildren.clear();
 
-        Class<?> type = PatchJsonIO.getTypeOut(data);
+        Class<?> type = PatchJsonIO.getTypeOut(editorNode);
         if(type == null) return mappedChildren;
 
         while(type != null){
@@ -417,18 +408,18 @@ public class NodeCard extends Table{
             type = type.getSuperclass();
         }
 
-        for(NodeData child : data.getChildren()){
-            if(child.isSign(ModifierSign.PLUS)){
-                mappedChildren.get(Object.class).addAll(child.getChildren());
+        for(EditorNode child : editorNode.getChildren().values()){
+            if(child instanceof PlusEditorNode){
+                mappedChildren.get(Object.class).addAll(child.getChildren().values());
                 continue;
             }
 
-            if(child.meta == null || child.meta.field == null){
+            if(child.objectNode == null || child.objectNode.field == null){
                 mappedChildren.get(Object.class).add(child); // Object means unknow declaring class
                 continue;
             }
 
-            mappedChildren.get(child.meta.field.getDeclaringClass()).add(child);
+            mappedChildren.get(child.objectNode.field.getDeclaringClass()).add(child);
         }
 
         for(var entry : mappedChildren){
@@ -437,7 +428,7 @@ public class NodeCard extends Table{
             Structs.comps(
                 Structs.comparingBool(n -> !isRequired(n)),
                 Structs.comps(
-                    Structs.comparingBool(n -> n.getJsonData() == null),
+                    Structs.comparingBool(n -> !n.hasValue()),
                     Structs.comparingInt(NodeModifier::getModifierIndex).reversed()
                 )
             )
@@ -450,7 +441,7 @@ public class NodeCard extends Table{
     @Override
     public String toString(){
         return "NodeCard{" +
-        "nodeData=" + data +
+        "nodeData=" + editorNode +
         '}';
     }
 }

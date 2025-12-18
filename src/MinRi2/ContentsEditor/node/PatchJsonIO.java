@@ -26,11 +26,11 @@ public class PatchJsonIO{
         ItemStack.class, LiquidStack.class, PayloadStack.class
     );
 
-    public static Object readData(NodeData data){
-        if(data.getJsonData() == null) return null;
+    public static Object readData(EditorNode data){
+        if(data.patchNode == null) return null;
         Class<?> type = getTypeIn(data);
         if(type == null) return null;
-        return getParser().getJson().readValue(type, data.getJsonData());
+        return getParser().getJson().readValue(type, data.patchNode.toJson());
     }
 
     public static String getKeyName(Object object){
@@ -54,8 +54,8 @@ public class PatchJsonIO{
         return nameToType;
     }
 
-    public static Class<?> getTypeIn(NodeData node){
-        if(node.meta != null) return node.meta.type;
+    public static Class<?> getTypeIn(EditorNode node){
+        if(node.objectNode != null) return node.objectNode.type;
         if(node.getObject() instanceof MapEntry<?,?> entry) return ClassHelper.unoymousClass(entry.value.getClass());
         return node.getObject() == null ? null : ClassHelper.unoymousClass(node.getObject().getClass());
     }
@@ -63,8 +63,8 @@ public class PatchJsonIO{
     /**
      * @return object's class first then meta type.
      */
-    public static Class<?> getTypeOut(NodeData node){
-        if(node.getObject() == null) return node.meta != null ? node.meta.type : null;
+    public static Class<?> getTypeOut(EditorNode node){
+        if(node.getObject() == null) return node.objectNode != null ? node.objectNode.type : null;
         if(node.getObject() instanceof MapEntry<?,?> entry) return ClassHelper.unoymousClass(entry.value.getClass());
         return ClassHelper.unoymousClass(node.getObject().getClass());
     }
@@ -78,21 +78,21 @@ public class PatchJsonIO{
         return null;
     }
 
-    public static boolean isArray(NodeData data){
+    public static boolean isArray(EditorNode data){
         return ClassHelper.isArray(getTypeOut(data));
     }
 
-    public static boolean isArrayLike(NodeData data){
+    public static boolean isArrayLike(EditorNode data){
         return ClassHelper.isArrayLike(getTypeOut(data));
     }
 
-    public static boolean isMap(NodeData data){
+    public static boolean isMap(EditorNode data){
         return ClassHelper.isMap(getTypeOut(data));
     }
 
-    public static boolean fieldRequired(NodeData child){
-        if(child.meta == null) return false;
-        Field field = child.meta.field;
+    public static boolean fieldRequired(EditorNode child){
+        if(child.objectNode == null) return false;
+        Field field = child.objectNode.field;
         if(field == null || field.getType().isPrimitive()) return false;
         if(MappableContent.class.isAssignableFrom(field.getType())){
             return !field.getType().isAnnotationPresent(Nullable.class) && child.getObject() == null;
@@ -101,119 +101,141 @@ public class PatchJsonIO{
         return false;
     }
 
-    public static void parseJson(NodeData data, String patch){
+    public static PatchNode parseJson(ObjectNode objectNode, PatchNode patchNode, String patch){
         JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
-
-        data.clearJson();
-        parseJson(data, value);
+        desugarJson(objectNode, value);
+        return parseJson(patchNode, value);
     }
 
-    public static void parseJson(NodeData data, JsonValue value){
-        if(value != null) desugarJson(data, value);
-        if(value != null && value.isString() && ModifierSign.REMOVE.sign.equals(value.asString())){
-            NodeData removeSign = data.getSign(ModifierSign.REMOVE);
-            if(removeSign != null) removeSign.initJsonData();
-            return;
-        }
-        if(value == null || value.isValue()){
-            data.setJsonData(value);
-            return;
-        }
+    public static PatchNode parseJson(PatchNode patchNode, JsonValue value){
+        patchNode.setJson(value);
 
-        if(value.isArray()){
-            if(!isArrayLike(data)) return;
-
-            // If overriding the array, also move children to plusData.
-            NodeData plusData = data.getSign(ModifierSign.PLUS);
-            if(plusData == null) return;
-
-            data.setJsonData(value);
-            for(JsonValue elemValue : value){
-                JsonValue typeValue = elemValue.remove("type");
-                Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-                NodeData childData = NodeModifier.addDynamicChild(plusData, type);
-                if(childData == null) return; // getaway
-                parseJson(childData, elemValue);
-            }
-            return;
-        }else if(value.has("type")){
-            NodeData modifyData = data.getSign(ModifierSign.MODIFY);
-            if(modifyData == null){
-                Log.warn("@.@ is unmodifiable.", data.parentData.name, data.name);
-                return;
-            }
-
-            Class<?> typeIn = getTypeIn(modifyData);
-            if(typeIn == null){
-                Log.warn("@.@ is unmodifiable.", data.parentData.name, data.name);
-                return;
-            }
-
-            JsonValue typeValue = value.remove("type");
-            Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-            if(type == null || !typeIn.isAssignableFrom(type)){
-                Log.warn("Type '@' is unsustainable to '@'.", type, typeIn);
-                return;
-            }
-
-            NodeData newData = NodeModifier.changeType(modifyData, type);
-            parseJson(newData, value);
-            return;
-        }
-
-        outer:
         for(JsonValue childValue : value){
-            // impossible?
-            if(childValue.name == null) continue;
-
-            NodeData current = data;
-            String[] childNames = childValue.name.split("\\.");
-            for(int i = 0; i < childNames.length; i++){
-                NodeData childData = current.getChild(childNames[i]);
-                if(childData != null){
-                    current = childData;
-                    continue;
-                }
-
-                // map's key only support in the end
-                if(i == childNames.length - 1 && isMap(current)){
-                    current = parseDynamicChild(current, childNames[i], childValue);
-                    if(current == null) continue outer;
-                    break;
-                }
-
-                Log.warn("Couldn't resolve @.@", current.name, childNames[i]);
-                continue outer;
-            }
-
-            childValue.setName(current.name);
-            parseJson(current, childValue);
-        }
-    }
-
-    private static NodeData parseDynamicChild(NodeData data, String childName, JsonValue value){
-        if(isMap(data)){
-            Class<?> keyType = data.meta.keyType;
-
-            NodeData plusData = data.getChild(ModifierSign.PLUS.sign);
-            Object obj = getParser().getJson().readValue(keyType, new JsonValue(childName));
-            if(obj == null) return null;
-
-            JsonValue typeValue = value.remove("type");
-            Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-            if(type != null && keyType.isAssignableFrom(type)){
-                Log.warn("Type '@' is unsustainable to '@'.", type, keyType);
-                return null;
-            }
-
-            return NodeModifier.addDynamicChild(plusData, type, childName);
+            PatchNode childNode = patchNode.addChild(childValue.name, childValue.type());
+            parseJson(childNode, childValue);
         }
 
-        return null;
+        return patchNode;
     }
 
-    private static void desugarJson(NodeData data, JsonValue value){
-        Class<?> type = getTypeOut(data);
+//    public static void parseJson(EditorNode data, String patch){
+//        JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
+//
+//        data.clearJson();
+//        parseJson(data, value);
+//    }
+//
+//    public static void parseJson(EditorNode data, JsonValue value){
+//        if(value == null) return;
+//
+//        desugarJson(data, value);
+//        if(value.isValue()){
+//            data.setValue(value.asString());
+//            return;
+//        }
+//
+//        if(value.isString() && ModifierSign.REMOVE.sign.equals(value.asString())){
+//            EditorNode removeSign = data.getSign(ModifierSign.REMOVE);
+//            if(removeSign != null) removeSign.initJson();
+//            return;
+//        }
+//
+//        if(value.isArray()){
+//            if(!isArrayLike(data)) return;
+//
+//            // If overriding the array, also move children to plusData.
+//            EditorNode plusData = data.getSign(ModifierSign.PLUS);
+//            if(plusData == null) return;
+//
+//            data.setPatchNode(value);
+//            for(JsonValue elemValue : value){
+//                JsonValue typeValue = elemValue.remove("type");
+//                Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
+//                EditorNode childData = NodeModifier.addDynamicChild(plusData, type);
+//                if(childData == null) return; // getaway
+//                parseJson(childData, elemValue);
+//            }
+//            return;
+//        }else if(value.has("type")){
+//            EditorNode modifyData = data.getSign(ModifierSign.MODIFY);
+//            if(modifyData == null){
+//                Log.warn("@.@ is unmodifiable.", data.parent.name, data.name);
+//                return;
+//            }
+//
+//            Class<?> typeIn = getTypeIn(modifyData);
+//            if(typeIn == null){
+//                Log.warn("@.@ is unmodifiable.", data.parent.name, data.name);
+//                return;
+//            }
+//
+//            JsonValue typeValue = value.remove("type");
+//            Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
+//            if(type == null || !typeIn.isAssignableFrom(type)){
+//                Log.warn("Type '@' is unsustainable to '@'.", type, typeIn);
+//                return;
+//            }
+//
+//            EditorNode newData = NodeModifier.changeType(modifyData, type);
+//            parseJson(newData, value);
+//            return;
+//        }
+//
+//        outer:
+//        for(JsonValue childValue : value){
+//            // impossible?
+//            if(childValue.name == null) continue;
+//
+//            EditorNode current = data;
+//            String[] childNames = childValue.name.split("\\.");
+//            for(int i = 0; i < childNames.length; i++){
+//                EditorNode childData = current.getChild(childNames[i]);
+//                if(childData != null){
+//                    current = childData;
+//                    continue;
+//                }
+//
+//                // map's key only support in the end
+//                if(i == childNames.length - 1 && isMap(current)){
+//                    current = parseDynamicChild(current, childNames[i], childValue);
+//                    if(current == null) continue outer;
+//                    break;
+//                }
+//
+//                Log.warn("Couldn't resolve @.@", current.name, childNames[i]);
+//                continue outer;
+//            }
+//
+//            childValue.setName(current.name);
+//            parseJson(current, childValue);
+//        }
+//    }
+//
+//    private static EditorNode parseDynamicChild(EditorNode data, String childName, JsonValue value){
+//        if(isMap(data)){
+//            Class<?> keyType = data.meta.keyType;
+//
+//            EditorNode plusData = data.getChild(ModifierSign.PLUS.sign);
+//            Object obj = getParser().getJson().readValue(keyType, new JsonValue(childName));
+//            if(obj == null) return null;
+//
+//            JsonValue typeValue = value.remove("type");
+//            Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
+//            if(type != null && keyType.isAssignableFrom(type)){
+//                Log.warn("Type '@' is unsustainable to '@'.", type, keyType);
+//                return null;
+//            }
+//
+//            return NodeModifier.addDynamicChild(plusData, type, childName);
+//        }
+//
+//        return null;
+//    }
+
+    private static void desugarJson(ObjectNode node, JsonValue value){
+        if(node == null) return;
+
+        Class<?> type = node.type;
         if(type == ItemStack.class || type == PayloadStack.class){
             if(!value.isString() || !value.asString().contains("/")) return;
             String[] split = value.asString().split("/");
@@ -229,82 +251,9 @@ public class PatchJsonIO{
         }
 
         // TODO: More sugar syntaxes support
-    }
-
-    public static JsonValue toJson(NodeData node){
-        JsonValue jsonData = node.getJsonData();
-        if(jsonData == null) return new JsonValue(ValueType.object);
-        JsonValue linkedValue = linkJsonData(node, new JsonValue(jsonData.type()));
-        processData(node, linkedValue);
-        return linkedValue;
-    }
-
-    private static JsonValue linkJsonData(NodeData node, JsonValue json){
-        JsonValue data = node.getJsonData();
-        if(data == null) return json;
-
-        if(data.isValue()){
-            json.set(data.asString());
-            return json;
-        }
-
-        for(NodeData child : node.getChildren()){
-            JsonValue childData = child.getJsonData();
-            if(childData == null) continue;
-            JsonValue childJson = new JsonValue(childData.type());
-            addChildValue(json, child.name, childJson);
-            linkJsonData(child, childJson);
-        }
-
-        return json;
-    }
-
-    private static void processData(NodeData node, JsonValue value){
-        // add type for modify sign
-        if(!isArrayLike(node) && (node.isSign(ModifierSign.MODIFY) || node.isDynamic())){
-            Class<?> type = getTypeOut(node);
-            if(type != null && !partialTypes.contains(type)){
-                String typeName = ClassMap.classes.findKey(type, true);
-                if(typeName == null) typeName = type.getName();
-                addChildValue(value, "type", new JsonValue(typeName));
-            }
-        }
-
-        // then apply sign
-        if(node.isSign(ModifierSign.MODIFY)){
-            JsonValue effectValue = value.parent;
-            JsonValue effectParentValue = effectValue.parent;
-            removeValue(effectValue);
-            addChildValue(effectParentValue, effectValue.name, value);
-        }else if(node.isSign(ModifierSign.PLUS)){
-            JsonValue effectValue = value.parent;
-            JsonValue effectParentValue = effectValue.parent;
-
-            if(isMap(node.parentData)){
-                removeValue(value);
-                addChildValue(effectValue, value.child.name, value.child);
-            }else{
-                removeValue(value);
-                // clean empty object
-                if(effectValue.child == null) removeValue(effectValue);
-                // If not overriding the array, plus syntax must be used with dot syntax.
-                boolean overriding = isOverride(node.parentData);
-
-                String name = effectValue.name + (!overriding ? "." + value.name : "");
-                addChildValue(effectParentValue, name, value);
-            }
-        }else if(node.isSign(ModifierSign.REMOVE)){
-            JsonValue effectValue = value.parent;
-            JsonValue effectParentValue = effectValue.parent;
-
-            removeValue(value);
-            if(effectValue.child == null) removeValue(effectValue);
-            addChildValue(effectParentValue, effectValue.name, new JsonValue("-"));
-        }
 
         for(JsonValue childValue : value){
-            NodeData child = node.getChild(childValue.name);
-            if(child != null) processData(child, childValue);
+            desugarJson(node.getOrResolve(childValue.name), childValue);
         }
     }
 
@@ -328,7 +277,7 @@ public class PatchJsonIO{
             }
 
             JsonValue parent = value.parent;
-            removeValue(value);
+            PatchNode.remove(value);
             addChildValue(parent, name.toString(), singleEnd);
             value = singleEnd;
         }
@@ -356,17 +305,6 @@ public class PatchJsonIO{
         }
     }
 
-    private static boolean isOverride(NodeData node){
-        if(node.isSign(ModifierSign.MODIFY)) return true;
-
-        while(node != NodeData.getRootData()){
-            if(node.name.equals("consumes")) return true;
-            node = node.parentData;
-        }
-
-        return false;
-    }
-
     /**
      * Function 'addChild' doesn't set the child's previous jsonValue.
      * see {@link JsonValue}
@@ -388,13 +326,5 @@ public class PatchJsonIO{
                 current = current.next;
             }
         }
-    }
-
-    public static void removeValue(JsonValue value){
-        JsonValue prev = value.prev, next = value.next;
-        if(prev != null) prev.next = next;
-        else value.parent.child = next;
-        if(next != null) next.prev = prev;
-        value.parent = value.prev = value.next = null;
     }
 }

@@ -17,7 +17,7 @@ import mindustry.ui.dialogs.*;
  * Create by 2024/2/15
  */
 public class PatchEditor extends BaseDialog{
-    private final NodeData rootData;
+    private final EditorNode rootData;
     private final NodeCard card;
 
     private EditorPatch editPatch;
@@ -25,7 +25,7 @@ public class PatchEditor extends BaseDialog{
     public PatchEditor(){
         super("@contents-editor");
 
-        rootData = NodeData.getRootData();
+        rootData = EditorNode.getRootData();
         card = new NodeCard();
 
         setup();
@@ -33,7 +33,7 @@ public class PatchEditor extends BaseDialog{
         resized(this::rebuild);
         shown(this::rebuild);
         hidden(() -> {
-            JsonValue data = PatchJsonIO.toJson(rootData);
+            JsonValue data = rootData.patchNode.toJson();
             editPatch.patch = PatchJsonIO.simplifyPatch(data).toJson(OutputType.json);
             rootData.clearJson();
         });
@@ -59,12 +59,15 @@ public class PatchEditor extends BaseDialog{
     }
 
     public void edit(EditorPatch patch){
+        rootData.clearJson();
+
         try{
-            PatchJsonIO.parseJson(rootData, patch.patch);
+            PatchJsonIO.parseJson(ObjectNode.getRoot(), rootData.patchNode, patch.patch);
         }catch(Exception e){
             Vars.ui.showException(e);
             return;
         }
+
         editPatch = patch;
         show();
     }
@@ -84,7 +87,7 @@ public class PatchEditor extends BaseDialog{
 
         cont.top();
 
-        card.setData(rootData);
+        card.setEditorNode(rootData);
 
         addCloseListener();
     }
