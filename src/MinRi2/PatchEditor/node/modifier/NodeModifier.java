@@ -1,6 +1,6 @@
-package MinRi2.ContentsEditor.node.modifier;
+package MinRi2.PatchEditor.node.modifier;
 
-import MinRi2.ContentsEditor.node.*;
+import MinRi2.PatchEditor.node.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.struct.*;
@@ -17,7 +17,7 @@ import mindustry.world.blocks.payloads.*;
 
 import java.lang.reflect.*;
 
-import static MinRi2.ContentsEditor.node.modifier.EqualModifier.*;
+import static MinRi2.PatchEditor.node.modifier.EqualModifier.*;
 
 /**
  * @author minri2

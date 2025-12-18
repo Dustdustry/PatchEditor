@@ -1,4 +1,4 @@
-package MinRi2.ContentsEditor.node;
+package MinRi2.PatchEditor.node;
 
 import arc.util.*;
 import arc.util.serialization.Json.*;

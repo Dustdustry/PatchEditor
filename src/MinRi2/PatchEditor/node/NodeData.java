@@ -1,4 +1,4 @@
-package MinRi2.ContentsEditor.node;
+package MinRi2.PatchEditor.node;
 
 import arc.struct.*;
 import arc.util.*;
@@ -46,7 +46,7 @@ public class NodeData{
 
     public static NodeData getRootData(){
         if(rootData == null){
-            rootData = new NodeData("root", Reflect.get(ContentPatcher.class, "root"));
+            rootData = new NodeData("root", Reflect.get(DataPatcher.class, "root"));
             rootData.initJsonData();
         }
         return rootData;

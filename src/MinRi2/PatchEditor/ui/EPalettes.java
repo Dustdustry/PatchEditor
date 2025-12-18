@@ -1,4 +1,4 @@
-package MinRi2.ContentsEditor.ui;
+package MinRi2.PatchEditor.ui;
 
 import arc.graphics.*;
 import mindustry.graphics.*;

@@ -1,7 +1,7 @@
-package MinRi2.ContentsEditor.ui.editor;
+package MinRi2.PatchEditor.ui.editor;
 
-import MinRi2.ContentsEditor.node.*;
-import MinRi2.ContentsEditor.ui.*;
+import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.graphics.*;
 import arc.scene.ui.layout.*;
@@ -13,7 +13,7 @@ import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
 import mindustry.*;
 import mindustry.gen.*;
-import mindustry.mod.ContentPatcher.*;
+import mindustry.mod.DataPatcher.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 

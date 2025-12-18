@@ -1,4 +1,4 @@
-package MinRi2.ContentsEditor.node;
+package MinRi2.PatchEditor.node;
 
 public enum ModifierSign{
     // used for Array, Seq, ObjectSet as field

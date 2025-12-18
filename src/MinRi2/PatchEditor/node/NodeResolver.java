@@ -1,6 +1,6 @@
-package MinRi2.ContentsEditor.node;
+package MinRi2.PatchEditor.node;
 
-import MinRi2.ContentsEditor.node.modifier.*;
+import MinRi2.PatchEditor.node.modifier.*;
 import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;

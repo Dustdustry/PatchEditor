@@ -1,6 +1,6 @@
-package MinRi2.ContentsEditor.node;
+package MinRi2.PatchEditor.node;
 
-import MinRi2.ContentsEditor.node.modifier.*;
+import MinRi2.PatchEditor.node.modifier.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -41,7 +41,7 @@ public class PatchJsonIO{
     }
 
     public static ContentParser getParser(){
-        if(parser == null) parser = Reflect.get(ContentPatcher.class, "parser");
+        if(parser == null) parser = Reflect.get(DataPatcher.class, "parser");
         return parser;
     }
 
@@ -50,7 +50,7 @@ public class PatchJsonIO{
     }
 
     public static ObjectMap<String, ContentType> getNameToType(){
-        if(nameToType == null) nameToType = Reflect.get(ContentPatcher.class, "nameToType");
+        if(nameToType == null) nameToType = Reflect.get(DataPatcher.class, "nameToType");
         return nameToType;
     }
 
@@ -342,7 +342,7 @@ public class PatchJsonIO{
     }
 
     private static boolean dotSimplifiable(JsonValue singleEnd){
-        return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
+        return !(singleEnd.isArray() || singleEnd.has("type") || "consumes".equals(singleEnd.name));
     }
 
     private static void sugarJson(JsonValue value){

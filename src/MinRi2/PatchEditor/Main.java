@@ -1,6 +1,6 @@
-package MinRi2.ContentsEditor;
+package MinRi2.PatchEditor;
 
-import MinRi2.ContentsEditor.ui.*;
+import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import mindustry.game.EventType.*;
 import mindustry.mod.*;
