@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.node;
 
+import MinRi2.PatchEditor.node.modifier.*;
 import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
@@ -15,11 +16,13 @@ import mindustry.mod.*;
 import java.lang.reflect.*;
 
 public class ObjectResolver{
-
     private static final Seq<Class<?>> resolveBlacklist = Seq.with(
     Prov.class, Class.class, Texture.class, TextureRegion.class, Fi.class, Boolf.class, Func.class,
     DrawPart.class
     );
+
+    // For dynamic editor node
+    private static ObjectMap<Class<?>, ObjectNode> templateNode;
 
     public static void resolve(ObjectNode node){
         if(node == ObjectNode.getRoot()){
@@ -99,6 +102,17 @@ public class ObjectResolver{
                 }
             }
         }
+    }
+
+    public static ObjectNode getTemplate(Class<?> clazz){
+        if(templateNode == null) templateNode = new ObjectMap<>();
+
+        ObjectNode objectNode = templateNode.get(clazz);
+        if(objectNode != null) return objectNode;
+
+        objectNode = new ObjectNode("", NodeModifier.getExample(clazz, clazz), clazz);
+        templateNode.put(clazz, objectNode);
+        return objectNode;
     }
 
     public static boolean typeBlack(Class<?> clazz){

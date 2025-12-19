@@ -59,27 +59,21 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
 
     @Override
     public Class<?> getDataType(){
-        return PatchJsonIO.getTypeOut(data);
+        return data.getTypeOut();
     }
 
     @Override
     public Class<?> getTypeMeta(){
-        return PatchJsonIO.getTypeIn(data);
+        return data.getTypeIn();
     }
 
     @Override
     public T getValue(){
-        if(data.patchNode == null){
-            return getDefaultValue();
-        }
-
-        return cast(PatchJsonIO.readData(data));
+        return cast(data.getDisplayValue());
     }
 
     @Override
     public final void onModify(T value){
-        data.initJson();
-
         boolean modified = isModified(value);
         if(modified){
             data.setValue(PatchJsonIO.getKeyName(value));

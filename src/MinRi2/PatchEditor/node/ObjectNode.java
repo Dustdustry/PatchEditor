@@ -15,8 +15,7 @@ public class ObjectNode{
     public final @Nullable Field field;
     public final @Nullable Class<?> type, elementType, keyType;
 
-    private ObjectNode parent;
-    private final Seq<ObjectNode> children = new Seq<>();
+    private final OrderedMap<String, ObjectNode> children = new OrderedMap<>();
     private boolean resolved = false;
 
     public ObjectNode(String name, Object object, Class<?> type){
@@ -52,37 +51,16 @@ public class ObjectNode{
         return rootNode;
     }
 
-    public Seq<String> getObjectPath(){
-        Seq<String> path = new Seq<>();
-
-        // not include root
-        ObjectNode current = this;
-        while(current != rootNode){
-            path.add(current.name);
-            current = current.parent;
-        }
-
-        return path.reverse();
-    }
-
-    public ObjectNode getOrResolve(ModifierSign sign){
-        return getChildren().find(node -> node.name.equals(sign.sign));
-    }
-
     public ObjectNode getOrResolve(String name){
-        return getChildren().find(node -> node.name.equals(name));
+        return getChildren().get(name);
     }
 
-    public Seq<ObjectNode> getChildren(){
+    public ObjectMap<String, ObjectNode> getChildren(){
         if(!resolved){
             ObjectResolver.resolve(this);
             resolved = true;
         }
         return children;
-    }
-
-    public ObjectNode getParent(){
-        return parent;
     }
 
     public ObjectNode addSign(ModifierSign sign, Class<?> elementType, Class<?> keyType){
@@ -103,8 +81,7 @@ public class ObjectNode{
     }
 
     public ObjectNode addChild(ObjectNode child){
-        children.add(child);
-        child.parent = this;
+        children.put(child.name, child);
         return child;
     }
 }

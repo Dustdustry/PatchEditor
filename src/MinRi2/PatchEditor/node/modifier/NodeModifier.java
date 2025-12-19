@@ -53,7 +53,7 @@ public class NodeModifier{
 
     public static DataModifier<?> getModifier(EditorNode node){
         if(canModify(node)){
-            Class<?> type = PatchJsonIO.getTypeIn(node);
+            Class<?> type = node.getTypeIn();
             for(ModifierConfig config : modifyConfig){
                 if(config.canModify(type)) return config.getModifier(node);
             }
@@ -64,7 +64,7 @@ public class NodeModifier{
     public static int getModifierIndex(EditorNode node){
         if(canModify(node)){
             int i = 0;
-            Class<?> type = PatchJsonIO.getTypeIn(node);
+            Class<?> type = node.getTypeIn();
             for(ModifierConfig config : modifyConfig){
                 if(config.canModify(type)) return i;
                 i++;

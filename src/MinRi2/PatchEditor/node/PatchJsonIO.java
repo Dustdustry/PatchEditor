@@ -1,6 +1,8 @@
 package MinRi2.PatchEditor.node;
 
+import MinRi2.PatchEditor.node.patch.*;
 import arc.struct.*;
+import arc.struct.ObjectMap.*;
 import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
@@ -25,13 +27,6 @@ public class PatchJsonIO{
         ItemStack.class, LiquidStack.class, PayloadStack.class
     );
 
-    public static Object readData(EditorNode data){
-        if(data.patchNode == null) return null;
-        Class<?> type = getTypeIn(data);
-        if(type == null) return null;
-        return getParser().getJson().readValue(type, data.patchNode);
-    }
-
     public static String getKeyName(Object object){
         if(object instanceof MappableContent mc) return mc.name;
         if(object instanceof Enum<?> e) return e.name();
@@ -53,21 +48,6 @@ public class PatchJsonIO{
         return nameToType;
     }
 
-    public static Class<?> getTypeIn(EditorNode node){
-        if(node.objectNode != null) return node.objectNode.type;
-        if(node.getObject() instanceof MapEntry<?,?> entry) return ClassHelper.unoymousClass(entry.value.getClass());
-        return node.getObject() == null ? null : ClassHelper.unoymousClass(node.getObject().getClass());
-    }
-
-    /**
-     * @return object's class first then meta type.
-     */
-    public static Class<?> getTypeOut(EditorNode node){
-        if(node.getObject() == null) return node.objectNode != null ? node.objectNode.type : null;
-        if(node.getObject() instanceof MapEntry<?,?> entry) return ClassHelper.unoymousClass(entry.value.getClass());
-        return ClassHelper.unoymousClass(node.getObject().getClass());
-    }
-
     public static ContentType getContentType(Class<?> type){
         if(Block.class.isAssignableFrom(type)) return ContentType.block;
         if(Item.class.isAssignableFrom(type)) return ContentType.item;
@@ -75,18 +55,6 @@ public class PatchJsonIO{
         if(StatusEffect.class.isAssignableFrom(type)) return ContentType.status;
         if(UnitType.class.isAssignableFrom(type)) return ContentType.unit;
         return null;
-    }
-
-    public static boolean isArray(EditorNode data){
-        return ClassHelper.isArray(getTypeOut(data));
-    }
-
-    public static boolean isArrayLike(EditorNode data){
-        return ClassHelper.isArrayLike(getTypeOut(data));
-    }
-
-    public static boolean isMap(EditorNode data){
-        return ClassHelper.isMap(getTypeOut(data));
     }
 
     public static boolean fieldRequired(EditorNode child){
@@ -107,12 +75,32 @@ public class PatchJsonIO{
     }
 
     public static void parseJson(PatchNode patchNode, JsonValue value){
-        patchNode.setJson(value);
+        if(value.isValue()) patchNode.value = value.asString();
+
+        // TODO: PatchType marking
 
         for(JsonValue childValue : value){
-            PatchNode childNode = patchNode.getOrCreate(childValue.name, childValue.type());
-            parseJson(childNode, childValue);
+            PatchNode current = patchNode;
+            // extract . syntax in parsing
+            for(String name : childValue.name.split("\\.")){
+                current = current.getOrCreate(name);
+            }
+
+            parseJson(current, childValue);
         }
+    }
+
+    public static JsonValue toJson(PatchNode patchNode, JsonValue value){
+        value.setName(patchNode.key);
+        if(patchNode.value != null) value.set(patchNode.value);
+
+        for(Entry<String, PatchNode> entry : patchNode.children){
+            JsonValue childValue = new JsonValue(ValueType.object);
+            value.addChild(entry.key, childValue);
+            toJson(entry.value, childValue);
+        }
+
+        return value;
     }
 
 //    public static void parseJson(EditorNode data, String patch){
@@ -258,7 +246,7 @@ public class PatchJsonIO{
         int singleCount = 1;
         JsonValue singleEnd = value;
         while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null){
-            if(dotSimplifiable(singleEnd)) break;
+            if(!dotSimplifiable(singleEnd)) break;
             singleEnd = singleEnd.child;
             singleCount++;
         }
@@ -274,7 +262,7 @@ public class PatchJsonIO{
             }
 
             JsonValue parent = value.parent;
-            PatchNode.remove(value);
+            removeJsonValue(value);
             addChildValue(parent, name.toString(), singleEnd);
             value = singleEnd;
         }
@@ -323,5 +311,17 @@ public class PatchJsonIO{
                 current = current.next;
             }
         }
+    }
+
+    public static void removeJsonValue(JsonValue value){
+        JsonValue parent = value.parent, prev = value.prev, next = value.next;
+
+        if(prev != null) prev.next = next;
+        else if(parent != null) parent.child = next;
+
+        if(next != null) next.prev = prev;
+        value.parent = value.prev = value.next = null;
+
+        if(parent != null && parent.child == null) removeJsonValue(parent);
     }
 }

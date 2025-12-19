@@ -226,18 +226,18 @@ public class NodeCard extends Table{
             t.setColor(modifier.isModified() ? modifiedColor : unmodifiedColor);
 
             modifier.onModified(modified -> {
-                t.addAction(Actions.color(modifier.isModified() ? modifiedColor : unmodifiedColor, 0.2f));
+                t.addAction(Actions.color(modified ? modifiedColor : unmodifiedColor, 0.2f));
             });
         });
     }
 
     private static boolean isRequired(EditorNode node){
-        return node.patchNode == null && PatchJsonIO.fieldRequired(node);
+        return node.getPatch() == null && PatchJsonIO.fieldRequired(node);
     }
 
     private void addChildButton(Table table, EditorNode node){
         EditorNode removeData = node.getSign(ModifierSign.REMOVE);
-        boolean isKeyRemoved = removeData != null && removeData.patchNode != null;
+        boolean isKeyRemoved = removeData != null && removeData.getPatch() != null;
 
         ImageButtonStyle style = EStyles.cardButtoni;
         if(isRequired(node)){
@@ -264,7 +264,7 @@ public class NodeCard extends Table{
             horizontalLine.colspan(b.getColumns());
         }, style, () -> {
             EditorNode modifyData = node.getSign(ModifierSign.MODIFY);
-            editChildNode(modifyData == null || modifyData.patchNode == null ? node : modifyData);
+            editChildNode(modifyData == null || modifyData.getPath() == null ? node : modifyData);
         }).disabled(node.getObject() == null);
     }
 
@@ -307,7 +307,7 @@ public class NodeCard extends Table{
         EditorNode modifyData = data.getSign(ModifierSign.MODIFY);
         EditorNode removeData = data.getSign(ModifierSign.REMOVE);
 
-        boolean isOverride = modifyData != null && modifyData.patchNode != null;
+        boolean isOverride = modifyData != null && modifyData.getPatch() != null;
         if(isOverride){
             table.button(Icon.undo, Styles.clearNonei, () -> {
                 modifyData.clearJson();
@@ -317,18 +317,17 @@ public class NodeCard extends Table{
         }
 
         if(removeData != null){
-            boolean isRemoved = removeData.patchNode != null;
-            table.button(isRemoved ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
-                if(!isRemoved) removeData.initJson();
-                else removeData.clearJson();
+            boolean undoMode = removeData.getPath() != null;
+            table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
+                if(undoMode) removeData.clearJson();
                 rebuildNodesTable();
-            }).tooltip(isRemoved ? "##revertRemove" : "##removeKey");
-            if(isRemoved) return;
+            }).tooltip(undoMode ? "##revertRemove" : "##removeKey");
+            if(undoMode) return;
         }
 
         if(data instanceof PlusEditorNode){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, PatchJsonIO.getTypeIn(data), clazz -> {
+                EUI.classSelector.select(null, data.getTypeIn(), clazz -> {
 //                    NodeModifier.changeType(data, clazz);
                     rebuildNodesTable();
                     return true;
@@ -339,9 +338,9 @@ public class NodeCard extends Table{
                 data.clearJson();
                 rebuildNodesTable();
             }).grow().row();
-        }else if(!hasModifier && modifyData != null && modifyData.patchNode == null){
+        }else if(!hasModifier && modifyData != null && modifyData.getPatch() == null){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, PatchJsonIO.getTypeIn(data), clazz -> {
+                EUI.classSelector.select(null, data.getTypeIn(), clazz -> {
 //                    EditorNode newData = NodeModifier.changeType(modifyData, clazz);
 //                    if(newData != null){
 //                        editChildNode(newData);
@@ -400,7 +399,7 @@ public class NodeCard extends Table{
         }
         mappedChildren.clear();
 
-        Class<?> type = PatchJsonIO.getTypeOut(editorNode);
+        Class<?> type = editorNode.getTypeOut();
         if(type == null) return mappedChildren;
 
         while(type != null){

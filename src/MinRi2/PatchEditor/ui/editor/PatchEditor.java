@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.ui.editor;
 
 import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
@@ -18,15 +19,18 @@ import mindustry.ui.dialogs.*;
  * Create by 2024/2/15
  */
 public class PatchEditor extends BaseDialog{
-    private final EditorNode rootData;
     private final NodeCard card;
 
     private EditorPatch editPatch;
 
+    private final EditorNode rootData;
+    private final PatchNodeManager manager;
+
     public PatchEditor(){
         super("@contents-editor");
 
-        rootData = EditorNode.getRootData();
+        manager = new PatchNodeManager();
+        rootData = new EditorNode(ObjectNode.getRoot(), manager);
         card = new NodeCard();
 
         setup();
@@ -34,9 +38,8 @@ public class PatchEditor extends BaseDialog{
         resized(this::rebuild);
         shown(this::rebuild);
         hidden(() -> {
-            JsonValue data = rootData.patchNode;
-            editPatch.patch = PatchJsonIO.simplifyPatch(data).toJson(OutputType.json);
-            rootData.clearJson();
+            JsonValue value = PatchJsonIO.toJson(manager.getRoot(), new JsonValue(ValueType.object));
+            editPatch.patch = PatchJsonIO.simplifyPatch(value).toJson(OutputType.json);
         });
 
         update(() -> {
@@ -60,17 +63,17 @@ public class PatchEditor extends BaseDialog{
     }
 
     public void edit(EditorPatch patch){
-        rootData.clearJson();
-        rootData.patchNode = new PatchNode("root", ValueType.object);
+        manager.reset();
 
         try{
-            PatchJsonIO.parseJson(rootData.objectNode, rootData.patchNode, patch.patch);
+            PatchJsonIO.parseJson(rootData.objectNode, manager.getRoot(), patch.patch);
         }catch(Exception e){
             Vars.ui.showException(e);
             return;
         }
 
         editPatch = patch;
+
         show();
     }
 
