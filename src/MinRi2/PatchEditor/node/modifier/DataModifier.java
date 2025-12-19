@@ -1,10 +1,9 @@
-package MinRi2.ContentsEditor.node.modifier;
+package MinRi2.PatchEditor.node.modifier;
 
-import MinRi2.ContentsEditor.node.*;
-import MinRi2.ContentsEditor.node.EditorNode.*;
+import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.EditorNode.*;
 import arc.func.*;
 import arc.scene.ui.layout.*;
-import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 
 import java.util.*;

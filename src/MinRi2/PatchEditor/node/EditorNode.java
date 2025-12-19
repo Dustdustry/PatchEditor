@@ -1,8 +1,7 @@
-package MinRi2.ContentsEditor.node;
+package MinRi2.PatchEditor.node;
 
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.JsonValue.*;
 
 /**
  * Store the json nodes with untree-structured data.
@@ -20,18 +19,12 @@ public class EditorNode{
     private boolean resolved;
 
     public EditorNode(ObjectNode objectNode){
-        this(objectNode, null);
-    }
-
-    public EditorNode(ObjectNode objectNode, PatchNode patchNode){
         this.objectNode = objectNode;
-        this.patchNode = patchNode;
     }
 
     public static EditorNode getRootData(){
         if(rootData == null){
             rootData = new EditorNode(ObjectNode.getRoot());
-            rootData.patchNode = new PatchNode("root", ValueType.object);
         }
         return rootData;
     }
@@ -98,7 +91,7 @@ public class EditorNode{
             patchNode = currentPatch;
         }
 
-        patchNode.value = value;
+        patchNode.set(value);
     }
 
     public boolean isRoot(){
@@ -114,29 +107,15 @@ public class EditorNode{
     public void clearJson(){
         patchNode = null;
 
-        cleanPatchNode();
-
-        EditorNode current = parent;
-        while(current != null && current.patchNode.children.isEmpty()){
-            current.patchNode = null;
-            current = current.parent;
-        }
-    }
-
-    public void cleanPatchNode(){
-        if(patchNode != null && parent != null && parent.patchNode == null){
-            patchNode = null;
-        }
-
         for(EditorNode child : children.values()){
-            child.cleanPatchNode();
+            child.clearJson();
         }
     }
 
     public static class PlusEditorNode extends EditorNode{
 
-        public PlusEditorNode(ObjectNode objectNode, PatchNode patchNode){
-            super(objectNode, patchNode);
+        public PlusEditorNode(ObjectNode objectNode){
+            super(objectNode);
         }
 
         @Override
@@ -154,8 +133,8 @@ public class EditorNode{
         public Class<?> type;
         public Object example;
 
-        public DynamicEditorNode(ObjectNode objectNode, PatchNode patchNode){
-            super(objectNode, patchNode);
+        public DynamicEditorNode(ObjectNode objectNode){
+            super(objectNode);
         }
     }
 }

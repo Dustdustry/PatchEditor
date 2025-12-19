@@ -1,4 +1,4 @@
-package MinRi2.ContentsEditor.node;
+package MinRi2.PatchEditor.node;
 
 import arc.files.*;
 import arc.func.*;
@@ -11,7 +11,6 @@ import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.entities.part.*;
 import mindustry.mod.*;
-import mindustry.world.*;
 
 import java.lang.reflect.*;
 

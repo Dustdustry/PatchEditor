@@ -1,8 +1,7 @@
-package MinRi2.ContentsEditor.ui;
+package MinRi2.PatchEditor.ui;
 
-import MinRi2.ContentsEditor.ui.editor.*;
+import MinRi2.PatchEditor.ui.editor.*;
 import arc.*;
-import arc.flabel.*;
 import arc.func.*;
 import arc.math.*;
 import arc.scene.actions.*;

@@ -1,14 +1,14 @@
 #the mod name as displayed in-game
-displayName: ContentsEditor
+displayName: PatchEditor
 
 #the internal name of your mod
-name: "contents-editor"
+name: "patch-editor"
 
 #your name
 author: "minRi2"
 
 #the fully qualified main class of the mod
-main: "MinRi2.ContentsEditor.Main"
+main: "MinRi2.PatchEditor.Main"
 
 #the mod description as seen in the mod dialog
 description: "内容包编辑器 在 地图编辑器-> 地图信息->内容包编辑器 中打开内容包管理器"
@@ -17,7 +17,7 @@ description: "内容包编辑器 在 地图编辑器-> 地图信息->内容包�
 version: 1.5
 
 #the minimum game build required to run this mod
-minGameVersion: 153
+minGameVersion: 154
 
 #this is a java mod
 java: true

@@ -1,11 +1,12 @@
-package MinRi2.ContentsEditor.ui.editor;
+package MinRi2.PatchEditor.ui.editor;
 
-import MinRi2.ContentsEditor.node.*;
-import MinRi2.ContentsEditor.ui.*;
-import MinRi2.ContentsEditor.ui.editor.PatchManager.*;
+import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.ui.*;
+import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
 import arc.util.serialization.*;
+import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.JsonWriter.*;
 import mindustry.*;
 import mindustry.gen.*;
@@ -33,7 +34,7 @@ public class PatchEditor extends BaseDialog{
         resized(this::rebuild);
         shown(this::rebuild);
         hidden(() -> {
-            JsonValue data = rootData.patchNode.toJson();
+            JsonValue data = rootData.patchNode;
             editPatch.patch = PatchJsonIO.simplifyPatch(data).toJson(OutputType.json);
             rootData.clearJson();
         });
@@ -60,9 +61,10 @@ public class PatchEditor extends BaseDialog{
 
     public void edit(EditorPatch patch){
         rootData.clearJson();
+        rootData.patchNode = new PatchNode("root", ValueType.object);
 
         try{
-            PatchJsonIO.parseJson(ObjectNode.getRoot(), rootData.patchNode, patch.patch);
+            PatchJsonIO.parseJson(rootData.objectNode, rootData.patchNode, patch.patch);
         }catch(Exception e){
             Vars.ui.showException(e);
             return;

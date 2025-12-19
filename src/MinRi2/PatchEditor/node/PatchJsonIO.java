@@ -1,6 +1,5 @@
-package MinRi2.ContentsEditor.node;
+package MinRi2.PatchEditor.node;
 
-import MinRi2.ContentsEditor.node.modifier.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -30,7 +29,7 @@ public class PatchJsonIO{
         if(data.patchNode == null) return null;
         Class<?> type = getTypeIn(data);
         if(type == null) return null;
-        return getParser().getJson().readValue(type, data.patchNode.toJson());
+        return getParser().getJson().readValue(type, data.patchNode);
     }
 
     public static String getKeyName(Object object){
@@ -41,7 +40,7 @@ public class PatchJsonIO{
     }
 
     public static ContentParser getParser(){
-        if(parser == null) parser = Reflect.get(ContentPatcher.class, "parser");
+        if(parser == null) parser = Reflect.get(DataPatcher.class, "parser");
         return parser;
     }
 
@@ -50,7 +49,7 @@ public class PatchJsonIO{
     }
 
     public static ObjectMap<String, ContentType> getNameToType(){
-        if(nameToType == null) nameToType = Reflect.get(ContentPatcher.class, "nameToType");
+        if(nameToType == null) nameToType = Reflect.get(DataPatcher.class, "nameToType");
         return nameToType;
     }
 
@@ -101,21 +100,19 @@ public class PatchJsonIO{
         return false;
     }
 
-    public static PatchNode parseJson(ObjectNode objectNode, PatchNode patchNode, String patch){
+    public static void parseJson(ObjectNode objectNode, PatchNode patchNode, String patch){
         JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
         desugarJson(objectNode, value);
-        return parseJson(patchNode, value);
+        parseJson(patchNode, value);
     }
 
-    public static PatchNode parseJson(PatchNode patchNode, JsonValue value){
+    public static void parseJson(PatchNode patchNode, JsonValue value){
         patchNode.setJson(value);
 
         for(JsonValue childValue : value){
-            PatchNode childNode = patchNode.addChild(childValue.name, childValue.type());
+            PatchNode childNode = patchNode.getOrCreate(childValue.name, childValue.type());
             parseJson(childNode, childValue);
         }
-
-        return patchNode;
     }
 
 //    public static void parseJson(EditorNode data, String patch){

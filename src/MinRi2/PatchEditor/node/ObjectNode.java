@@ -1,11 +1,10 @@
-package MinRi2.ContentsEditor.node;
+package MinRi2.PatchEditor.node;
 
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.Json.*;
 import mindustry.mod.*;
 
-import java.lang.ref.*;
 import java.lang.reflect.*;
 
 public class ObjectNode{
@@ -49,7 +48,7 @@ public class ObjectNode{
     }
 
     public static ObjectNode getRoot(){
-        if(rootNode == null) rootNode = new ObjectNode("root", Reflect.get(ContentPatcher.class, "root"), Object.class);
+        if(rootNode == null) rootNode = new ObjectNode("root", Reflect.get(DataPatcher.class, "root"), Object.class);
         return rootNode;
     }
 

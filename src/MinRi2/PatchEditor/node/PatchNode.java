@@ -1,10 +1,8 @@
-package MinRi2.ContentsEditor.node;
+package MinRi2.PatchEditor.node;
 
-import arc.struct.*;
-import arc.struct.ObjectMap.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
 
+// A helper class. I want kt's extend function
 public class PatchNode extends JsonValue{
     public PatchNode(String name, ValueType type){
         super(type);
@@ -12,7 +10,15 @@ public class PatchNode extends JsonValue{
     }
 
     public PatchNode getOrCreate(String name){
-        return (PatchNode)get(name);
+        return getOrCreate(name, ValueType.object);
+    }
+
+    public PatchNode getOrCreate(String name, ValueType type){
+        PatchNode node = (PatchNode)get(name);
+        if(node == null){
+            addChild(name, node = new PatchNode(name, type));
+        }
+        return node;
     }
 
     public void setJson(JsonValue value){
@@ -23,6 +29,10 @@ public class PatchNode extends JsonValue{
 
     public void remove(){
         remove(this);
+    }
+
+    public boolean isEmpty(){
+        return !isValue() && child == null;
     }
 
     // TODO: bad place

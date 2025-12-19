@@ -1,6 +1,6 @@
-package MinRi2.ContentsEditor.node.modifier;
+package MinRi2.PatchEditor.node.modifier;
 
-import MinRi2.ContentsEditor.node.modifier.ModifierBuilder.*;
+import MinRi2.PatchEditor.node.modifier.ModifierBuilder.*;
 import arc.util.serialization.JsonValue.*;
 import mindustry.ctype.*;
 

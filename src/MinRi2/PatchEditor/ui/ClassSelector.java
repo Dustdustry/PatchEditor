@@ -1,11 +1,9 @@
-package MinRi2.ContentsEditor.ui;
+package MinRi2.PatchEditor.ui;
 
 import arc.*;
 import arc.func.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.struct.ObjectMap.*;
-import arc.util.*;
 import mindustry.mod.*;
 import mindustry.ui.dialogs.*;
 
