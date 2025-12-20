@@ -8,43 +8,60 @@ import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 
+import java.util.*;
+
 /**
  * @author minri2
  * Create by 2024/2/15
  */
 public class EditorNode{
-    private ObjectNode objectNode;
-    private String path;
+    private final ObjectNode objectNode;
+    private final String path;
 
+    private boolean resolvedObj;
     private @Nullable EditorNode parent;
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
 
     private final NodeManager manager;
 
-    public EditorNode(ObjectNode objectNode, NodeManager manager){
+    public EditorNode(EditorNode parent, ObjectNode objectNode, NodeManager manager){
         this.objectNode = objectNode;
         this.manager = manager;
+
+        this.parent = parent;
+
+        if(parent == null){
+            path = "";
+        }else{
+            path = !parent.getPath().isEmpty() ? (parent.getPath() + NodeManager.pathComp + name()) : name();
+        }
     }
 
     public String name(){
         return objectNode.name;
     }
 
-    public boolean isRoot(){
-        return parent == null;
-    }
-
     public ObjectMap<String, EditorNode> getChildren(){
-        children.clear();
-
         PatchNode patchNode = getPatch();
 
-        for(ObjectNode node : objectNode.getChildren().values()){
-            if(node.isSign()) continue;
+        if(!resolvedObj){
+            for(ObjectNode node : objectNode.getChildren().values()){
+                if(node.isSign()) continue;
 
-            EditorNode child = new EditorNode(node, manager);
-            child.parent = this;
-            children.put(child.name(), child);
+                EditorNode child = new EditorNode(this, node, manager);
+                children.put(child.name(), child);
+            }
+            resolvedObj = true;
+        }
+
+        var iterator = children.entries().iterator();
+        while(iterator.hasNext()){
+            EditorNode node = iterator.next().value;
+            if(node instanceof DynamicEditorNode){
+                node.parent = null;
+                node.children.clear();
+                iterator.remove();
+            }
         }
 
         // data driven
@@ -56,12 +73,13 @@ public class EditorNode{
 
                     Class<?> type = PatchJsonIO.resolveType(getObjNode().elementType, typeJson);
 
-                    EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
+                    EditorNode child = new DynamicEditorNode(this, childPatchNode.key, getObjNode().elementType, type, manager);
                     child.parent = this;
                     children.put(childPatchNode.key, child);
                 }
             }
         }
+
         return children;
     }
 
@@ -103,18 +121,7 @@ public class EditorNode{
     }
 
     public String getPath(){
-        if(path == null){
-            // Path is relative to root so don't append it
-            boolean split = parent != null && !parent.isRoot() && !parent.getPath().isEmpty();
-            path = split ? (parent.getPath() + NodeManager.pathComp + name()) : name();
-        }
-
         return path;
-    }
-
-    protected void setObjectNode(ObjectNode newObj){
-        objectNode = newObj;
-        children.clear();
     }
 
     public PatchNode getPatch(){
@@ -140,8 +147,8 @@ public class EditorNode{
     public static class DynamicEditorNode extends EditorNode{
         public final String key;
 
-        public DynamicEditorNode(String key, Class<?> baseType, Class<?> type, NodeManager manager){
-            super(new ObjectNode(key, NodeModifier.getExample(baseType, type), baseType), manager);
+        public DynamicEditorNode(EditorNode parent, String key, Class<?> baseType, Class<?> type, NodeManager manager){
+            super(parent, new ObjectNode(key, NodeModifier.getExample(baseType, type), baseType), manager);
 
             this.key = key;
         }

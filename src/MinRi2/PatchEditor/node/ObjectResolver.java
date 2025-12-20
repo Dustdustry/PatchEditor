@@ -52,6 +52,7 @@ public class ObjectResolver{
 
         // object resolve
         Object object = node.object;
+        if(object instanceof MapEntry<?,?> entry) object = entry.value;
         if(object != null) objectType = object.getClass();
 //        if(object instanceof Block){
 //            resolveConsumes(node);

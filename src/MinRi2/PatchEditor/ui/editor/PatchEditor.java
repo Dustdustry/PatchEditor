@@ -1,14 +1,12 @@
 package MinRi2.PatchEditor.ui.editor;
 
 import MinRi2.PatchEditor.node.*;
-import MinRi2.PatchEditor.node.EditorNode.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.JsonWriter.*;
 import mindustry.*;
 import mindustry.gen.*;
@@ -31,7 +29,7 @@ public class PatchEditor extends BaseDialog{
         super("@contents-editor");
 
         manager = new NodeManager();
-        rootData = new EditorNode(ObjectNode.getRoot(), manager);
+        rootData = new EditorNode(null, ObjectNode.getRoot(), manager);
         card = new NodeCard();
 
         setup();

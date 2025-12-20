@@ -57,6 +57,8 @@ public class PatchNode{
     }
 
     public PatchNode navigateChild(String path, boolean create){
+        if(path.isEmpty()) return this;
+
         PatchNode current = this;
         for(String name : path.split(NodeManager.pathSplitter)){
             current = create ? current.getOrCreate(name) : current.getOrNull(name);

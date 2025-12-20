@@ -49,8 +49,9 @@ public abstract class PatchOperator{
 
             PatchNode current = parent;
             while(current != null && current.children.isEmpty()){
+                parent = current.getParent();
                 current.remove();
-                current = current.getParent();
+                current = parent;
             }
         }
 
