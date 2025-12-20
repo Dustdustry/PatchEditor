@@ -199,7 +199,7 @@ public class NodeCard extends Table{
                 }
             }
 
-            if(declareClass == Object.class && editorNode.getObjNode().hasSign(ModifierSign.PLUS)){
+            if(declareClass == Object.class && editorNode.getObjNode().hasSign(ModifierSign.PLUS) && editorNode.getObjNode().elementType != null){
                 addPlusButton(cont, editorNode);
             }
 
@@ -299,11 +299,11 @@ public class NodeCard extends Table{
                     // TODO: unsupported key type
                     return;
                 }
-//                EUI.selector.select(type, c -> true, c -> {
-//                    NodeModifier.addDynamicChild(plusData, null, PatchJsonIO.getKeyName(c));
-//                    rebuildNodesTable();
-//                    return true;
-//                });
+                EUI.selector.select(type, c -> true, c -> {
+                    editorNode.putKey(PatchJsonIO.getKeyName(c));
+                    rebuildNodesTable();
+                    return true;
+                });
             }else{
                 editorNode.append();
                 rebuildNodesTable();
@@ -311,21 +311,10 @@ public class NodeCard extends Table{
         });
     }
 
-    private void setupEditButton(Table table, EditorNode editorNode, boolean hasModifier){
+    private void setupEditButton(Table table, EditorNode childNode, boolean hasModifier){
         table.defaults().width(32f).pad(4f).growY();
+        EditorNode editorNode = getEditorNode();
 
-//        EditorNode modifyData = editorNode.getSign(ModifierSign.MODIFY);
-//        EditorNode removeData = editorNode.getSign(ModifierSign.REMOVE);
-
-//        boolean isOverride = modifyData != null && modifyData.getPatch() != null;
-//        if(isOverride){
-//            table.button(Icon.undo, Styles.clearNonei, () -> {
-//                modifyData.clearJson();
-//                rebuildNodesTable();
-//            }).tooltip("#revertOverride").grow();
-//            return;
-//        }
-//
 //        if(removeData != null){
 //            boolean undoMode = removeData.getPath() != null;
 //            table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
@@ -335,36 +324,32 @@ public class NodeCard extends Table{
 //            if(undoMode) return;
 //        }
 
-        if(editorNode instanceof DynamicEditorNode){
+        if(childNode instanceof DynamicEditorNode || childNode.isChangedType()){
+            if(!ClassHelper.isArray(childNode.getTypeIn())){
+                table.button(Icon.wrench, Styles.clearNonei, () -> {
+                    EUI.classSelector.select(null, childNode.getTypeIn(), clazz -> {
+                        childNode.changeType(clazz);
+                        rebuildNodesTable();
+                        return true;
+                    });
+                }).tooltip("##changeType");
+            }
+
+            table.button(Icon.cancel, Styles.clearNonei, () -> {
+                childNode.clearJson();
+                rebuildNodesTable();
+            }).grow().row();
+        }else if(!hasModifier && ClassHelper.isMap(editorNode.getTypeIn())){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, editorNode.getTypeIn(), clazz -> {
-                    editorNode.changeType(clazz);
+                EUI.classSelector.select(null, childNode.getTypeIn(), clazz -> {
+                    childNode.changeType(clazz);
                     rebuildNodesTable();
                     return true;
                 });
-            }).tooltip("##changeType");
-
-            table.button(Icon.cancel, Styles.clearNonei, () -> {
-                editorNode.clearJson();
-                rebuildNodesTable();
-            }).grow().row();
-        }else{
-//            if(!hasModifier && modifyData != null && modifyData.getPatch() == null){
-//            table.button(Icon.wrench, Styles.clearNonei, () -> {
-//                EUI.classSelector.select(null, editorNode.getTypeIn(), clazz -> {
-////                    EditorNode newData = NodeModifier.changeType(modifyData, clazz);
-////                    if(newData != null){
-////                        editChildNode(newData);
-////                    }else{
-////                        Vars.ui.showErrorMessage("Type '" + clazz.getSimpleName() + "' not available.");
-////                    }
-//                    return true;
-//                });
-//            }).tooltip("##override");
-//        }
+            }).tooltip("##override");
         }
 
-        if(isRequired(editorNode)){
+        if(isRequired(childNode)){
             table.image(Icon.infoCircle).height(32f).tooltip("##mayRequired");
         }
     }

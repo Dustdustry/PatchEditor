@@ -7,7 +7,9 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
+import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.entities.part.*;
@@ -23,6 +25,7 @@ public class ObjectResolver{
 
     // For dynamic editor node
     private static ObjectMap<Class<?>, ObjectNode> templateNode;
+    public static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
 
     public static void resolve(ObjectNode node){
         if(node == ObjectNode.getRoot()){
@@ -79,7 +82,7 @@ public class ObjectResolver{
         }else if(object instanceof ObjectMap<?, ?> map){
             for(var entry : map){
                 String name = PatchJsonIO.getKeyName(entry.key);
-                ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry), node.elementType, node.keyType);
+                ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry), node.elementType, node.elementType, node.keyType);
                 entryNode.addSign(ModifierSign.MODIFY, node.type, node.elementType, node.keyType);
             }
         }else if(object instanceof ContentType ctype){
@@ -109,13 +112,13 @@ public class ObjectResolver{
         }
     }
 
-    public static ObjectNode getTemplate(Class<?> clazz){
+    public static ObjectNode getTemplate(Class<?> type, Class<?> clazz){
         if(templateNode == null) templateNode = new ObjectMap<>();
 
         ObjectNode objectNode = templateNode.get(clazz);
         if(objectNode != null) return objectNode;
 
-        objectNode = new ObjectNode("", NodeModifier.getExample(clazz, clazz), clazz);
+        objectNode = new ObjectNode("", getExample(type, clazz), clazz);
         templateNode.put(clazz, objectNode);
         return objectNode;
     }
@@ -129,5 +132,37 @@ public class ObjectResolver{
         return (!field.getType().isPrimitive() || !Modifier.isFinal(modifiers))
         && !typeBlack(field.getType())
         && !(field.isAnnotationPresent(NoPatch.class) || field.getDeclaringClass().isAnnotationPresent(NoPatch.class));
+    }
+
+    public static Object getExample(Class<?> base, Class<?> type){
+        if(type.isArray()) return Reflect.newArray(type.getComponentType(), 0);
+
+        type = PatchJsonIO.resolveType(type);
+
+        Object example = exampleMap.get(type);
+        if(example != null) return example;
+
+        if(MappableContent.class.isAssignableFrom(type)){
+            ContentType contentType = PatchJsonIO.getContentType(type);
+            if(contentType != null){
+                example = Vars.content.getBy(contentType).first();
+            }
+        }
+
+        if(example == null){
+            JsonValue value = new JsonValue(ValueType.object);
+            value.addChild("type", new JsonValue(PatchJsonIO.classTypeName(type)));
+
+            try{
+                Json parserJson = PatchJsonIO.getParser().getJson();
+                // Invoke internalRead to skip null fields checking.
+                example = Reflect.invoke(parserJson, "internalRead", new Object[]{base, null, value, null}, Class.class, Class.class, JsonValue.class, Class.class);
+            }catch(Exception ignored){
+                return null;
+            }
+        }
+
+        exampleMap.put(type, example);
+        return example;
     }
 }

@@ -1,21 +1,11 @@
 package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
-import MinRi2.PatchEditor.node.EditorNode.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.struct.*;
-import arc.util.*;
-import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
-import mindustry.*;
-import mindustry.ctype.*;
-import mindustry.entities.abilities.*;
-import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.*;
-
-import java.lang.reflect.*;
 
 import static MinRi2.PatchEditor.node.modifier.EqualModifier.*;
 
@@ -25,9 +15,6 @@ import static MinRi2.PatchEditor.node.modifier.EqualModifier.*;
  */
 public class NodeModifier{
     public static final Seq<ModifierConfig> modifyConfig = new Seq<>();
-    public static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
-
-    public static final ObjectMap<Class<?>, Class<?>> defaultClassMap = new ObjectMap<>();
 
     static {
         modifyConfig.addAll(
@@ -44,10 +31,6 @@ public class NodeModifier{
 
         new ModifierConfig(ColorModifier::new, Color.class)
 
-        );
-
-        defaultClassMap.putAll(
-        Ability.class, ForceFieldAbility.class
         );
     }
 
@@ -75,83 +58,6 @@ public class NodeModifier{
 
     public static boolean canModify(EditorNode node){
         return node.getObjNode() != null && node.getObjNode().hasSign(ModifierSign.MODIFY);
-    }
-
-    private static Class<?> handleType(Class<?> type){
-        int typeModifiers = type.getModifiers();
-        if(!Modifier.isAbstract(typeModifiers) && !Modifier.isInterface(typeModifiers)) return type;
-
-        Class<?> defaultType = defaultClassMap.get(type);
-        if(defaultType != null) return defaultType;
-
-        return ClassMap.classes.values().toSeq().find(c -> {
-            int mod = c.getModifiers();
-            if(Modifier.isAbstract(mod) || Modifier.isInterface(mod)) return false;
-            return type.isAssignableFrom(c);
-        });
-    }
-
-    private static void handleDynamicData(DynamicEditorNode node){
-        Object object = node.getObject();
-
-        JsonValue value = new JsonValue("");
-
-        // set default value
-        if(object instanceof MappableContent mc){
-            value.set(PatchJsonIO.getKeyName(mc));
-        }
-
-        if(object instanceof ItemStack stack){
-            value.set(PatchJsonIO.getKeyName(stack.item) + "/" + 0);
-        }else if(object instanceof PayloadStack stack){
-            value.set(PatchJsonIO.getKeyName(stack.item) + "/" + 0);
-        }else if(object instanceof LiquidStack stack){
-            value.set(PatchJsonIO.getKeyName(stack.liquid) + "/" + 0);
-        }
-
-        if(value.isString() && value.asString().isEmpty()) return;
-
-//        PatchJsonIO.parseJson(node, value);
-    }
-
-    private static JsonValue buildExampleValue(Class<?> type){
-        String typeName = ClassMap.classes.findKey(type, true);
-        if(typeName == null) typeName = type.getName();
-
-        JsonValue value = new JsonValue(ValueType.object);
-        value.addChild("type", new JsonValue(typeName));
-        return value;
-    }
-
-    public static Object getExample(Class<?> base, Class<?> type){
-        if(type.isArray()) return Reflect.newArray(type.getComponentType(), 0);
-
-        type = handleType(type);
-        if(type == null) return null;
-        if(base == null) base = type;
-
-        Object example = exampleMap.get(type);
-        if(example != null) return example;
-
-        if(MappableContent.class.isAssignableFrom(type)){
-            ContentType contentType = PatchJsonIO.getContentType(type);
-            if(contentType != null){
-                example = Vars.content.getBy(contentType).first();
-            }
-        }
-
-        if(example == null){
-            try{
-                Json parserJson = PatchJsonIO.getParser().getJson();
-                // Invoke internalRead to skip null fields checking.
-                example = Reflect.invoke(parserJson, "internalRead", new Object[]{base, null, buildExampleValue(type), null}, Class.class, Class.class, JsonValue.class, Class.class);
-            }catch(Exception ignored){
-                return null;
-            }
-        }
-
-        exampleMap.put(type, example);
-        return example;
     }
 
     public static class ModifierConfig{

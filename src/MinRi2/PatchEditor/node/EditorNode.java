@@ -1,6 +1,5 @@
 package MinRi2.PatchEditor.node;
 
-import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.node.patch.PatchOperator.*;
 import arc.struct.*;
@@ -12,12 +11,15 @@ import arc.util.serialization.*;
  * Create by 2024/2/15
  */
 public class EditorNode{
-    private final ObjectNode objectNode;
-
     private String path;
     private boolean resolvedObj;
 
+    private ObjectNode shadowObjectNode;
+    private final ObjectNode objectNode;
+
     private EditorNode parent;
+
+    private ObjectNode currentObj;
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
 
     private final NodeManager manager;
@@ -33,6 +35,13 @@ public class EditorNode{
 
     public ObjectMap<String, EditorNode> getChildren(){
         PatchNode patchNode = getPatch();
+
+        ObjectNode objectNode = getObjNode();
+        if(currentObj != objectNode){
+            children.clear();
+            resolvedObj = false;
+            currentObj = objectNode;
+        }
 
         if(!resolvedObj){
             for(ObjectNode node : objectNode.getChildren().values()){
@@ -61,11 +70,15 @@ public class EditorNode{
                     PatchNode typeNode = childPatchNode.getOrNull("type");
                     String typeJson = typeNode == null ? null : typeNode.value;
 
-                    Class<?> type = PatchJsonIO.resolveType(getObjNode().elementType, typeJson);
+                    try{
+                        Class<?> type = PatchJsonIO.resolveType(getObjNode().elementType, typeJson);
 
-                    EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
-                    child.parent = this;
-                    children.put(childPatchNode.key, child);
+                        EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
+                        child.parent = this;
+                        children.put(childPatchNode.key, child);
+                    }catch(Exception e){
+                        Log.err(e);
+                    }
                 }
             }
         }
@@ -74,11 +87,26 @@ public class EditorNode{
     }
 
     public ObjectNode getObjNode(){
+        Class<?> type = objectNode.type;
+        PatchNode patchNode = getPatch();
+        if(patchNode != null){
+            PatchNode typePatch = patchNode.getOrNull("type");
+            if(typePatch != null && typePatch.value != null){
+                type = PatchJsonIO.resolveType(objectNode.elementType, typePatch.value);
+            }
+        }
+
+        if(type != objectNode.type){
+            if(shadowObjectNode == null || shadowObjectNode.type != type){
+                shadowObjectNode = ObjectResolver.getTemplate(objectNode.type, type);
+            }
+            return shadowObjectNode;
+        }
         return objectNode;
     }
 
     public Object getObject(){
-        return objectNode.object;
+        return getObjNode().object;
     }
 
     public String getDisplayName(){
@@ -101,9 +129,18 @@ public class EditorNode{
     }
 
     public Class<?> getTypeOut(){
+        ObjectNode objectNode = getObjNode();
         if(objectNode.object == null) return objectNode.type;
         if(objectNode.object instanceof MapEntry<?,?> entry) return ClassHelper.unoymousClass(entry.value.getClass());
         return ClassHelper.unoymousClass(objectNode.object.getClass());
+    }
+
+    public boolean isChangedType(){
+        PatchNode patchNode = getPatch();
+        if(patchNode == null) return false;
+
+        PatchNode typePatch = patchNode.getOrNull("type");
+        return typePatch != null && typePatch.value != null && PatchJsonIO.resolveType(objectNode.elementType, typePatch.value) != null;
     }
 
     public String getPath(){
@@ -141,15 +178,23 @@ public class EditorNode{
         manager.applyOp(new ArrayAppendOp(getPath()));
     }
 
+    public void putKey(String key){
+        manager.applyOp(new MapPutOp(getPath(), key));
+    }
+
     public void changeType(Class<?> type){
         manager.applyOp(new ChangeTypeOp(getPath(), type));
+    }
+
+    public void clearType(){
+        manager.applyOp(new ClearOp(getPath()));
     }
 
     public static class DynamicEditorNode extends EditorNode{
         public final String key;
 
         public DynamicEditorNode(String key, Class<?> baseType, Class<?> type, NodeManager manager){
-            super(new ObjectNode(key, NodeModifier.getExample(baseType, type), baseType), manager);
+            super(new ObjectNode(key, ObjectResolver.getExample(baseType, type), baseType), manager);
 
             this.key = key;
         }

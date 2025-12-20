@@ -1,7 +1,6 @@
 package MinRi2.PatchEditor.node;
 
 import MinRi2.PatchEditor.node.patch.*;
-import MinRi2.PatchEditor.ui.editor.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -16,7 +15,6 @@ import mindustry.world.*;
 import mindustry.world.consumers.*;
 
 import java.lang.reflect.*;
-import java.util.*;
 
 public class PatchJsonIO{
     public static final boolean debug = true;
@@ -77,8 +75,11 @@ public class PatchJsonIO{
     }
 
     public static Class<?> resolveType(Class<?> base, @Nullable String typeJson){
-        Class<?> type = typeJson == null ? null : ClassMap.classes.get(typeJson);
-        if(type == null) type = base;
+        return resolveType(typeJson == null ? base : ClassMap.classes.get(typeJson));
+    }
+
+    public static Class<?> resolveType(Class<?> type){
+        if(type.isPrimitive() || ClassHelper.isArray(type)) return type;
 
         int typeModifiers = type.getModifiers();
         if(!Modifier.isAbstract(typeModifiers) && !Modifier.isInterface(typeModifiers)) return type;
@@ -86,10 +87,9 @@ public class PatchJsonIO{
         Class<?> defaultType = defaultClassMap.get(type);
         if(defaultType != null) return defaultType;
 
-        Class<?> finalType = type;
         return ClassMap.classes.values().toSeq().find(c -> {
             int mod = c.getModifiers();
-            return !(Modifier.isAbstract(mod) || Modifier.isInterface(mod)) && finalType.isAssignableFrom(c);
+            return !(Modifier.isAbstract(mod) || Modifier.isInterface(mod)) && type.isAssignableFrom(c);
         });
     }
 
@@ -227,120 +227,6 @@ public class PatchJsonIO{
         }
         return value;
     }
-
-//    public static void parseJson(EditorNode data, String patch){
-//        JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
-//
-//        data.clearJson();
-//        parseJson(data, value);
-//    }
-//
-//    public static void parseJson(EditorNode data, JsonValue value){
-//        if(value == null) return;
-//
-//        desugarJson(data, value);
-//        if(value.isValue()){
-//            data.setValue(value.asString());
-//            return;
-//        }
-//
-//        if(value.isString() && ModifierSign.REMOVE.sign.equals(value.asString())){
-//            EditorNode removeSign = data.getSign(ModifierSign.REMOVE);
-//            if(removeSign != null) removeSign.initJson();
-//            return;
-//        }
-//
-//        if(value.isArray()){
-//            if(!isArrayLike(data)) return;
-//
-//            // If overriding the array, also move children to plusData.
-//            EditorNode plusData = data.getSign(ModifierSign.PLUS);
-//            if(plusData == null) return;
-//
-//            data.setPatchNode(value);
-//            for(JsonValue elemValue : value){
-//                JsonValue typeValue = elemValue.remove("type");
-//                Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-//                EditorNode childData = NodeModifier.addDynamicChild(plusData, type);
-//                if(childData == null) return; // getaway
-//                parseJson(childData, elemValue);
-//            }
-//            return;
-//        }else if(value.has("type")){
-//            EditorNode modifyData = data.getSign(ModifierSign.MODIFY);
-//            if(modifyData == null){
-//                Log.warn("@.@ is unmodifiable.", data.parent.name, data.name);
-//                return;
-//            }
-//
-//            Class<?> typeIn = getTypeIn(modifyData);
-//            if(typeIn == null){
-//                Log.warn("@.@ is unmodifiable.", data.parent.name, data.name);
-//                return;
-//            }
-//
-//            JsonValue typeValue = value.remove("type");
-//            Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-//            if(type == null || !typeIn.isAssignableFrom(type)){
-//                Log.warn("Type '@' is unsustainable to '@'.", type, typeIn);
-//                return;
-//            }
-//
-//            EditorNode newData = NodeModifier.changeType(modifyData, type);
-//            parseJson(newData, value);
-//            return;
-//        }
-//
-//        outer:
-//        for(JsonValue childValue : value){
-//            // impossible?
-//            if(childValue.name == null) continue;
-//
-//            EditorNode current = data;
-//            String[] childNames = childValue.name.split("\\.");
-//            for(int i = 0; i < childNames.length; i++){
-//                EditorNode childData = current.getChild(childNames[i]);
-//                if(childData != null){
-//                    current = childData;
-//                    continue;
-//                }
-//
-//                // map's key only support in the end
-//                if(i == childNames.length - 1 && isMap(current)){
-//                    current = parseDynamicChild(current, childNames[i], childValue);
-//                    if(current == null) continue outer;
-//                    break;
-//                }
-//
-//                Log.warn("Couldn't resolve @.@", current.name, childNames[i]);
-//                continue outer;
-//            }
-//
-//            childValue.setName(current.name);
-//            parseJson(current, childValue);
-//        }
-//    }
-//
-//    private static EditorNode parseDynamicChild(EditorNode data, String childName, JsonValue value){
-//        if(isMap(data)){
-//            Class<?> keyType = data.meta.keyType;
-//
-//            EditorNode plusData = data.getChild(ModifierSign.PLUS.sign);
-//            Object obj = getParser().getJson().readValue(keyType, new JsonValue(childName));
-//            if(obj == null) return null;
-//
-//            JsonValue typeValue = value.remove("type");
-//            Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-//            if(type != null && keyType.isAssignableFrom(type)){
-//                Log.warn("Type '@' is unsustainable to '@'.", type, keyType);
-//                return null;
-//            }
-//
-//            return NodeModifier.addDynamicChild(plusData, type, childName);
-//        }
-//
-//        return null;
-//    }
 
     private static void desugarJson(ObjectNode objectNode, JsonValue value){
         if(objectNode != null){

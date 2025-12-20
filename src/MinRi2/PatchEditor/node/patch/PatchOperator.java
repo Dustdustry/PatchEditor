@@ -84,6 +84,27 @@ public abstract class PatchOperator{
         }
     }
 
+    public static class MapPutOp extends PatchOperator{
+        public final String key;
+
+        public MapPutOp(String path, String key){
+            super(path);
+
+            this.key = key;
+        }
+
+        @Override
+        public void apply(PatchNode root){
+            PatchNode node = root.navigateChild(path, true);
+            node.getOrCreate(key).sign = ModifierSign.PLUS;
+        }
+
+        @Override
+        public void undo(PatchNode root){
+
+        }
+    }
+
     public static class ChangeTypeOp extends PatchOperator{
         public final Class<?> type;
 
@@ -95,9 +116,32 @@ public abstract class PatchOperator{
         @Override
         public void apply(PatchNode root){
             PatchNode node = root.navigateChild(path, true);
-            if(node == null || node.sign == null) return;
+            if(node == null) return;
 
             node.getOrCreate("type").value = PatchJsonIO.classTypeName(type);
+        }
+
+        @Override
+        public void undo(PatchNode root){
+
+        }
+    }
+
+    public static class ClearType extends PatchOperator{
+
+        public ClearType(String path){
+            super(path);
+        }
+
+        @Override
+        public void apply(PatchNode root){
+            PatchNode node = root.navigateChild(path, false);
+            if(node == null || node.sign == null) return;
+
+            PatchNode typeNode = node.getOrNull("type");
+            if(typeNode != null){
+                typeNode.remove();
+            }
         }
 
         @Override
