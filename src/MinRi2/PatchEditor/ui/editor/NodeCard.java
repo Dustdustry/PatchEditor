@@ -273,7 +273,7 @@ public class NodeCard extends Table{
 //            EditorNode modifyData = node.getSign(ModifierSign.MODIFY);
 //            editChildNode(modifyData == null || modifyData.getPath() == null ? node : modifyData);
             editChildNode(node.getPath());
-        }).disabled(node.getObject() == null);
+        });
     }
 
     private void addPlusButton(Table table, EditorNode editorNode){
@@ -296,6 +296,7 @@ public class NodeCard extends Table{
                 ContentType type = PatchJsonIO.getContentType(keyType);
                 if(type == null){
                     // TODO: unsupported key type
+                    Vars.ui.showErrorMessage("#Unsupported key type " + ClassHelper.getDisplayName(keyType));
                     return;
                 }
                 EUI.selector.select(type, c -> true, c -> {

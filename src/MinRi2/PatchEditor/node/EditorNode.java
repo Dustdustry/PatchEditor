@@ -75,7 +75,7 @@ public class EditorNode{
 
                         EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
                         child.parent = this;
-                        children.put(childPatchNode.key, child);
+                        children.put(child.name(), child);
                     }catch(Exception e){
                         Log.err(e);
                     }
@@ -116,8 +116,13 @@ public class EditorNode{
     public Object getDisplayValue(){
         PatchNode patchNode = getPatch();
         if(patchNode == null || patchNode.value == null) return getObject();
-        JsonValue value = PatchJsonIO.toJson(patchNode);
-        return PatchJsonIO.getParser().getJson().readValue(getTypeIn(), value);
+        try{
+            JsonValue value = PatchJsonIO.toJson(patchNode);
+            return PatchJsonIO.getParser().getJson().readValue(getTypeIn(), value);
+        }catch(Exception e){
+            Log.err(e);
+            return getObject();
+        }
     }
 
     public boolean hasValue(){
@@ -156,7 +161,7 @@ public class EditorNode{
     }
 
     public EditorNode navigate(String path){
-        if(path.isEmpty()) return this;
+        if(path == null || path.isEmpty()) return this;
 
         EditorNode current = this;
         for(String name : path.split(NodeManager.pathSplitter)){
@@ -194,7 +199,7 @@ public class EditorNode{
         public final String key;
 
         public DynamicEditorNode(String key, Class<?> baseType, Class<?> type, NodeManager manager){
-            super(new ObjectNode(key, ObjectResolver.getExample(baseType, type), baseType), manager);
+            super(ObjectResolver.getTemplate(baseType, type), manager);
 
             this.key = key;
         }
