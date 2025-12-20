@@ -109,6 +109,7 @@ public class PatchJsonIO{
 
     public static void parseJson(ObjectNode objectNode, PatchNode patchNode, String patch){
         JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
+        extractDotSyntax(value);
         desugarJson(objectNode, value);
         parseJson(objectNode, patchNode, value);
     }
@@ -228,25 +229,7 @@ public class PatchJsonIO{
         return value;
     }
 
-    private static void desugarJson(ObjectNode objectNode, JsonValue value){
-        if(objectNode != null){
-            Class<?> type = objectNode.type;
-            if(type == ItemStack.class || type == PayloadStack.class){
-                if(!value.isString() || !value.asString().contains("/")) return;
-                String[] split = value.asString().split("/");
-                value.setType(ValueType.object);
-                value.addChild("item", new JsonValue(split[0]));
-                value.addChild("amount", new JsonValue(split[1]));
-            }else if(type == LiquidStack.class || type == ConsumeLiquid.class){
-                if(!value.isString() || !value.asString().contains("/")) return;
-                String[] split = value.asString().split("/");
-                value.setType(ValueType.object);
-                value.addChild("liquid", new JsonValue(split[0]));
-                value.addChild("amount", new JsonValue(split[1]));
-            }
-        }
-
-        // extract dot syntax
+    private static void extractDotSyntax(JsonValue value){
         if(value.name != null && value.parent != null && value.name.contains(NodeManager.pathComp)){
             String[] names = value.name.split(NodeManager.pathSplitter);
 
@@ -262,10 +245,43 @@ public class PatchJsonIO{
             currentParent.addChild(names[i], value);
         }
 
-        // TODO: More sugar syntaxes support
+        for(JsonValue childValue : value){
+            extractDotSyntax(childValue);
+        }
+    }
+
+    private static void desugarJson(ObjectNode objectNode, JsonValue value){
+        if(objectNode != null){
+            if(value.isValue()){
+                desugarJson(value, objectNode.type);
+            }else if(value.isArray() && objectNode.elementType != null){
+                for(JsonValue childValue : value){
+                    desugarJson(childValue, objectNode.elementType);
+                }
+                return;
+            }
+        }
 
         for(JsonValue childValue : value){
-            desugarJson(objectNode == null ? null : objectNode.getOrResolve(childValue.name), childValue);
+            ObjectNode childNode = childValue.name == null ||objectNode == null ? null : objectNode.getOrResolve(childValue.name);
+            desugarJson(childNode, childValue);
+        }
+    }
+
+    private static void desugarJson(JsonValue value, Class<?> type){
+        // TODO: More sugar syntaxes support
+        if(type == ItemStack.class || type == PayloadStack.class){
+            if(!value.isString() || !value.asString().contains("/")) return;
+            String[] split = value.asString().split("/");
+            value.setType(ValueType.object);
+            value.addChild("item", new JsonValue(split[0]));
+            value.addChild("amount", new JsonValue(split[1]));
+        }else if(type == LiquidStack.class || type == ConsumeLiquid.class){
+            if(!value.isString() || !value.asString().contains("/")) return;
+            String[] split = value.asString().split("/");
+            value.setType(ValueType.object);
+            value.addChild("liquid", new JsonValue(split[0]));
+            value.addChild("amount", new JsonValue(split[1]));
         }
     }
 
