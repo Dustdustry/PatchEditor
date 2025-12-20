@@ -74,7 +74,7 @@ public class NodeModifier{
     }
 
     public static boolean canModify(EditorNode node){
-        return node.getSign(ModifierSign.MODIFY) != null;
+        return node.objectNode != null && node.objectNode.hasSign(ModifierSign.MODIFY);
     }
 
     private static Class<?> handleType(Class<?> type){

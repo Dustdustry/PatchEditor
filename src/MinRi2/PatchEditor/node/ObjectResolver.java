@@ -42,9 +42,9 @@ public class ObjectResolver{
 
         // type resolve
         if(ClassHelper.isArrayLike(objectType)){
-            node.addSign(ModifierSign.PLUS, node.elementType, node.elementType);
+            node.addSign(ModifierSign.PLUS, node.type, node.elementType, node.elementType);
         }else if(ClassHelper.isMap(objectType)){
-            node.addSign(ModifierSign.PLUS, node.elementType, node.keyType);
+            node.addSign(ModifierSign.PLUS, node.type, node.elementType, node.keyType);
         }
 
         // object resolve
@@ -57,25 +57,25 @@ public class ObjectResolver{
             int i = 0;
             for(Object o : arr){
                 node.addChild("" + i++, o, node.elementType, null)
-                .addSign(ModifierSign.MODIFY, node.elementType, null);
+                .addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
         }else if(object instanceof Seq<?> seq){
             for(int i = 0; i < seq.size; i++){
                 Object o = seq.get(i);
                 node.addChild("" + i, o, node.elementType, null)
-                .addSign(ModifierSign.MODIFY, node.elementType, null);
+                .addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
         }else if(object instanceof ObjectSet<?> set){
             int i = 0;
             for(Object o : set){
                 node.addChild("" + i++, o, node.elementType, null)
-                .addSign(ModifierSign.MODIFY, node.elementType, null);
+                .addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
         }else if(object instanceof ObjectMap<?, ?> map){
             for(var entry : map){
                 String name = PatchJsonIO.getKeyName(entry.key);
                 ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry), node.elementType, node.keyType);
-                entryNode.addSign(ModifierSign.MODIFY, node.elementType, node.keyType);
+                entryNode.addSign(ModifierSign.MODIFY, node.type, node.elementType, node.keyType);
             }
         }else if(object instanceof ContentType ctype){
             OrderedMap<String, Content> map = new OrderedMap<>(); // in order
@@ -98,7 +98,7 @@ public class ObjectResolver{
 
                 // no map
                 if(!ClassHelper.isMap(child.type)){
-                    child.addSign(ModifierSign.MODIFY, child.elementType, child.keyType);
+                    child.addSign(ModifierSign.MODIFY, child.type, child.elementType, child.keyType);
                 }
             }
         }

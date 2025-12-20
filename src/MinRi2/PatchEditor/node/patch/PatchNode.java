@@ -10,8 +10,7 @@ public class PatchNode{
     private PatchNode parent;
     public final ObjectMap<String, PatchNode> children = new ObjectMap<>();
 
-    // mark while operating or parsing
-    public PatchType patchType;
+    public @Nullable ModifierSign sign;
 
     public PatchNode(String key){
         this(key, null);
@@ -62,17 +61,9 @@ public class PatchNode{
     @Override
     public String toString(){
         return "PatchNode{" +
-        "value='" + value + '\'' +
-        ", key='" + key + '\'' +
+        "key='" + key + '\'' +
+        ", value='" + value + '\'' +
+        ", sign=" + sign +
         '}';
-    }
-
-    public enum PatchType{
-        // used for Array, Seq, ObjectSet as field
-        APPEND,
-        // used for ObjectMap as the value
-        REMOVE,
-        // mark as modifiable and overrideable
-        MODIFY;
     }
 }

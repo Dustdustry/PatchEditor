@@ -15,6 +15,8 @@ public class ObjectNode{
     public final @Nullable Field field;
     public final @Nullable Class<?> type, elementType, keyType;
 
+    private ObjectNode parent;
+
     private final OrderedMap<String, ObjectNode> children = new OrderedMap<>();
     private boolean resolved = false;
 
@@ -51,6 +53,10 @@ public class ObjectNode{
         return rootNode;
     }
 
+    public boolean hasSign(ModifierSign sign){
+        return getOrResolve(sign.sign) != null;
+    }
+
     public ObjectNode getOrResolve(String name){
         return getChildren().get(name);
     }
@@ -63,8 +69,16 @@ public class ObjectNode{
         return children;
     }
 
-    public ObjectNode addSign(ModifierSign sign, Class<?> elementType, Class<?> keyType){
-        return addChild(sign.sign, null, null, elementType, keyType);
+    public ObjectNode getParent(){
+        return parent;
+    }
+
+    public boolean isSign(){
+        return Structs.contains(ModifierSign.values(), name);
+    }
+
+    public ObjectNode addSign(ModifierSign sign, Class<?> type, Class<?> elementType, Class<?> keyType){
+        return addChild(sign.sign, null, type, elementType, keyType);
     }
 
     public ObjectNode addChild(String name, Object object, Class<?> elementType, Class<?> keyType){
@@ -82,6 +96,7 @@ public class ObjectNode{
 
     public ObjectNode addChild(ObjectNode child){
         children.put(child.name, child);
+        child.parent = this;
         return child;
     }
 }

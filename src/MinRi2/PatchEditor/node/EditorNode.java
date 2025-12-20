@@ -11,7 +11,6 @@ import arc.util.serialization.JsonValue.*;
  * Create by 2024/2/15
  */
 public class EditorNode{
-    private static EditorNode rootData;
     public final ObjectNode objectNode;
     private String path;
 
@@ -19,16 +18,11 @@ public class EditorNode{
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
     private boolean resolved;
 
-    // just a reference
     private final PatchNodeManager manager;
 
     public EditorNode(ObjectNode objectNode, PatchNodeManager manager){
         this.objectNode = objectNode;
         this.manager = manager;
-    }
-
-    public static EditorNode getRootData(){
-        return rootData;
     }
 
     public String name(){
@@ -39,10 +33,6 @@ public class EditorNode{
         return parent == null;
     }
 
-    public EditorNode getSign(ModifierSign sign){
-        return getChild(sign.sign);
-    }
-
     public EditorNode getChild(String name){
          return getChildren().get(name);
     }
@@ -50,6 +40,8 @@ public class EditorNode{
     public ObjectMap<String, EditorNode> getChildren(){
         if(!resolved){
             for(ObjectNode node : objectNode.getChildren().values()){
+                if(node.isSign()) continue;
+
                 EditorNode child = new EditorNode(node, manager);
                 child.parent = this;
                 children.put(child.name(), child);

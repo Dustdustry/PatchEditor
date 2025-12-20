@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.node;
 
 import MinRi2.PatchEditor.node.patch.*;
+import MinRi2.PatchEditor.ui.editor.*;
 import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
@@ -71,22 +72,53 @@ public class PatchJsonIO{
     public static void parseJson(ObjectNode objectNode, PatchNode patchNode, String patch){
         JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
         desugarJson(objectNode, value);
-        parseJson(patchNode, value);
+        parseJson(objectNode, patchNode, value);
     }
 
-    public static void parseJson(PatchNode patchNode, JsonValue value){
+    public static void parseJson(ObjectNode objectNode, PatchNode patchNode, JsonValue value){
         if(value.isValue()) patchNode.value = value.asString();
 
-        // TODO: PatchType marking
+        if(value.isArray()){
+            int i = 0;
+            for(JsonValue childValue : value){
+                ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve("" + i);
+                PatchNode childNode = patchNode.getOrCreate("" + i);
+
+                // 'array: []' means multiple append or override.
+                if(objectNode != null && ClassHelper.isArrayLike(objectNode.type)){
+                    childNode.sign = ModifierSign.PLUS.sign.equals(childNode.key) ? ModifierSign.PLUS : ModifierSign.MODIFY;
+                    Log.info("Got sign @ for '@'", patchNode.sign, patchNode.key);
+                }
+
+                parseJson(childObj, childNode, childValue);
+            }
+            return;
+        }
+
+        if(objectNode != null && objectNode.getParent() != null){
+            ObjectNode parentObj = objectNode.getParent();
+
+            if(ClassHelper.isMap(parentObj.type)){
+                // 'map': {} means modify(override) or append key.
+                if(objectNode.object == null){
+                    patchNode.sign = ModifierSign.PLUS;
+                }else if(parentObj.object instanceof ObjectMap<?, ?>){
+                    ObjectMap<Object, Object> map = (ObjectMap<Object, Object>)parentObj.object;
+                    Object key = parser.getJson().readValue(objectNode.keyType, new JsonValue(value.name));
+                    patchNode.sign = key != null && map.containsKey(key) ? ModifierSign.MODIFY : ModifierSign.PLUS;
+                }
+                Log.info("Got sign @ for '@'", patchNode.sign, patchNode.key);
+            }else if(ClassHelper.isArrayLike(parentObj.type)){
+                // 'array': {} means modify(override)
+                patchNode.sign = ModifierSign.MODIFY;
+                Log.info("Got sign @ for '@'", patchNode.sign, patchNode.key);
+            }
+        }
 
         for(JsonValue childValue : value){
-            PatchNode current = patchNode;
-            // extract . syntax in parsing
-            for(String name : childValue.name.split("\\.")){
-                current = current.getOrCreate(name);
-            }
-
-            parseJson(current, childValue);
+            String name = childValue.name;
+            ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve(name);
+            parseJson(childObj, patchNode.getOrCreate(name), childValue);
         }
     }
 
@@ -217,28 +249,44 @@ public class PatchJsonIO{
 //        return null;
 //    }
 
-    private static void desugarJson(ObjectNode node, JsonValue value){
-        if(node == null) return;
+    private static void desugarJson(ObjectNode objectNode, JsonValue value){
+        if(objectNode != null){
+            Class<?> type = objectNode.type;
+            if(type == ItemStack.class || type == PayloadStack.class){
+                if(!value.isString() || !value.asString().contains("/")) return;
+                String[] split = value.asString().split("/");
+                value.setType(ValueType.object);
+                value.addChild("item", new JsonValue(split[0]));
+                value.addChild("amount", new JsonValue(split[1]));
+            }else if(type == LiquidStack.class || type == ConsumeLiquid.class){
+                if(!value.isString() || !value.asString().contains("/")) return;
+                String[] split = value.asString().split("/");
+                value.setType(ValueType.object);
+                value.addChild("liquid", new JsonValue(split[0]));
+                value.addChild("amount", new JsonValue(split[1]));
+            }
+        }
 
-        Class<?> type = node.type;
-        if(type == ItemStack.class || type == PayloadStack.class){
-            if(!value.isString() || !value.asString().contains("/")) return;
-            String[] split = value.asString().split("/");
-            value.setType(ValueType.object);
-            addChildValue(value, "item", new JsonValue(split[0]));
-            addChildValue(value, "amount", new JsonValue(split[1]));
-        }else if(type == LiquidStack.class || type == ConsumeLiquid.class){
-            if(!value.isString() || !value.asString().contains("/")) return;
-            String[] split = value.asString().split("/");
-            value.setType(ValueType.object);
-            addChildValue(value, "liquid", new JsonValue(split[0]));
-            addChildValue(value, "amount", new JsonValue(split[1]));
+        // extract dot syntax
+        if(value.name != null && value.parent != null && value.name.contains(PatchNodeManager.pathComp)){
+            String[] names = value.name.split(PatchNodeManager.pathSplitter);
+
+            int i = 0;
+            JsonValue currentParent = new JsonValue(ValueType.object);
+            currentParent.setName(names[i++]);
+            replaceValue(value, currentParent); // don't affect the order
+
+            while(i < names.length - 1){
+                currentParent.addChild(names[i++], currentParent = new JsonValue(ValueType.object));
+            }
+
+            currentParent.addChild(names[i], value);
         }
 
         // TODO: More sugar syntaxes support
 
         for(JsonValue childValue : value){
-            desugarJson(node.getOrResolve(childValue.name), childValue);
+            desugarJson(objectNode == null ? null : objectNode.getOrResolve(childValue.name), childValue);
         }
     }
 
@@ -261,9 +309,8 @@ public class PatchJsonIO{
                 else break;
             }
 
-            JsonValue parent = value.parent;
-            removeJsonValue(value);
-            addChildValue(parent, name.toString(), singleEnd);
+            singleEnd.setName(name.toString());
+            replaceValue(value, singleEnd);
             value = singleEnd;
         }
 
@@ -290,29 +337,6 @@ public class PatchJsonIO{
         }
     }
 
-    /**
-     * Function 'addChild' doesn't set the child's previous jsonValue.
-     * see {@link JsonValue}
-     */
-    public static void addChildValue(JsonValue jsonValue, String name, JsonValue childValue){
-        childValue.name = name;
-        childValue.parent = jsonValue;
-
-        JsonValue current = jsonValue.child;
-        if(current == null){
-            jsonValue.child = childValue;
-        }else{
-            while(true){
-                if(current.next == null){
-                    current.next = childValue;
-                    childValue.prev = current;
-                    return;
-                }
-                current = current.next;
-            }
-        }
-    }
-
     public static void removeJsonValue(JsonValue value){
         JsonValue parent = value.parent, prev = value.prev, next = value.next;
 
@@ -321,7 +345,22 @@ public class PatchJsonIO{
 
         if(next != null) next.prev = prev;
         value.parent = value.prev = value.next = null;
+    }
 
-        if(parent != null && parent.child == null) removeJsonValue(parent);
+    public static void replaceValue(JsonValue replaced, JsonValue value){
+        if(value.parent != null) removeJsonValue(value);
+
+        JsonValue parent = replaced.parent, prev = replaced.prev, next = replaced.next;
+
+        if(prev != null) prev.next = value;
+        else if(parent != null) parent.child = value;
+
+        if(next != null) next.prev = value;
+
+        value.parent = parent;
+        value.prev = prev;
+        value.next = next;
+
+        replaced.parent = replaced.prev = replaced.next = null;
     }
 }

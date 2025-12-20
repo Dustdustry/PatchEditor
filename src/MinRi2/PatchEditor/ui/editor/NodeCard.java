@@ -236,8 +236,8 @@ public class NodeCard extends Table{
     }
 
     private void addChildButton(Table table, EditorNode node){
-        EditorNode removeData = node.getSign(ModifierSign.REMOVE);
-        boolean isKeyRemoved = removeData != null && removeData.getPatch() != null;
+//        EditorNode removeData = node.getSign(ModifierSign.REMOVE);
+        boolean isKeyRemoved = false; // removeData != null && removeData.getPatch() != null;
 
         ImageButtonStyle style = EStyles.cardButtoni;
         if(isRequired(node)){
@@ -263,8 +263,9 @@ public class NodeCard extends Table{
             Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
             horizontalLine.colspan(b.getColumns());
         }, style, () -> {
-            EditorNode modifyData = node.getSign(ModifierSign.MODIFY);
-            editChildNode(modifyData == null || modifyData.getPath() == null ? node : modifyData);
+//            EditorNode modifyData = node.getSign(ModifierSign.MODIFY);
+//            editChildNode(modifyData == null || modifyData.getPath() == null ? node : modifyData);
+            editChildNode(node);
         }).disabled(node.getObject() == null);
     }
 
@@ -304,26 +305,26 @@ public class NodeCard extends Table{
     private void setupEditButton(Table table, EditorNode data, boolean hasModifier){
         table.defaults().width(32f).pad(4f).growY();
 
-        EditorNode modifyData = data.getSign(ModifierSign.MODIFY);
-        EditorNode removeData = data.getSign(ModifierSign.REMOVE);
+//        EditorNode modifyData = data.getSign(ModifierSign.MODIFY);
+//        EditorNode removeData = data.getSign(ModifierSign.REMOVE);
 
-        boolean isOverride = modifyData != null && modifyData.getPatch() != null;
-        if(isOverride){
-            table.button(Icon.undo, Styles.clearNonei, () -> {
-                modifyData.clearJson();
-                rebuildNodesTable();
-            }).tooltip("#revertOverride").grow();
-            return;
-        }
-
-        if(removeData != null){
-            boolean undoMode = removeData.getPath() != null;
-            table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
-                if(undoMode) removeData.clearJson();
-                rebuildNodesTable();
-            }).tooltip(undoMode ? "##revertRemove" : "##removeKey");
-            if(undoMode) return;
-        }
+//        boolean isOverride = modifyData != null && modifyData.getPatch() != null;
+//        if(isOverride){
+//            table.button(Icon.undo, Styles.clearNonei, () -> {
+//                modifyData.clearJson();
+//                rebuildNodesTable();
+//            }).tooltip("#revertOverride").grow();
+//            return;
+//        }
+//
+//        if(removeData != null){
+//            boolean undoMode = removeData.getPath() != null;
+//            table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
+//                if(undoMode) removeData.clearJson();
+//                rebuildNodesTable();
+//            }).tooltip(undoMode ? "##revertRemove" : "##removeKey");
+//            if(undoMode) return;
+//        }
 
         if(data instanceof PlusEditorNode){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
@@ -338,19 +339,20 @@ public class NodeCard extends Table{
                 data.clearJson();
                 rebuildNodesTable();
             }).grow().row();
-        }else if(!hasModifier && modifyData != null && modifyData.getPatch() == null){
-            table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, data.getTypeIn(), clazz -> {
-//                    EditorNode newData = NodeModifier.changeType(modifyData, clazz);
-//                    if(newData != null){
-//                        editChildNode(newData);
-//                    }else{
-//                        Vars.ui.showErrorMessage("Type '" + clazz.getSimpleName() + "' not available.");
-//                    }
-                    return true;
-                });
-            }).tooltip("##override");
-        }
+        }else{}
+//            if(!hasModifier && modifyData != null && modifyData.getPatch() == null){
+//            table.button(Icon.wrench, Styles.clearNonei, () -> {
+//                EUI.classSelector.select(null, data.getTypeIn(), clazz -> {
+////                    EditorNode newData = NodeModifier.changeType(modifyData, clazz);
+////                    if(newData != null){
+////                        editChildNode(newData);
+////                    }else{
+////                        Vars.ui.showErrorMessage("Type '" + clazz.getSimpleName() + "' not available.");
+////                    }
+//                    return true;
+//                });
+//            }).tooltip("##override");
+//        }
 
         if(isRequired(data)){
             table.image(Icon.infoCircle).height(32f).tooltip("##mayRequired");
