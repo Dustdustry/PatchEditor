@@ -45,13 +45,17 @@ public class PatchNode{
         return parent;
     }
 
+    public String buildPath(){
+        return (parent == null ? "" : parent.buildPath() + ".") + key;
+    }
+
     public PatchNode navigateChild(String path){
         return navigateChild(path, false);
     }
 
     public PatchNode navigateChild(String path, boolean create){
         PatchNode current = this;
-        for(String name : path.split(PatchNodeManager.pathSplitter)){
+        for(String name : path.split(NodeManager.pathSplitter)){
             current = create ? current.getOrCreate(name) : current.getOrNull(name);
             if(current == null) return null;
         }

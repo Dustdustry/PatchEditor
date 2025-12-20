@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.node;
 
+import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import arc.struct.*;
 import arc.util.*;
@@ -11,16 +12,15 @@ import arc.util.serialization.JsonValue.*;
  * Create by 2024/2/15
  */
 public class EditorNode{
-    public final ObjectNode objectNode;
+    private ObjectNode objectNode;
     private String path;
 
     private @Nullable EditorNode parent;
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
-    private boolean resolved;
 
-    private final PatchNodeManager manager;
+    private final NodeManager manager;
 
-    public EditorNode(ObjectNode objectNode, PatchNodeManager manager){
+    public EditorNode(ObjectNode objectNode, NodeManager manager){
         this.objectNode = objectNode;
         this.manager = manager;
     }
@@ -33,26 +33,45 @@ public class EditorNode{
         return parent == null;
     }
 
-    public EditorNode getChild(String name){
-         return getChildren().get(name);
-    }
-
     public ObjectMap<String, EditorNode> getChildren(){
-        if(!resolved){
-            for(ObjectNode node : objectNode.getChildren().values()){
-                if(node.isSign()) continue;
+        children.clear();
 
-                EditorNode child = new EditorNode(node, manager);
-                child.parent = this;
-                children.put(child.name(), child);
+        PatchNode patchNode = getPatch();
+
+        for(ObjectNode node : objectNode.getChildren().values()){
+            if(node.isSign()) continue;
+
+            EditorNode child = new EditorNode(node, manager);
+            child.parent = this;
+            children.put(child.name(), child);
+        }
+
+        // data driven
+        if(patchNode != null){
+            for(PatchNode childPatchNode : patchNode.children.values()){
+                if(childPatchNode.sign == ModifierSign.PLUS){
+                    PatchNode typeNode = patchNode.getOrNull("type");
+                    String typeJson = typeNode == null ? null : typeNode.value;
+
+                    Class<?> type = PatchJsonIO.resolveType(getObjNode().elementType, typeJson);
+
+                    String key = childPatchNode.key;
+                    if(ClassHelper.isArrayLike(getTypeIn())) key = PatchJsonIO.getContainerSize(getObject()) + "";
+                    EditorNode child = new DynamicEditorNode(key, type, manager);
+                    child.parent = this;
+                    children.put(key, child);
+                }
             }
-            resolved = true;
         }
         return children;
     }
 
     public EditorNode getParent(){
         return parent;
+    }
+
+    public ObjectNode getObjNode(){
+        return objectNode;
     }
 
     public Object getObject(){
@@ -84,10 +103,15 @@ public class EditorNode{
         if(path == null){
             // Path is relative to root so don't append it
             boolean split = parent != null && !parent.isRoot() && !parent.getPath().isEmpty();
-            path = split ? (parent.getPath() + PatchNodeManager.pathComp + name()) : name();
+            path = split ? (parent.getPath() + NodeManager.pathComp + name()) : name();
         }
 
         return path;
+    }
+
+    protected void setObjectNode(ObjectNode newObj){
+        objectNode = newObj;
+        children.clear();
     }
 
     public PatchNode getPatch(){
@@ -102,29 +126,30 @@ public class EditorNode{
         manager.applyOp(new PatchOperator.ClearOp(path));
     }
 
-    public static class PlusEditorNode extends EditorNode{
+    public static class DynamicEditorNode extends EditorNode{
+        public final String key;
+        private Class<?> type;
 
-        public PlusEditorNode(ObjectNode objectNode, PatchNodeManager manager){
-            super(objectNode, manager);
-        }
+        public DynamicEditorNode(String key, Class<?> type, NodeManager manager){
+            super(new ObjectNode(key, NodeModifier.getExample(type, type), type), manager);
 
-        @Override
-        public String name(){
-            return ModifierSign.PLUS.sign;
+            this.key = key;
+            this.type = type;
         }
 
         @Override
         public boolean hasValue(){
             return true;
         }
-    }
 
-    public static class DynamicEditorNode extends EditorNode{
-        public Class<?> type;
-        public Object example;
+        public void changeType(Class<?> newType){
+            type = newType;
+            setObjectNode(new ObjectNode(key, NodeModifier.getExample(type, type), type));
+        }
 
-        public DynamicEditorNode(ObjectNode objectNode, PatchNodeManager manager){
-            super(objectNode, manager);
+        @Override
+        public String name(){
+            return key;
         }
     }
 }

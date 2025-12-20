@@ -1,10 +1,12 @@
 package MinRi2.PatchEditor.node.patch;
 
+import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.EditorNode.*;
 import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
 
-public class PatchNodeManager{
+public class NodeManager{
     public static final String pathComp = ".";
     public static final String pathSplitter = "\\.";
 

@@ -28,7 +28,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     }
 
     public T getDefaultValue(){
-        return cast(data.objectNode.object);
+        return cast(data.getObject());
     }
 
     /**
@@ -89,7 +89,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     @Override
     public void resetModify(){
         if(data instanceof DynamicEditorNode){
-            data.setValue(PatchJsonIO.getKeyName(data.objectNode.object));
+            data.setValue(PatchJsonIO.getKeyName(data.getObject()));
         }else{
             data.clearJson();
         }

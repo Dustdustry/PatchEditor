@@ -74,7 +74,7 @@ public class NodeModifier{
     }
 
     public static boolean canModify(EditorNode node){
-        return node.objectNode != null && node.objectNode.hasSign(ModifierSign.MODIFY);
+        return node.getObjNode() != null && node.getObjNode().hasSign(ModifierSign.MODIFY);
     }
 
     private static Class<?> handleType(Class<?> type){
@@ -92,7 +92,7 @@ public class NodeModifier{
     }
 
     private static void handleDynamicData(DynamicEditorNode node){
-        Object object = node.example;
+        Object object = node.getObject();
 
         JsonValue value = new JsonValue("");
 

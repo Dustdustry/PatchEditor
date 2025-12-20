@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.ui.editor;
 
 import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.EditorNode.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.PatchManager.*;
@@ -24,12 +25,12 @@ public class PatchEditor extends BaseDialog{
     private EditorPatch editPatch;
 
     private final EditorNode rootData;
-    private final PatchNodeManager manager;
+    private final NodeManager manager;
 
     public PatchEditor(){
         super("@contents-editor");
 
-        manager = new PatchNodeManager();
+        manager = new NodeManager();
         rootData = new EditorNode(ObjectNode.getRoot(), manager);
         card = new NodeCard();
 
@@ -66,7 +67,7 @@ public class PatchEditor extends BaseDialog{
         manager.reset();
 
         try{
-            PatchJsonIO.parseJson(rootData.objectNode, manager.getRoot(), patch.patch);
+            PatchJsonIO.parseJson(rootData.getObjNode(), manager.getRoot(), patch.patch);
         }catch(Exception e){
             Vars.ui.showException(e);
             return;

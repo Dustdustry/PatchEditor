@@ -173,7 +173,7 @@ public class NodeCard extends Table{
                 if(!searchText.isEmpty()){
                     String displayName = NodeDisplay.getDisplayName(child.getDisplayValue());
 
-                    if(!Strings.matches(searchText, child.objectNode.name)
+                    if(!Strings.matches(searchText, child.getObjNode().name)
                     && (displayName == null || !Strings.matches(searchText, displayName))){
                         continue;
                     }
@@ -326,7 +326,7 @@ public class NodeCard extends Table{
 //            if(undoMode) return;
 //        }
 
-        if(data instanceof PlusEditorNode){
+        if(data instanceof DynamicEditorNode){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
                 EUI.classSelector.select(null, data.getTypeIn(), clazz -> {
 //                    NodeModifier.changeType(data, clazz);
@@ -410,17 +410,12 @@ public class NodeCard extends Table{
         }
 
         for(EditorNode child : editorNode.getChildren().values()){
-            if(child instanceof PlusEditorNode){
-                mappedChildren.get(Object.class).addAll(child.getChildren().values());
-                continue;
-            }
-
-            if(child.objectNode == null || child.objectNode.field == null){
+            if(child.getObjNode() == null || child.getObjNode().field == null){
                 mappedChildren.get(Object.class).add(child); // Object means unknow declaring class
                 continue;
             }
 
-            mappedChildren.get(child.objectNode.field.getDeclaringClass()).add(child);
+            mappedChildren.get(child.getObjNode().field.getDeclaringClass()).add(child);
         }
 
         for(var entry : mappedChildren){
