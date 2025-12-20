@@ -1,5 +1,7 @@
 package MinRi2.PatchEditor.node.patch;
 
+import MinRi2.PatchEditor.node.*;
+
 public abstract class PatchOperator{
     public final String path;
 
@@ -39,7 +41,9 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root){
-            PatchNode node = root.navigateChild(path, true);
+            PatchNode node = root.navigateChild(path, false);
+            if(node == null) return;
+
             PatchNode parent = node.getParent();
             node.remove();
 
@@ -56,15 +60,48 @@ public abstract class PatchOperator{
         }
     }
 
-    public class ArrayAppendOp extends PatchOperator{
-        protected ArrayAppendOp(String path){
+    public static class ArrayAppendOp extends PatchOperator{
+        public ArrayAppendOp(String path){
             super(path);
         }
 
         public void apply(PatchNode root) {
+            PatchNode node = root.navigateChild(path, true);
+            PatchNode plusNode = node.getOrCreate(findKey(node));
+            plusNode.sign = ModifierSign.PLUS;
         }
 
         public void undo(PatchNode root) {
+        }
+
+        private String findKey(PatchNode node){
+            int index = 0;
+            while(node.getOrNull("#ADD_" + index) != null){
+                index++;
+            }
+            return "#ADD_" + index;
+        }
+    }
+
+    public static class ChangeTypeOp extends PatchOperator{
+        public final Class<?> type;
+
+        public ChangeTypeOp(String path, Class<?> type){
+            super(path);
+            this.type = type;
+        }
+
+        @Override
+        public void apply(PatchNode root){
+            PatchNode node = root.navigateChild(path, true);
+            if(node == null || node.sign == null) return;
+
+            node.getOrCreate("type").value = PatchJsonIO.classTypeName(type);
+        }
+
+        @Override
+        public void undo(PatchNode root){
+
         }
     }
 }

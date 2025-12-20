@@ -2,6 +2,7 @@ package MinRi2.PatchEditor.node;
 
 import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
+import MinRi2.PatchEditor.node.patch.PatchOperator.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -50,16 +51,14 @@ public class EditorNode{
         if(patchNode != null){
             for(PatchNode childPatchNode : patchNode.children.values()){
                 if(childPatchNode.sign == ModifierSign.PLUS){
-                    PatchNode typeNode = patchNode.getOrNull("type");
+                    PatchNode typeNode = childPatchNode.getOrNull("type");
                     String typeJson = typeNode == null ? null : typeNode.value;
 
                     Class<?> type = PatchJsonIO.resolveType(getObjNode().elementType, typeJson);
 
-                    String key = childPatchNode.key;
-                    if(ClassHelper.isArrayLike(getTypeIn())) key = PatchJsonIO.getContainerSize(getObject()) + "";
-                    EditorNode child = new DynamicEditorNode(key, type, manager);
+                    EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
                     child.parent = this;
-                    children.put(key, child);
+                    children.put(childPatchNode.key, child);
                 }
             }
         }
@@ -78,10 +77,14 @@ public class EditorNode{
         return objectNode.object;
     }
 
+    public String getDisplayName(){
+        return name();
+    }
+
     public Object getDisplayValue(){
         PatchNode patchNode = getPatch();
         if(patchNode == null || patchNode.value == null) return getObject();
-        JsonValue value = PatchJsonIO.toJson(patchNode, new JsonValue(ValueType.object));
+        JsonValue value = PatchJsonIO.toJson(patchNode);
         return PatchJsonIO.getParser().getJson().readValue(getTypeIn(), value);
     }
 
@@ -119,22 +122,28 @@ public class EditorNode{
     }
 
     public void setValue(String value){
-        manager.applyOp(new PatchOperator.SetOp(path, value));
+        manager.applyOp(new SetOp(getPath(), value));
     }
 
     public void clearJson(){
-        manager.applyOp(new PatchOperator.ClearOp(path));
+        manager.applyOp(new ClearOp(getPath()));
+    }
+
+    public void append(){
+        manager.applyOp(new ArrayAppendOp(getPath()));
+    }
+
+    public void changeType(Class<?> type){
+        manager.applyOp(new ChangeTypeOp(getPath(), type));
     }
 
     public static class DynamicEditorNode extends EditorNode{
         public final String key;
-        private Class<?> type;
 
-        public DynamicEditorNode(String key, Class<?> type, NodeManager manager){
-            super(new ObjectNode(key, NodeModifier.getExample(type, type), type), manager);
+        public DynamicEditorNode(String key, Class<?> baseType, Class<?> type, NodeManager manager){
+            super(new ObjectNode(key, NodeModifier.getExample(baseType, type), baseType), manager);
 
             this.key = key;
-            this.type = type;
         }
 
         @Override
@@ -142,13 +151,13 @@ public class EditorNode{
             return true;
         }
 
-        public void changeType(Class<?> newType){
-            type = newType;
-            setObjectNode(new ObjectNode(key, NodeModifier.getExample(type, type), type));
+        @Override
+        public String name(){
+            return key;
         }
 
         @Override
-        public String name(){
+        public String getDisplayName(){
             return key;
         }
     }

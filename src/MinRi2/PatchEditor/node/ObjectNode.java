@@ -74,7 +74,10 @@ public class ObjectNode{
     }
 
     public boolean isSign(){
-        return Structs.contains(ModifierSign.values(), name);
+        for(ModifierSign sign : ModifierSign.values()){
+            if(sign.sign.equals(name)) return true;
+        }
+        return false;
     }
 
     public ObjectNode addSign(ModifierSign sign, Class<?> type, Class<?> elementType, Class<?> keyType){

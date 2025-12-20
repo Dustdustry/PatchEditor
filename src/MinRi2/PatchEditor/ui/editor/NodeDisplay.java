@@ -106,7 +106,7 @@ public class NodeDisplay{
             Class<?> type = node.getTypeOut();
             String typeName = type == null ? "unknown" : ClassHelper.getDisplayName(type);
 
-            nodeInfoTable.add(node.name()).wrap().tooltip(node.name());
+            nodeInfoTable.add(node.getDisplayName()).wrap().tooltip(node.getDisplayName());
             nodeInfoTable.row();
             nodeInfoTable.add(typeName).fontScale(0.85f).color(EPalettes.type).ellipsis(true).padTop(4f).tooltip(typeName);
         });

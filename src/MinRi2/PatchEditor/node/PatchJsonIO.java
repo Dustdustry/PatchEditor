@@ -1,8 +1,8 @@
 package MinRi2.PatchEditor.node;
 
 import MinRi2.PatchEditor.node.patch.*;
+import MinRi2.PatchEditor.ui.editor.*;
 import arc.struct.*;
-import arc.struct.ObjectMap.*;
 import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
@@ -16,8 +16,11 @@ import mindustry.world.*;
 import mindustry.world.consumers.*;
 
 import java.lang.reflect.*;
+import java.util.*;
 
 public class PatchJsonIO{
+    public static final boolean debug = true;
+
     public static final int simplifySingleCount = 3;
 
     private static ContentParser parser;
@@ -90,6 +93,12 @@ public class PatchJsonIO{
         });
     }
 
+    public static String classTypeName(Class<?> type){
+        String name = ClassMap.classes.findKey(type, true);
+        if(name == null) name = type.getName();
+        return name;
+    }
+
     public static int getContainerSize(Object containerLike){
         if(containerLike instanceof Object[] arr) return arr.length;
         if(containerLike instanceof Seq<?> seq) return seq.size;
@@ -106,64 +115,116 @@ public class PatchJsonIO{
 
     public static void parseJson(ObjectNode objectNode, PatchNode patchNode, JsonValue value){
         if(value.isValue()) patchNode.value = value.asString();
+        patchNode.type = value.type();
 
         if(value.isArray()){
+            // patchNode('array': []) -> override array.
             int i = 0;
-
-            // override patchNode('array': [])
-            // multiple append patchNode(‘+’: [])
-            ModifierSign sign = objectNode != null && ClassHelper.isArrayLike(objectNode.type)
-            ? (ModifierSign.PLUS.sign.equals(patchNode.key) ? ModifierSign.PLUS : ModifierSign.MODIFY)
-            : null;
             for(JsonValue childValue : value){
-                ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve("" + i);
-                PatchNode childNode = patchNode.getOrCreate("" + i);
-                childNode.sign = sign;
-
-//                if(sign != null) Log.info("'@' got sign @", childNode.buildPath(), childNode.sign);
-
-                parseJson(childObj, childNode, childValue);
+                PatchNode childNode = patchNode.getOrCreate("" + i++);
+                parseJson(null, childNode, childValue);
             }
             return;
         }
 
+        // sign is seen as attribute in PatchNode, not a node
+        if(value.has(ModifierSign.PLUS.sign)){
+            JsonValue plusValue = value.remove(ModifierSign.PLUS.sign);
+
+            int i = objectNode != null ? getContainerSize(objectNode.object) : 0;
+            if(plusValue.isArray()){
+                // patchNode(‘+’: []) -> multiple append
+                for(JsonValue childValue : plusValue){
+                    PatchNode childNode = patchNode.getOrCreate("" + i++);
+                    childNode.sign = ModifierSign.PLUS;
+                    if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
+                    parseJson(null, childNode, childValue);
+                }
+            }else if(plusValue.isObject()){
+                // patchNode('+': {}) -> single append
+                PatchNode childNode = patchNode.getOrCreate("" + i);
+                childNode.sign = ModifierSign.PLUS;
+                if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
+                parseJson(null, childNode, plusValue);
+            }
+        }
+
         for(JsonValue childValue : value){
             String name = childValue.name;
+
             ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve(name);
             PatchNode childNode = patchNode.getOrCreate(name);
 
             if(objectNode != null && ClassHelper.isMap(objectNode.type) && objectNode.object instanceof ObjectMap map){
-                // patchNode('map': {}) means modify(override) or append key.
+                // patchNode('map': {}) -> modify(override) or append key
                 Object key = parser.getJson().readValue(objectNode.keyType, new JsonValue(childValue.name));
                 childNode.sign = key != null && map.containsKey(key) ? ModifierSign.MODIFY : ModifierSign.PLUS;
-//                Log.info("'@' got sign '@'", childNode.buildPath(), childNode.sign);
+                if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
             }
 
             if(objectNode != null && ClassHelper.isArrayLike(objectNode.type)){
-                if(!ModifierSign.PLUS.sign.equals(childNode.key)){
-                    // patchNode('array': {}) means modify(override)
-                    childNode.sign = ModifierSign.MODIFY;
-                }else if(childValue.isObject()){
-                    // patchNode('+': {}) means single append
-                    childNode.sign = ModifierSign.PLUS;
-                }
-//                Log.info("'@' got sign '@'", childNode.buildPath(), childNode.sign);
+                // patchNode('array': {}) -> modify(override)
+                childNode.sign = ModifierSign.MODIFY;
+                if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
             }
 
             parseJson(childObj, childNode, childValue);
         }
     }
 
-    public static JsonValue toJson(PatchNode patchNode, JsonValue value){
+    public static JsonValue toJson(PatchNode patchNode){
+        return toJson(patchNode, new JsonValue(patchNode.type));
+    }
+
+    private static JsonValue toJson(PatchNode patchNode, JsonValue value){
         value.setName(patchNode.key);
         if(patchNode.value != null) value.set(patchNode.value);
 
-        for(Entry<String, PatchNode> entry : patchNode.children){
-            JsonValue childValue = new JsonValue(ValueType.object);
-            value.addChild(entry.key, childValue);
-            toJson(entry.value, childValue);
+        for(PatchNode childNode : patchNode.children.values()){
+            JsonValue childValue = new JsonValue(childNode.type);
+
+            value.addChild(childNode.key, childValue);
+            toJson(childNode, childValue);
         }
 
+        return value;
+    }
+
+    public static JsonValue toPatchJson(ObjectNode objectNode, PatchNode patchNode){
+        return toPatchJson(objectNode, patchNode, new JsonValue(patchNode.type));
+    }
+
+    private static JsonValue toPatchJson(ObjectNode objectNode, PatchNode patchNode, JsonValue value){
+        value.setName(patchNode.key);
+        if(patchNode.value != null) value.set(patchNode.value);
+
+        Seq<PatchNode> children = patchNode.children.values().toSeq();
+
+        if(objectNode != null && ClassHelper.isArrayLike(objectNode.type)){
+            Seq<PatchNode> plusChildren = children.select(p -> p.sign == ModifierSign.PLUS);
+
+            if(plusChildren.any()){
+                JsonValue plusValue = new JsonValue(ValueType.array);
+                for(PatchNode plusChild : plusChildren){
+                    JsonValue childValue = new JsonValue(plusChild.type);
+                    plusValue.addChild(plusChild.key, childValue);
+                    toPatchJson(null, plusChild, childValue);
+                }
+
+                value.parent.addChild(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign, plusValue);
+
+                children.removeAll(plusChildren, true);
+                if(children.isEmpty()) removeJsonValue(value);
+            }
+        }
+
+        for(PatchNode childNode : children){
+            ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve(childNode.key);
+            JsonValue childValue = new JsonValue(childNode.type);
+
+            value.addChild(childNode.key, childValue);
+            toPatchJson(childObj, childNode, childValue);
+        }
         return value;
     }
 
@@ -346,7 +407,14 @@ public class PatchJsonIO{
             value = singleEnd;
         }
 
-        sugarJson(value);
+        if(value.isObject()){
+            // duck like
+            if(value.has("item") && value.has("amount")){
+                value.set(value.get("item").asString() + "/" + value.get("amount").asString());
+            }else if(value.has("liquid") && value.has("amount")){
+                value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
+            }
+        }
 
         for(JsonValue childValue : value){
             simplifyPatch(childValue);
@@ -356,17 +424,6 @@ public class PatchJsonIO{
 
     private static boolean dotSimplifiable(JsonValue singleEnd){
         return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
-    }
-
-    private static void sugarJson(JsonValue value){
-        if(value.isObject()){
-            // duck like
-            if(value.has("item") && value.has("amount")){
-                value.set(value.get("item").asString() + "/" + value.get("amount").asString());
-            }else if(value.has("liquid") && value.has("amount")){
-                value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
-            }
-        }
     }
 
     public static void removeJsonValue(JsonValue value){

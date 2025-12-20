@@ -32,6 +32,9 @@ public class ObjectResolver{
                     node.addChild(map.findKey(ctype, true), ctype, ContentType.class, ctype.contentClass, null);
                 }
             }
+
+            node.addChild("name", "Patch0", String.class, null, null)
+            .addSign(ModifierSign.MODIFY, String.class, null, null);
             return;
         }
 
@@ -49,6 +52,7 @@ public class ObjectResolver{
 
         // object resolve
         Object object = node.object;
+        if(object != null) objectType = object.getClass();
 //        if(object instanceof Block){
 //            resolveConsumes(node);
 //        }

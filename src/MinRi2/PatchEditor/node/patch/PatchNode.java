@@ -3,10 +3,13 @@ package MinRi2.PatchEditor.node.patch;
 import MinRi2.PatchEditor.node.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.serialization.JsonValue.*;
 
 public class PatchNode{
     public String key;
     public @Nullable String value;
+    public ValueType type = ValueType.object;
+
     private PatchNode parent;
     public final ObjectMap<String, PatchNode> children = new ObjectMap<>();
 
@@ -45,8 +48,8 @@ public class PatchNode{
         return parent;
     }
 
-    public String buildPath(){
-        return (parent == null ? "" : parent.buildPath() + ".") + key;
+    public String getPath(){
+        return (parent == null ? "" : parent.getPath() + ".") + key;
     }
 
     public PatchNode navigateChild(String path){

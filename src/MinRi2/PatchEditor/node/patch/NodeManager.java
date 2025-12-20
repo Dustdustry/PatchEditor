@@ -30,7 +30,6 @@ public class NodeManager{
             operator.apply(root);
         }catch(Exception error){
             Log.err("Unable to apply patch operator to " + operator.path, error);
-            return;
         }
     }
 

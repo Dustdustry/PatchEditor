@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.ui.editor;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.EditorNode.*;
 import MinRi2.PatchEditor.node.modifier.*;
+import MinRi2.PatchEditor.node.patch.PatchOperator.*;
 import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.graphics.*;
@@ -190,10 +191,9 @@ public class NodeCard extends Table{
                 }
             }
 
-//            if(declareClass == Object.class){
-//                ObjectNode plusData = node.getOrResolve(ModifierSign.PLUS);
-//                if(plusData != null) addPlusButton(cont, plusData);
-//            }
+            if(declareClass == Object.class && editorNode.getObjNode().hasSign(ModifierSign.PLUS)){
+                addPlusButton(cont, editorNode);
+            }
 
             children.clear();
         }
@@ -269,13 +269,14 @@ public class NodeCard extends Table{
         }).disabled(node.getObject() == null);
     }
 
-    private void addPlusButton(Table table, ObjectNode plusData){
-        if(plusData.elementType == null) return;
+    private void addPlusButton(Table table, EditorNode editorNode){
+        ObjectNode objNode = editorNode.getObjNode();
+        if(objNode.elementType == null) return;
 
         table.button(b -> {
             b.image(Icon.add).pad(8f).padRight(16f);
 
-            b.add(ClassHelper.getDisplayName(plusData.elementType)).color(EPalettes.type)
+            b.add(ClassHelper.getDisplayName(objNode.elementType)).color(EPalettes.type)
             .style(Styles.outlineLabel).ellipsis(true).fillX();
 
             b.image().width(4f).color(Color.darkGray).growY().right();
@@ -283,7 +284,7 @@ public class NodeCard extends Table{
             Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
             horizontalLine.colspan(b.getColumns());
         }, EStyles.addButtoni, () -> {
-            Class<?> keyType = plusData.keyType;
+            Class<?> keyType = objNode.keyType;
             if(keyType != null){
                 ContentType type = PatchJsonIO.getContentType(keyType);
                 if(type == null){
@@ -296,17 +297,17 @@ public class NodeCard extends Table{
 //                    return true;
 //                });
             }else{
-//                NodeModifier.addDynamicChild(plusData);
-//                rebuildNodesTable();
+                editorNode.append();
+                rebuildNodesTable();
             }
         });
     }
 
-    private void setupEditButton(Table table, EditorNode data, boolean hasModifier){
+    private void setupEditButton(Table table, EditorNode editorNode, boolean hasModifier){
         table.defaults().width(32f).pad(4f).growY();
 
-//        EditorNode modifyData = data.getSign(ModifierSign.MODIFY);
-//        EditorNode removeData = data.getSign(ModifierSign.REMOVE);
+//        EditorNode modifyData = editorNode.getSign(ModifierSign.MODIFY);
+//        EditorNode removeData = editorNode.getSign(ModifierSign.REMOVE);
 
 //        boolean isOverride = modifyData != null && modifyData.getPatch() != null;
 //        if(isOverride){
@@ -326,23 +327,23 @@ public class NodeCard extends Table{
 //            if(undoMode) return;
 //        }
 
-        if(data instanceof DynamicEditorNode){
+        if(editorNode instanceof DynamicEditorNode){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, data.getTypeIn(), clazz -> {
-//                    NodeModifier.changeType(data, clazz);
+                EUI.classSelector.select(null, editorNode.getTypeIn(), clazz -> {
+                    editorNode.changeType(clazz);
                     rebuildNodesTable();
                     return true;
                 });
             }).tooltip("##changeType");
 
             table.button(Icon.cancel, Styles.clearNonei, () -> {
-                data.clearJson();
+                editorNode.clearJson();
                 rebuildNodesTable();
             }).grow().row();
         }else{}
 //            if(!hasModifier && modifyData != null && modifyData.getPatch() == null){
 //            table.button(Icon.wrench, Styles.clearNonei, () -> {
-//                EUI.classSelector.select(null, data.getTypeIn(), clazz -> {
+//                EUI.classSelector.select(null, editorNode.getTypeIn(), clazz -> {
 ////                    EditorNode newData = NodeModifier.changeType(modifyData, clazz);
 ////                    if(newData != null){
 ////                        editChildNode(newData);
@@ -354,7 +355,7 @@ public class NodeCard extends Table{
 //            }).tooltip("##override");
 //        }
 
-        if(isRequired(data)){
+        if(isRequired(editorNode)){
             table.image(Icon.infoCircle).height(32f).tooltip("##mayRequired");
         }
     }
@@ -378,7 +379,7 @@ public class NodeCard extends Table{
 
             // Clear data
             nodeTitle.button(Icon.refresh, Styles.cleari, () -> {
-                Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", editorNode.name()), () -> {
+                Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", editorNode.getPath()), () -> {
                     editorNode.clearJson();
                     getFrontCard().rebuildNodesTable();
                 });
