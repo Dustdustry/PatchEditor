@@ -6,9 +6,6 @@ import MinRi2.PatchEditor.node.patch.PatchOperator.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
-
-import java.util.*;
 
 /**
  * @author minri2
@@ -16,25 +13,18 @@ import java.util.*;
  */
 public class EditorNode{
     private final ObjectNode objectNode;
-    private final String path;
 
+    private String path;
     private boolean resolvedObj;
-    private @Nullable EditorNode parent;
+
+    private EditorNode parent;
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
 
     private final NodeManager manager;
 
-    public EditorNode(EditorNode parent, ObjectNode objectNode, NodeManager manager){
+    public EditorNode(ObjectNode objectNode, NodeManager manager){
         this.objectNode = objectNode;
         this.manager = manager;
-
-        this.parent = parent;
-
-        if(parent == null){
-            path = "";
-        }else{
-            path = !parent.getPath().isEmpty() ? (parent.getPath() + NodeManager.pathComp + name()) : name();
-        }
     }
 
     public String name(){
@@ -48,7 +38,8 @@ public class EditorNode{
             for(ObjectNode node : objectNode.getChildren().values()){
                 if(node.isSign()) continue;
 
-                EditorNode child = new EditorNode(this, node, manager);
+                EditorNode child = new EditorNode(node, manager);
+                child.parent = this;
                 children.put(child.name(), child);
             }
             resolvedObj = true;
@@ -58,7 +49,6 @@ public class EditorNode{
         while(iterator.hasNext()){
             EditorNode node = iterator.next().value;
             if(node instanceof DynamicEditorNode){
-                node.parent = null;
                 node.children.clear();
                 iterator.remove();
             }
@@ -73,7 +63,7 @@ public class EditorNode{
 
                     Class<?> type = PatchJsonIO.resolveType(getObjNode().elementType, typeJson);
 
-                    EditorNode child = new DynamicEditorNode(this, childPatchNode.key, getObjNode().elementType, type, manager);
+                    EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
                     child.parent = this;
                     children.put(childPatchNode.key, child);
                 }
@@ -81,10 +71,6 @@ public class EditorNode{
         }
 
         return children;
-    }
-
-    public EditorNode getParent(){
-        return parent;
     }
 
     public ObjectNode getObjNode(){
@@ -121,11 +107,26 @@ public class EditorNode{
     }
 
     public String getPath(){
+        if(path == null){
+            path = parent == null ? ""
+            : (!parent.getPath().isEmpty() ? (parent.getPath() + NodeManager.pathComp + name()) : name());
+        }
         return path;
     }
 
     public PatchNode getPatch(){
         return manager.getPatch(getPath());
+    }
+
+    public EditorNode navigate(String path){
+        if(path.isEmpty()) return this;
+
+        EditorNode current = this;
+        for(String name : path.split(NodeManager.pathSplitter)){
+            current = current.getChildren().get(name);
+            if(current == null) return null;
+        }
+        return current;
     }
 
     public void setValue(String value){
@@ -147,8 +148,8 @@ public class EditorNode{
     public static class DynamicEditorNode extends EditorNode{
         public final String key;
 
-        public DynamicEditorNode(EditorNode parent, String key, Class<?> baseType, Class<?> type, NodeManager manager){
-            super(parent, new ObjectNode(key, NodeModifier.getExample(baseType, type), baseType), manager);
+        public DynamicEditorNode(String key, Class<?> baseType, Class<?> type, NodeManager manager){
+            super(new ObjectNode(key, NodeModifier.getExample(baseType, type), baseType), manager);
 
             this.key = key;
         }

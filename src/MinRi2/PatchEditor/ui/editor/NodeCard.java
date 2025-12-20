@@ -30,12 +30,16 @@ public class NodeCard extends Table{
     public boolean editing;
     public NodeCard parent, childCard;
 
-    private EditorNode editorNode, lastChildNode;
+    private final EditorNode rootEditorNode;
+
+    private String editorPath, lastChildPath;
     private OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren;
 
     private String searchText = "";
 
-    public NodeCard(){
+    public NodeCard(EditorNode rootEditorNode){
+        this.rootEditorNode = rootEditorNode;
+
         cardCont = new Table();
         nodesTable = new Table();
 
@@ -44,8 +48,8 @@ public class NodeCard extends Table{
         nodesTable.top().left();
     }
 
-    public void setEditorNode(EditorNode editorNode){
-        this.editorNode = editorNode;
+    public void setEditorNode(String path){
+        editorPath = path;
     }
 
     public NodeCard getFrontCard(){
@@ -58,37 +62,37 @@ public class NodeCard extends Table{
         return card;
     }
 
-    private void editChildNode(EditorNode childNodeData){
+    private void editChildNode(String path){
         if(childCard == null){
-            childCard = new NodeCard();
+            childCard = new NodeCard(rootEditorNode);
             childCard.parent = this;
         }else if(childCard.editing){
             childCard.editChildNode(null);
         }
 
-        editing = childNodeData != null;
-        childCard.setEditorNode(childNodeData);
+        editing = path != null;
+        childCard.setEditorNode(path);
 
         rebuildCont();
     }
 
     public void extractWorking(){
         if(parent != null){
-            parent.lastChildNode = editorNode;
+            parent.lastChildPath = editorPath;
             parent.editChildNode(null);
         }
     }
 
     public void editLastData(){
         // 仅支持最前面的卡片
-        if((childCard == null || !childCard.editing) && lastChildNode != null){
-            editChildNode(lastChildNode);
+        if((childCard == null || !childCard.editing) && lastChildPath != null){
+            editChildNode(lastChildPath);
         }
     }
 
     public void rebuild(){
         clearChildren();
-        if(editorNode == null) return;
+        if(editorPath == null) return;
 
         defaults().growX();
         buildTitle(this);
@@ -97,13 +101,17 @@ public class NodeCard extends Table{
         add(cardCont).grow();
     }
 
+    public EditorNode getEditorNode(){
+        return rootEditorNode.navigate(editorPath);
+    }
+
     private void rebuildCont(){
         cardCont.clearChildren();
 
         cardCont.defaults().padLeft(16f);
 
         if(editing){
-            if(childCard.editorNode.getParent() == null){
+            if(childCard.getEditorNode() == null){
                 Core.app.post(() -> editChildNode(null));
                 return;
             }
@@ -143,6 +151,7 @@ public class NodeCard extends Table{
         nodesTable.clearChildren();
 
         // 下一帧可能正好被清除
+        EditorNode editorNode = getEditorNode();
         if(editorNode == null){
             return;
         }
@@ -264,7 +273,7 @@ public class NodeCard extends Table{
         }, style, () -> {
 //            EditorNode modifyData = node.getSign(ModifierSign.MODIFY);
 //            editChildNode(modifyData == null || modifyData.getPath() == null ? node : modifyData);
-            editChildNode(node);
+            editChildNode(node.getPath());
         }).disabled(node.getObject() == null);
     }
 
@@ -339,7 +348,7 @@ public class NodeCard extends Table{
                 editorNode.clearJson();
                 rebuildNodesTable();
             }).grow().row();
-        }else{}
+        }else{
 //            if(!hasModifier && modifyData != null && modifyData.getPatch() == null){
 //            table.button(Icon.wrench, Styles.clearNonei, () -> {
 //                EUI.classSelector.select(null, editorNode.getTypeIn(), clazz -> {
@@ -353,6 +362,7 @@ public class NodeCard extends Table{
 //                });
 //            }).tooltip("##override");
 //        }
+        }
 
         if(isRequired(editorNode)){
             table.image(Icon.infoCircle).height(32f).tooltip("##mayRequired");
@@ -360,6 +370,8 @@ public class NodeCard extends Table{
     }
 
     private void buildTitle(Table table){
+        EditorNode editorNode = getEditorNode();
+
         Color titleColor = parent == null ? EPalettes.main2 : EPalettes.main3;
         table.table(Tex.whiteui, nodeTitle -> {
             nodeTitle.defaults().pad(8f);
@@ -395,6 +407,8 @@ public class NodeCard extends Table{
     }
 
     private OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren(){
+        EditorNode editorNode = getEditorNode();
+
         if(mappedChildren == null) mappedChildren = new OrderedMap<>();
         for(var entry : mappedChildren){
             entry.value.clear();
@@ -437,7 +451,7 @@ public class NodeCard extends Table{
     @Override
     public String toString(){
         return "NodeCard{" +
-        "nodeData=" + editorNode +
+        "nodeData=" + editorPath +
         '}';
     }
 }

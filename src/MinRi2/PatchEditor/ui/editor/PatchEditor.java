@@ -29,8 +29,8 @@ public class PatchEditor extends BaseDialog{
         super("@contents-editor");
 
         manager = new NodeManager();
-        rootData = new EditorNode(null, ObjectNode.getRoot(), manager);
-        card = new NodeCard();
+        rootData = new EditorNode(ObjectNode.getRoot(), manager);
+        card = new NodeCard(rootData);
 
         setup();
 
@@ -91,7 +91,7 @@ public class PatchEditor extends BaseDialog{
 
         cont.top();
 
-        card.setEditorNode(rootData);
+        card.setEditorNode(rootData.getPath());
 
         addCloseListener();
     }
