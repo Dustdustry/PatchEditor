@@ -84,8 +84,7 @@ public class NodeCard extends Table{
     }
 
     public void editLastData(){
-        // 仅支持最前面的卡片
-        if((childCard == null || !childCard.editing) && lastChildPath != null){
+        if((childCard == null || !childCard.editing) && lastChildPath != null && lastChildPath.startsWith(editorPath)){
             editChildNode(lastChildPath);
         }
     }
