@@ -455,7 +455,7 @@ public class NodeCard extends Table{
                 Structs.comparingBool(n -> !isRequired(n)),
                 Structs.comps(
                     Structs.comparingBool(n -> !n.hasValue()),
-                    Structs.comparingInt(NodeModifier::getModifierIndex).reversed()
+                    Structs.comparingInt(n -> -NodeModifier.getModifierIndex(n))
                 )
             )
             );
