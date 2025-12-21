@@ -5,6 +5,7 @@ import MinRi2.PatchEditor.node.patch.PatchOperator.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
+import arc.util.serialization.JsonValue.*;
 
 /**
  * @author minri2
@@ -35,15 +36,22 @@ public class EditorNode{
 
     public ObjectMap<String, EditorNode> getChildren(){
         PatchNode patchNode = getPatch();
-
         ObjectNode objectNode = getObjNode();
+
         if(currentObj != objectNode){
             children.clear();
             resolvedObj = false;
             currentObj = objectNode;
         }
 
-        if(!resolvedObj){
+
+        boolean isOverriding = isOverriding();
+        if(isOverriding){
+            children.clear();
+            resolvedObj = false;
+        }
+
+        if(!resolvedObj && !isOverriding){
             for(ObjectNode node : objectNode.getChildren().values()){
                 if(node.isSign()) continue;
 
@@ -140,6 +148,11 @@ public class EditorNode{
         return ClassHelper.unoymousClass(objectNode.object.getClass());
     }
 
+    public boolean isOverriding(){
+        PatchNode patchNode = getPatch();
+        return patchNode != null && patchNode.sign == ModifierSign.MODIFY;
+    }
+
     public boolean isChangedType(){
         PatchNode patchNode = getPatch();
         if(patchNode == null) return false;
@@ -179,8 +192,8 @@ public class EditorNode{
         manager.applyOp(new ClearOp(getPath()));
     }
 
-    public void append(){
-        manager.applyOp(new ArrayAppendOp(getPath()));
+    public void append(boolean appendPrefix){
+        manager.applyOp(new ArrayAppendOp(getPath(), appendPrefix));
     }
 
     public void putKey(String key){
@@ -189,6 +202,13 @@ public class EditorNode{
 
     public void changeType(Class<?> type){
         manager.applyOp(new ChangeTypeOp(getPath(), type));
+    }
+
+    public void setSign(ModifierSign sign){
+        manager.applyOp(new SetSignOp(getPath(), sign));
+        if(ClassHelper.isArrayLike(getTypeIn())){
+            manager.applyOp(new SetValueTypeOp(getPath(), ValueType.array));
+        }
     }
 
     public void clearType(){

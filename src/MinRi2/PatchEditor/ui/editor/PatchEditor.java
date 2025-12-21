@@ -37,7 +37,7 @@ public class PatchEditor extends BaseDialog{
         resized(this::rebuild);
         shown(this::rebuild);
         hidden(() -> {
-            JsonValue value = PatchJsonIO.toPatchJson(ObjectNode.getRoot(), manager.getRoot());
+            JsonValue value = PatchJsonIO.toPatchJson(manager.getRoot());
             editPatch.patch = PatchJsonIO.simplifyPatch(value).toJson(OutputType.json);
         });
 

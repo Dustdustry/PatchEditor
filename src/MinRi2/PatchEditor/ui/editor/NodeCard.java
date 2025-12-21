@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.ui.editor;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.EditorNode.*;
 import MinRi2.PatchEditor.node.modifier.*;
+import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.graphics.*;
@@ -273,7 +274,7 @@ public class NodeCard extends Table{
 //            EditorNode modifyData = node.getSign(ModifierSign.MODIFY);
 //            editChildNode(modifyData == null || modifyData.getPath() == null ? node : modifyData);
             editChildNode(node.getPath());
-        });
+        }).disabled(node.getObject() == null && !node.isOverriding());
     }
 
     private void addPlusButton(Table table, EditorNode editorNode){
@@ -305,13 +306,19 @@ public class NodeCard extends Table{
                     return true;
                 });
             }else{
-                editorNode.append();
+                PatchNode patchNode = editorNode.getPatch();
+                if(patchNode != null && patchNode.sign == ModifierSign.MODIFY){
+                    editorNode.append(false);
+                }else{
+                    // if array is null, don't use plus syntax
+                    editorNode.append(editorNode.getObject() != null);
+                }
                 rebuildNodesTable();
             }
         });
     }
 
-    private void setupEditButton(Table table, EditorNode childNode, boolean hasModifier){
+    private void setupEditButton(Table table, EditorNode node, boolean hasModifier){
         table.defaults().width(32f).pad(4f).growY();
         EditorNode editorNode = getEditorNode();
 
@@ -324,11 +331,17 @@ public class NodeCard extends Table{
 //            if(undoMode) return;
 //        }
 
-        if(childNode instanceof DynamicEditorNode || childNode.isChangedType()){
-            if(!ClassHelper.isArray(childNode.getTypeIn())){
+        if(node.isOverriding()){
+            table.button(Icon.undo, Styles.clearNonei, () -> {
+                node.setSign(null);
+                node.clearJson();
+                rebuildNodesTable();
+            }).tooltip("##revertOverride");
+        }else if(node instanceof DynamicEditorNode || node.isChangedType()){
+            if(!ClassHelper.isArray(node.getTypeIn())){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
-                    EUI.classSelector.select(null, childNode.getTypeIn(), clazz -> {
-                        childNode.changeType(clazz);
+                    EUI.classSelector.select(null, node.getTypeIn(), clazz -> {
+                        node.changeType(clazz);
                         rebuildNodesTable();
                         return true;
                     });
@@ -336,20 +349,28 @@ public class NodeCard extends Table{
             }
 
             table.button(Icon.cancel, Styles.clearNonei, () -> {
-                childNode.clearJson();
+                node.clearJson();
                 rebuildNodesTable();
             }).grow().row();
+        }else if(!hasModifier && (node.getObject() == null || ClassHelper.isArrayLike(node.getTypeIn()))){
+            PatchNode patchNode = node.getPatch();
+            if(patchNode == null || patchNode.sign == null){
+                table.button(Icon.wrench, Styles.clearNonei, () -> {
+                    node.setSign(ModifierSign.MODIFY);
+                    rebuildNodesTable();
+                }).tooltip("##override");
+            }
         }else if(!hasModifier && ClassHelper.isMap(editorNode.getTypeIn())){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, childNode.getTypeIn(), clazz -> {
-                    childNode.changeType(clazz);
+                EUI.classSelector.select(null, node.getTypeIn(), clazz -> {
+                    node.changeType(clazz);
                     rebuildNodesTable();
                     return true;
                 });
             }).tooltip("##override");
         }
 
-        if(isRequired(childNode)){
+        if(isRequired(node)){
             table.image(Icon.infoCircle).height(32f).tooltip("##mayRequired");
         }
     }

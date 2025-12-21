@@ -1,6 +1,8 @@
 package MinRi2.PatchEditor.node.patch;
 
 import MinRi2.PatchEditor.node.*;
+import arc.util.serialization.*;
+import arc.util.serialization.JsonValue.*;
 
 public abstract class PatchOperator{
     public final String path;
@@ -62,25 +64,29 @@ public abstract class PatchOperator{
     }
 
     public static class ArrayAppendOp extends PatchOperator{
-        public ArrayAppendOp(String path){
+        public final boolean appendPrefix;
+
+        public ArrayAppendOp(String path, boolean appendPrefix){
             super(path);
+            this.appendPrefix = appendPrefix;
         }
 
         public void apply(PatchNode root) {
             PatchNode node = root.navigateChild(path, true);
-            PatchNode plusNode = node.getOrCreate(findKey(node));
+            String prefix = appendPrefix ? PatchJsonIO.appendPrefix : "";
+            PatchNode plusNode = node.getOrCreate(findKey(prefix, node));
             plusNode.sign = ModifierSign.PLUS;
         }
 
         public void undo(PatchNode root) {
         }
 
-        private String findKey(PatchNode node){
+        private String findKey(String prefix, PatchNode node){
             int index = 0;
-            while(node.getOrNull("#ADD_" + index) != null){
+            while(node.getOrNull(prefix + index) != null){
                 index++;
             }
-            return "#ADD_" + index;
+            return prefix + index;
         }
     }
 
@@ -119,6 +125,44 @@ public abstract class PatchOperator{
             if(node == null) return;
 
             node.getOrCreate("type").value = PatchJsonIO.classTypeName(type);
+        }
+
+        @Override
+        public void undo(PatchNode root){
+
+        }
+    }
+
+    public static class SetSignOp extends PatchOperator{
+        public final ModifierSign sign;
+
+        public SetSignOp(String path, ModifierSign sign){
+            super(path);
+            this.sign = sign;
+        }
+
+        @Override
+        public void apply(PatchNode root){
+            root.navigateChild(path, true).sign = sign;
+        }
+
+        @Override
+        public void undo(PatchNode root){
+
+        }
+    }
+
+    public static class SetValueTypeOp extends PatchOperator{
+        public final ValueType type;
+
+        public SetValueTypeOp(String path, ValueType type){
+            super(path);
+            this.type = type;
+        }
+
+        @Override
+        public void apply(PatchNode root){
+            root.navigateChild(path, true).type = type;
         }
 
         @Override

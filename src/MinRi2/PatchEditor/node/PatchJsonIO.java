@@ -15,6 +15,7 @@ import mindustry.world.*;
 import mindustry.world.consumers.*;
 
 import java.lang.reflect.*;
+import java.util.*;
 
 public class PatchJsonIO{
     public static final boolean debug = true;
@@ -23,6 +24,8 @@ public class PatchJsonIO{
 
     private static ContentParser parser;
     private static ObjectMap<String, ContentType> nameToType;
+
+    public static final String appendPrefix = "#ADD_";
 
     /** Classes that is partial when node is dynamic. */
     public static final Seq<Class<?>> partialTypes = Seq.with(
@@ -123,8 +126,10 @@ public class PatchJsonIO{
             int i = 0;
             for(JsonValue childValue : value){
                 PatchNode childNode = patchNode.getOrCreate("" + i++);
+                childNode.sign = ModifierSign.PLUS;
                 parseJson(null, childNode, childValue);
             }
+            patchNode.sign = ModifierSign.MODIFY;
             return;
         }
 
@@ -136,14 +141,14 @@ public class PatchJsonIO{
             if(plusValue.isArray()){
                 // patchNode(‘+’: []) -> multiple append
                 for(JsonValue childValue : plusValue){
-                    PatchNode childNode = patchNode.getOrCreate("" + i++);
+                    PatchNode childNode = patchNode.getOrCreate(appendPrefix + i++);
                     childNode.sign = ModifierSign.PLUS;
                     if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
                     parseJson(null, childNode, childValue);
                 }
             }else if(plusValue.isObject()){
                 // patchNode('+': {}) -> single append
-                PatchNode childNode = patchNode.getOrCreate("" + i);
+                PatchNode childNode = patchNode.getOrCreate(appendPrefix + i);
                 childNode.sign = ModifierSign.PLUS;
                 if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
                 parseJson(null, childNode, plusValue);
@@ -159,15 +164,16 @@ public class PatchJsonIO{
             if(objectNode != null && ClassHelper.isMap(objectNode.type) && objectNode.object instanceof ObjectMap map){
                 // patchNode('map': {}) -> modify(override) or append key
                 Object key = parser.getJson().readValue(objectNode.keyType, new JsonValue(childValue.name));
-                childNode.sign = key != null && map.containsKey(key) ? ModifierSign.MODIFY : ModifierSign.PLUS;
-                if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
+                if(key != null && !map.containsKey(key)){
+                    childNode.sign = ModifierSign.PLUS;
+                    if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
+                }
             }
 
-            if(objectNode != null && ClassHelper.isArrayLike(objectNode.type)){
-                // patchNode('array': {}) -> modify(override)
-                childNode.sign = ModifierSign.MODIFY;
-                if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
-            }
+            // patchNode('array': {}) -> modify(override)
+//            if(objectNode != null && ClassHelper.isArrayLike(objectNode.type)){
+//                if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
+//            }
 
             parseJson(childObj, childNode, childValue);
         }
@@ -191,41 +197,31 @@ public class PatchJsonIO{
         return value;
     }
 
-    public static JsonValue toPatchJson(ObjectNode objectNode, PatchNode patchNode){
-        return toPatchJson(objectNode, patchNode, new JsonValue(patchNode.type));
+    public static JsonValue toPatchJson(PatchNode patchNode){
+        return processJson(toJson(patchNode));
     }
 
-    private static JsonValue toPatchJson(ObjectNode objectNode, PatchNode patchNode, JsonValue value){
-        value.setName(patchNode.key);
-        if(patchNode.value != null) value.set(patchNode.value);
+    private static JsonValue processJson(JsonValue value){
+        Iterator<JsonValue> iterator = value.iterator();
 
-        Seq<PatchNode> children = patchNode.children.values().toSeq();
+        JsonValue plusValue = null;
 
-        if(objectNode != null && ClassHelper.isArrayLike(objectNode.type)){
-            Seq<PatchNode> plusChildren = children.select(p -> p.sign == ModifierSign.PLUS);
+        while(iterator.hasNext()){
+            JsonValue childValue = iterator.next();
+            processJson(childValue);
 
-            if(plusChildren.any()){
-                JsonValue plusValue = new JsonValue(ValueType.array);
-                for(PatchNode plusChild : plusChildren){
-                    JsonValue childValue = new JsonValue(plusChild.type);
-                    plusValue.addChild(plusChild.key, childValue);
-                    toPatchJson(null, plusChild, childValue);
+            if(childValue.name != null && childValue.name.startsWith(appendPrefix)){
+                if(plusValue == null){
+                    plusValue = new JsonValue(ValueType.array);
+                    plusValue.setName(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign);
+                    value.parent.addChild(plusValue.name, plusValue);
+                    removeJsonValue(value);
                 }
 
-                value.parent.addChild(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign, plusValue);
-
-                children.removeAll(plusChildren, true);
-                if(children.isEmpty()) removeJsonValue(value);
+                plusValue.addChild(childValue.name, childValue);
             }
         }
 
-        for(PatchNode childNode : children){
-            ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve(childNode.key);
-            JsonValue childValue = new JsonValue(childNode.type);
-
-            value.addChild(childNode.key, childValue);
-            toPatchJson(childObj, childNode, childValue);
-        }
         return value;
     }
 
