@@ -295,7 +295,9 @@ public class NodeCard extends Table{
                     Vars.ui.showErrorMessage("#Unsupported key type " + ClassHelper.getDisplayName(keyType));
                     return;
                 }
-                EUI.selector.select(type, c -> true, c -> {
+
+                ObjectMap map = (ObjectMap)editorNode.getObject();
+                EUI.selector.select(type, c -> !map.containsKey(c), c -> {
                     editorNode.putKey(PatchJsonIO.getKeyName(c));
                     rebuildNodesTable();
                     return true;
