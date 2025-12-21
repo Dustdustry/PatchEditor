@@ -337,7 +337,7 @@ public class NodeCard extends Table{
                     node.setSign(ModifierSign.REMOVE);
                 }
                 rebuildNodesTable();
-            }).tooltip(undoMode ? "##revertRemove" : "##removeKey");
+            }).tooltip(undoMode ? "@node.revertRemove" : "@node.removeKey");
             if(undoMode) return;
         }
 
@@ -346,7 +346,7 @@ public class NodeCard extends Table{
                 node.setSign(null);
                 node.clearJson();
                 rebuildNodesTable();
-            }).tooltip("##revertOverride");
+            }).tooltip("@node.revertOverride");
         }else if(node.isAppending() || node.isChangedType()){
             if(!hasModifier && !ClassHelper.isArray(node.getTypeIn())){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
@@ -355,20 +355,20 @@ public class NodeCard extends Table{
                         rebuildNodesTable();
                         return true;
                     });
-                }).tooltip("##changeType");
+                }).tooltip("@node.changeType");
             }
 
             table.button(Icon.cancel, Styles.clearNonei, () -> {
                 node.clearJson();
                 rebuildNodesTable();
-            }).grow().tooltip("##remove");
+            }).grow().tooltip("@node.remove");
         }else if(!hasModifier && (node.getObject() == null || ClassHelper.isArrayLike(node.getTypeIn()))){
             PatchNode patchNode = node.getPatch();
             if(patchNode == null || patchNode.sign == null){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
                     node.setSign(ModifierSign.MODIFY);
                     rebuildNodesTable();
-                }).tooltip("##override");
+                }).tooltip("@node.override");
             }
         }else if(!hasModifier && ClassHelper.isMap(editorNode.getTypeIn())){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
@@ -377,11 +377,11 @@ public class NodeCard extends Table{
                     rebuildNodesTable();
                     return true;
                 });
-            }).tooltip("##override");
+            }).tooltip("@node.override");
         }
 
         if(isRequired(node)){
-            table.image(Icon.infoCircle).height(32f).tooltip("##mayRequired");
+            table.image(Icon.infoCircle).height(32f).tooltip("@node.mayRequired");
         }
     }
 

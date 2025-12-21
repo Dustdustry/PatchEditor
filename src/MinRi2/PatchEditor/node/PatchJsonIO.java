@@ -18,7 +18,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 public class PatchJsonIO{
-    public static final boolean debug = true;
+    public static final boolean debug = false;
 
     public static final int simplifySingleCount = 3;
 

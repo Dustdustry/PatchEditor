@@ -12,7 +12,7 @@ public class ClassSelector extends BaseDialog{
     private final Seq<Class<?>> classes = new Seq<>();
 
     public ClassSelector(){
-        super("##@class-selector");
+        super("@class-selector");
         shown(this::rebuild);
         addCloseButton();
     }
