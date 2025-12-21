@@ -118,7 +118,7 @@ public class ObjectResolver{
         ObjectNode objectNode = templateNode.get(type);
         if(objectNode != null) return objectNode;
 
-        objectNode = new ObjectNode("", getExample(type, type), type);
+        objectNode = new ObjectNode("", getExample(PatchJsonIO.getTypeParser(type), type), type);
         // TODO: template is always modifiable?
         objectNode.addSign(ModifierSign.MODIFY, type, null, null);
         templateNode.put(type, objectNode);

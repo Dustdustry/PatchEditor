@@ -318,7 +318,7 @@ public class NodeCard extends Table{
         EditorNode editorNode = getEditorNode();
 
         // remove: map's key
-        if(ClassHelper.isMap(editorNode.getTypeIn()) && !node.isAppending()){
+        if(!node.isChangedType() && ClassHelper.isMap(editorNode.getTypeIn()) && !node.isAppending()){
             boolean undoMode = node.isRemoving();
             table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
                 if(undoMode){

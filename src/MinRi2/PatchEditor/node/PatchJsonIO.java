@@ -77,6 +77,19 @@ public class PatchJsonIO{
         return false;
     }
 
+    /** Get type in ContentParser#classParsers */
+    public static Class<?> getTypeParser(Class<?> type){
+        Class<?> toppest = type;
+
+        Class<?> current = type;
+        while(current != Object.class){
+            if(ClassMap.classes.findKey(current, true) != null) toppest = current;
+            current = current.getSuperclass();
+        }
+
+        return toppest;
+    }
+
     public static Class<?> resolveType(Class<?> base, @Nullable String typeJson){
         return resolveType(typeJson == null ? base : ClassMap.classes.get(typeJson));
     }
@@ -90,10 +103,7 @@ public class PatchJsonIO{
         Class<?> defaultType = defaultClassMap.get(type);
         if(defaultType != null) return defaultType;
 
-        return ClassMap.classes.values().toSeq().find(c -> {
-            int mod = c.getModifiers();
-            return !(Modifier.isAbstract(mod) || Modifier.isInterface(mod)) && type.isAssignableFrom(c);
-        });
+        return getTypeParser(type);
     }
 
     public static String classTypeName(Class<?> type){
