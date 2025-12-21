@@ -11,7 +11,7 @@ public class PatchNode{
     public ValueType type = ValueType.object;
 
     private PatchNode parent;
-    public final ObjectMap<String, PatchNode> children = new ObjectMap<>();
+    public final ObjectMap<String, PatchNode> children = new OrderedMap<>();
 
     public @Nullable ModifierSign sign;
 
