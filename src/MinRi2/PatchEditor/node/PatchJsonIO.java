@@ -198,46 +198,26 @@ public class PatchJsonIO{
         value.setName(patchNode.key);
         if(patchNode.value != null) value.set(patchNode.value);
 
+        JsonValue plusValue = null;
         for(PatchNode childNode : patchNode.children.values()){
             JsonValue childValue = new JsonValue(childNode.type);
 
-            value.addChild(childNode.key, childValue);
+            if(childNode.key.startsWith(appendPrefix)){
+                if(plusValue == null){
+                    plusValue = new JsonValue(ValueType.array);
+                    value.parent.addChild(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign, plusValue);
+                }
+
+                plusValue.addChild(childValue.name, childValue);
+            }else{
+                value.addChild(childNode.key, childValue);
+            }
+
             toJson(childNode, childValue);
         }
 
-        return value;
-    }
-
-    public static JsonValue toPatchJson(PatchNode patchNode){
-        return processJson(toJson(patchNode));
-    }
-
-    private static JsonValue processJson(JsonValue value){
-        Iterator<JsonValue> iterator = value.iterator();
-
-        JsonValue plusValue = null;
-
-        while(iterator.hasNext()){
-            JsonValue childValue = iterator.next();
-            processJson(childValue);
-
-            if(childValue.name != null && childValue.name.startsWith(appendPrefix)){
-                if(plusValue == null){
-                    plusValue = new JsonValue(ValueType.array);
-                    plusValue.setName(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign);
-                }
-
-                iterator.remove();
-                childValue.setName(null);
-                plusValue.addChild(childValue.name, childValue);
-            }
-        }
-
-        if(plusValue != null){
-            // Adding plusValue to tree now is a bad idea.
-            value.parent.addChild(plusValue.name, plusValue);
-            if(value.child == null) removeJsonValue(value);
-            return plusValue;
+        if(!value.isValue() && value.child == null){
+            removeJsonValue(value);
         }
 
         return value;
