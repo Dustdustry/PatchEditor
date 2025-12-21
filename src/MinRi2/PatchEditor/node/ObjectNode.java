@@ -8,17 +8,15 @@ import mindustry.mod.*;
 import java.lang.reflect.*;
 
 public class ObjectNode{
-    private static ObjectNode rootNode;
-
     public final String name;
     public final @Nullable Object object;
     public final @Nullable Field field;
     public final @Nullable Class<?> type, elementType, keyType;
 
-    private ObjectNode parent;
+    private boolean isRoot;
 
-    private final OrderedMap<String, ObjectNode> children = new OrderedMap<>();
     private boolean resolved = false;
+    private final OrderedMap<String, ObjectNode> children = new OrderedMap<>();
 
     public ObjectNode(String name, Object object, Class<?> type){
         this(name, object, type, null, null);
@@ -48,9 +46,10 @@ public class ObjectNode{
         this.elementType = elementType;
     }
 
-    public static ObjectNode getRoot(){
-        if(rootNode == null) rootNode = new ObjectNode("root", Reflect.get(DataPatcher.class, "root"), Object.class);
-        return rootNode;
+    public static ObjectNode createRoot(){
+        ObjectNode node = new ObjectNode("root", Reflect.get(DataPatcher.class, "root"), Object.class);
+        node.isRoot = true;
+        return node;
     }
 
     public boolean hasSign(ModifierSign sign){
@@ -69,15 +68,15 @@ public class ObjectNode{
         return children;
     }
 
-    public ObjectNode getParent(){
-        return parent;
-    }
-
     public boolean isSign(){
         for(ModifierSign sign : ModifierSign.values()){
             if(sign.sign.equals(name)) return true;
         }
         return false;
+    }
+
+    public boolean isRoot(){
+        return isRoot;
     }
 
     public ObjectNode addSign(ModifierSign sign, Class<?> type, Class<?> elementType, Class<?> keyType){
@@ -99,7 +98,6 @@ public class ObjectNode{
 
     public ObjectNode addChild(ObjectNode child){
         children.put(child.name, child);
-        child.parent = this;
         return child;
     }
 }

@@ -1,6 +1,5 @@
 package MinRi2.PatchEditor.node;
 
-import MinRi2.PatchEditor.node.modifier.*;
 import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
@@ -28,7 +27,7 @@ public class ObjectResolver{
     public static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
 
     public static void resolve(ObjectNode node){
-        if(node == ObjectNode.getRoot()){
+        if(node.isRoot()){
             var map = PatchJsonIO.getNameToType();
             for(ContentType ctype : ContentType.all){
                 if(map.containsValue(ctype, true)){

@@ -1,7 +1,6 @@
 package MinRi2.PatchEditor.ui.editor;
 
 import MinRi2.PatchEditor.node.*;
-import MinRi2.PatchEditor.node.EditorNode.*;
 import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
@@ -31,22 +30,24 @@ public class NodeCard extends Table{
     public boolean editing;
     public NodeCard parent, childCard;
 
-    private final EditorNode rootEditorNode;
+    private EditorNode rootEditorNode;
 
-    private String editorPath, lastChildPath;
+    private String editorPath, lastEditorPath;
     private OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren;
 
     private String searchText = "";
 
-    public NodeCard(EditorNode rootEditorNode){
-        this.rootEditorNode = rootEditorNode;
-
+    public NodeCard(){
         cardCont = new Table();
         nodesTable = new Table();
 
         top().left();
         cardCont.top();
         nodesTable.top().left();
+    }
+
+    public void setRootEditorNode(EditorNode rootEditorNode){
+        this.rootEditorNode = rootEditorNode;
     }
 
     public void setEditorNode(String path){
@@ -65,7 +66,8 @@ public class NodeCard extends Table{
 
     private void editChildNode(String path){
         if(childCard == null){
-            childCard = new NodeCard(rootEditorNode);
+            childCard = new NodeCard();
+            childCard.setRootEditorNode(rootEditorNode);
             childCard.parent = this;
         }else if(childCard.editing){
             childCard.editChildNode(null);
@@ -73,31 +75,36 @@ public class NodeCard extends Table{
 
         EditorNode editorNode = rootEditorNode.navigate(path);
         if(editorNode != null && !editorNode.isEditable()){
-            path = null;
+            editing = false;
+        }else{
+            editing = path != null;
+            childCard.setEditorNode(path);
         }
-
-        editing = path != null;
-        childCard.setEditorNode(path);
 
         rebuildCont();
     }
 
     public void extractWorking(){
         if(parent != null){
-            parent.lastChildPath = editorPath;
+            parent.lastEditorPath = editorPath;
             parent.editChildNode(null);
         }
     }
 
     public void editLastData(){
-        if((childCard == null || !childCard.editing) && lastChildPath != null && lastChildPath.startsWith(editorPath)){
-            editChildNode(lastChildPath);
+        if((childCard == null || !childCard.editing) && lastEditorPath != null && lastEditorPath.startsWith(editorPath)){
+            editChildNode(lastEditorPath);
         }
     }
 
     public void rebuild(){
         clearChildren();
-        if(editorPath == null) return;
+
+        EditorNode editorNode = getEditorNode();
+        if(editorNode == null){
+            editChildNode(null);
+            return;
+        }
 
         defaults().growX();
         buildTitle(this);
@@ -107,7 +114,7 @@ public class NodeCard extends Table{
     }
 
     public EditorNode getEditorNode(){
-        return rootEditorNode.navigate(editorPath);
+        return editorPath == null ? null : rootEditorNode.navigate(editorPath);
     }
 
     private void rebuildCont(){
@@ -340,8 +347,8 @@ public class NodeCard extends Table{
                 node.clearJson();
                 rebuildNodesTable();
             }).tooltip("##revertOverride");
-        }else if(!hasModifier && (node.isAppending() || node.isChangedType())){
-            if(!ClassHelper.isArray(node.getTypeIn())){
+        }else if(node.isAppending() || node.isChangedType()){
+            if(!hasModifier && !ClassHelper.isArray(node.getTypeIn())){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
                     EUI.classSelector.select(null, node.getTypeIn(), clazz -> {
                         node.changeType(clazz);
@@ -354,7 +361,7 @@ public class NodeCard extends Table{
             table.button(Icon.cancel, Styles.clearNonei, () -> {
                 node.clearJson();
                 rebuildNodesTable();
-            }).grow().row();
+            }).grow().tooltip("##remove");
         }else if(!hasModifier && (node.getObject() == null || ClassHelper.isArrayLike(node.getTypeIn()))){
             PatchNode patchNode = node.getPatch();
             if(patchNode == null || patchNode.sign == null){

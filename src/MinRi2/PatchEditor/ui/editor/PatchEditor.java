@@ -22,23 +22,31 @@ public class PatchEditor extends BaseDialog{
 
     private EditorPatch editPatch;
 
-    private final EditorNode rootData;
+    private EditorNode editorTree;
+    private ObjectNode objectTree;
     private final NodeManager manager;
 
     public PatchEditor(){
         super("@contents-editor");
 
         manager = new NodeManager();
-        rootData = new EditorNode(ObjectNode.getRoot(), manager);
-        card = new NodeCard(rootData);
-
-        setup();
+        card = new NodeCard();
 
         resized(this::rebuild);
-        shown(this::rebuild);
+        shown(() -> {
+            if(objectTree == null) objectTree = ObjectNode.createRoot();
+            if(editorTree == null) editorTree = new EditorNode(objectTree, manager);
+            card.setRootEditorNode(editorTree);
+            card.setEditorNode("");
+
+            setup();
+            rebuild();
+        });
         hidden(() -> {
             JsonValue value = PatchJsonIO.toJson(manager.getRoot());
             editPatch.patch = PatchJsonIO.simplifyPatch(value).toJson(OutputType.json);
+
+            card.setRootEditorNode(null);
         });
 
         update(() -> {
@@ -61,11 +69,16 @@ public class PatchEditor extends BaseDialog{
         addCloseListener();
     }
 
+    public void clearTree(){
+        objectTree = null;
+        editorTree = null;
+    }
+
     public void edit(EditorPatch patch){
         manager.reset();
 
         try{
-            PatchJsonIO.parseJson(rootData.getObjNode(), manager.getRoot(), patch.patch);
+            PatchJsonIO.parseJson(objectTree, manager.getRoot(), patch.patch);
         }catch(Exception e){
             Vars.ui.showException(e);
             return;
@@ -77,6 +90,8 @@ public class PatchEditor extends BaseDialog{
     }
 
     protected void setup(){
+        if(cont.hasChildren()) return;
+
         titleTable.clearChildren();
         titleTable.background(Tex.whiteui).setColor(EPalettes.main);
 
@@ -90,9 +105,6 @@ public class PatchEditor extends BaseDialog{
         titleTable.add(title).style(Styles.outlineLabel).growX();
 
         cont.top();
-
-        card.setEditorNode(rootData.getPath());
-
         addCloseListener();
     }
 

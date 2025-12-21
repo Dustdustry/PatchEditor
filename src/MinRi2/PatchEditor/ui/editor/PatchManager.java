@@ -36,10 +36,12 @@ public class PatchManager extends BaseDialog{
         resized(this::rebuildCont);
         shown(() -> {
             editorPatches.set(state.patcher.patches.map(EditorPatch::new));
-            if(!cont.hasChildren()) setup();
-            rebuildCont();
-
             Vars.state.patcher.unapply();
+            // patcher will change the object so clear all the tree
+            editor.clearTree();
+
+            setup();
+            rebuildCont();
         });
 
         hidden(() -> {
@@ -55,8 +57,7 @@ public class PatchManager extends BaseDialog{
     }
 
     private void setup(){
-        titleTable.clearChildren();
-        cont.clearChildren();
+        if(cont.hasChildren()) return;
 
         patchContainer.background(Tex.whiteui).setColor(EPalettes.main);
         patchTable.background(Styles.grayPanel);
