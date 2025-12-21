@@ -128,9 +128,6 @@ public class PatchJsonIO{
     }
 
     public static void parseJson(ObjectNode objectNode, PatchNode patchNode, JsonValue value){
-        if(value.isValue()) patchNode.value = value.asString();
-        patchNode.type = value.type();
-
         if(value.isArray()){
             // patchNode('array': []) -> override array.
             int i = 0;
@@ -139,12 +136,13 @@ public class PatchJsonIO{
                 childNode.sign = ModifierSign.PLUS;
                 parseJson(null, childNode, childValue);
             }
+            patchNode.type = ValueType.array;
             patchNode.sign = ModifierSign.MODIFY;
             return;
         }
 
         // sign is seen as attribute in PatchNode, not a node
-        if(value.has(ModifierSign.PLUS.sign)){
+        if(!value.isValue() && value.has(ModifierSign.PLUS.sign)){
             JsonValue plusValue = value.remove(ModifierSign.PLUS.sign);
 
             int i = objectNode != null ? getContainerSize(objectNode.object) : 0;
@@ -163,7 +161,17 @@ public class PatchJsonIO{
                 if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
                 parseJson(null, childNode, plusValue);
             }
+
+            if(value.child == null){
+                removeJsonValue(value);
+                return;
+            }
         }
+
+        if(value.isValue()) patchNode.value = value.asString();
+        patchNode.type = value.type();
+
+        if(value.isValue()) return;
 
         for(JsonValue childValue : value){
             String name = childValue.name;
