@@ -33,23 +33,31 @@ public class PatchManager extends BaseDialog{
 
         patchContainer = new Table();
         patchTable = new Table();
-
-        hidden(this::savePatch);
         resized(this::rebuildCont);
         shown(() -> {
             editorPatches.set(state.patcher.patches.map(EditorPatch::new));
-            if(!cont.hasChildren()) setup();
-            rebuildCont();
-
             Vars.state.patcher.unapply();
+            // patcher will change the object so clear all the tree
+            editor.clearTree();
+
+            setup();
+            rebuildCont();
         });
 
-        editor.hidden(this::savePatch);
+        hidden(() -> {
+            try{
+                state.patcher.apply(editorPatches.map(p -> p.patch));
+            }catch(Exception e){
+                Vars.ui.showException(e);
+            }
+            editorPatches.set(state.patcher.patches.map(EditorPatch::new));
+        });
+
+        editor.hidden(this::rebuildPatchTable);
     }
 
     private void setup(){
-        titleTable.clearChildren();
-        cont.clearChildren();
+        if(cont.hasChildren()) return;
 
         patchContainer.background(Tex.whiteui).setColor(EPalettes.main);
         patchTable.background(Styles.grayPanel);
@@ -57,16 +65,6 @@ public class PatchManager extends BaseDialog{
         cont.add(patchContainer);
 
         addCloseButton();
-    }
-
-    private void savePatch(){
-        try{
-            state.patcher.apply(editorPatches.map(p -> p.patch));
-        }catch(Exception e){
-            Vars.ui.showException(e);
-        }
-        editorPatches.set(state.patcher.patches.map(EditorPatch::new));
-        rebuildPatchTable();
     }
 
     private void rebuildCont(){
@@ -92,21 +90,26 @@ public class PatchManager extends BaseDialog{
                 JsonValue json = new JsonValue(ValueType.object);
                 json.addChild("name", new JsonValue(name));
                 editorPatches.add(new EditorPatch(name, json.toJson(OutputType.json)));
-                savePatch();
+                rebuildPatchTable();
             });
 
             buttonTable.button("@import-patch", Icon.add, Styles.cleart, () -> {
                 String text = Core.app.getClipboardText();
 
+                JsonValue value;
                 try{
-                    PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(text).toString(Jformat.plain));
-                    editorPatches.add(new EditorPatch(text, text));
-                    savePatch();
-
-                    EUI.infoToast("@import-patch.succeed");
+                    value = PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(text).toString(Jformat.plain));
                 }catch(Exception ignored){
                     EUI.infoToast("@import-patch.failed");
+                    return;
                 }
+
+                JsonValue nameValue = value.get("name");
+                String name = nameValue != null && nameValue.isString() ? nameValue.asString() : findPatchName();
+                editorPatches.add(new EditorPatch(name, text));
+                rebuildPatchTable();
+
+                EUI.infoToast("@import-patch.succeed");
             }).disabled(b -> Core.app.getClipboardText() != null && Core.app.getClipboardText().isEmpty());
         }).pad(8f).padTop(4f).growX();
     }
@@ -124,7 +127,7 @@ public class PatchManager extends BaseDialog{
 
                     buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
                         editorPatches.remove(patch, true);
-                        savePatch();
+                        rebuildPatchTable();
                     }).tooltip("@patch.remove", true);
 
                     buttons.button(Icon.copySmall, Styles.clearNonei, () -> {

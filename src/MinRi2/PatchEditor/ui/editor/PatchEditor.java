@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.ui.editor;
 
 import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
@@ -17,25 +18,35 @@ import mindustry.ui.dialogs.*;
  * Create by 2024/2/15
  */
 public class PatchEditor extends BaseDialog{
-    private final NodeData rootData;
     private final NodeCard card;
 
     private EditorPatch editPatch;
 
+    private EditorNode editorTree;
+    private ObjectNode objectTree;
+    private final NodeManager manager;
+
     public PatchEditor(){
         super("@contents-editor");
 
-        rootData = NodeData.getRootData();
+        manager = new NodeManager();
         card = new NodeCard();
 
-        setup();
-
         resized(this::rebuild);
-        shown(this::rebuild);
+        shown(() -> {
+            if(objectTree == null) objectTree = ObjectNode.createRoot();
+            if(editorTree == null) editorTree = new EditorNode(objectTree, manager);
+            card.setRootEditorNode(editorTree);
+            card.setEditorNode("");
+
+            setup();
+            rebuild();
+        });
         hidden(() -> {
-            JsonValue data = PatchJsonIO.toJson(rootData);
-            editPatch.patch = PatchJsonIO.simplifyPatch(data).toJson(OutputType.json);
-            rootData.clearJson();
+            JsonValue value = PatchJsonIO.toJson(manager.getRoot());
+            editPatch.patch = PatchJsonIO.simplifyPatch(value).toJson(OutputType.json);
+
+            card.setRootEditorNode(null);
         });
 
         update(() -> {
@@ -58,18 +69,29 @@ public class PatchEditor extends BaseDialog{
         addCloseListener();
     }
 
+    public void clearTree(){
+        objectTree = null;
+        editorTree = null;
+    }
+
     public void edit(EditorPatch patch){
+        manager.reset();
+
         try{
-            PatchJsonIO.parseJson(rootData, patch.patch);
+            PatchJsonIO.parseJson(objectTree, manager.getRoot(), patch.patch);
         }catch(Exception e){
             Vars.ui.showException(e);
             return;
         }
+
         editPatch = patch;
+
         show();
     }
 
     protected void setup(){
+        if(cont.hasChildren()) return;
+
         titleTable.clearChildren();
         titleTable.background(Tex.whiteui).setColor(EPalettes.main);
 
@@ -83,9 +105,6 @@ public class PatchEditor extends BaseDialog{
         titleTable.add(title).style(Styles.outlineLabel).growX();
 
         cont.top();
-
-        card.setData(rootData);
-
         addCloseListener();
     }
 

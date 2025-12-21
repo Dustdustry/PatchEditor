@@ -4,8 +4,6 @@ import arc.*;
 import arc.func.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.struct.ObjectMap.*;
-import arc.util.*;
 import mindustry.mod.*;
 import mindustry.ui.dialogs.*;
 
@@ -63,6 +61,8 @@ public class ClassSelector extends BaseDialog{
         }
 
         if(classes.isEmpty()){
+            consumer.get(superClass);
+        }else if(classes.size == 1 && classes.first() == superClass){
             consumer.get(superClass);
         }else{
             show();

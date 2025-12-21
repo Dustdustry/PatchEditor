@@ -13,7 +13,6 @@ import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
-import mindustry.ui.dialogs.*;
 
 public abstract class ModifierBuilder<T>{
     protected T value;
@@ -29,8 +28,9 @@ public abstract class ModifierBuilder<T>{
     protected void addResetButton(Table table, Runnable clicked){
         resetButton = table.button(Icon.undo, Styles.clearNonei, () -> {
             consumer.resetModify();
+            resetButton.visible = consumer.isModified();
             clicked.run();
-        }).width(32f).pad(4f).growY().expandX().right().visible(consumer::isModified).tooltip("@node-modifier.undo", true).get();
+        }).visible(consumer.isModified()).width(32f).pad(4f).growY().expandX().right().tooltip("@node-modifier.undo", true).get();
     }
 
     public static class TextBuilder extends ModifierBuilder<String>{
@@ -48,6 +48,7 @@ public abstract class ModifierBuilder<T>{
                 resetButton.visible = consumer.isModified();
             }).valid(consumer::checkValue).pad(4f).width(100f).get();
 
+            field.setProgrammaticChangeEvents(true);
             addResetButton(table, () -> field.setText(value = consumer.getValue()));
         }
     };
@@ -68,7 +69,6 @@ public abstract class ModifierBuilder<T>{
             Cons<Boolean> setColorUI = bool -> {
                 value = bool;
                 image.addAction(Actions.color(bool ? Color.green : Color.red, 0.3f));
-                resetButton.visible = consumer.isModified();
             };
 
             table.button(b -> {
@@ -77,6 +77,7 @@ public abstract class ModifierBuilder<T>{
             }, Styles.clearNonei, () -> {
                 setColorUI.get(!value);
                 consumer.onModify(value);
+                resetButton.visible = consumer.isModified();
             }).grow();
 
             addResetButton(table, () -> setColorUI.get(consumer.getValue()));
@@ -100,21 +101,25 @@ public abstract class ModifierBuilder<T>{
 
                 EUI.selector.select(contentType, type, c -> c != value, c -> {
                     setValue(c);
-                    consumer.onModify(value);
                     return true;
                 });
             }).grow().get();
 
             addResetButton(table, () -> setValue(consumer.getValue()));
-            setValue(consumer.getValue());
+            rebuildTable();
         }
 
         private void setValue(UnlockableContent value){
             this.value = value;
+            consumer.onModify(value);
             resetButton.visible = consumer.isModified();
 
             if(contentTable == null) return;
 
+            rebuildTable();
+        }
+
+        private void rebuildTable(){
             contentTable.clearChildren();
 
             TextureRegion icon;
@@ -154,6 +159,7 @@ public abstract class ModifierBuilder<T>{
                 color.set(c);
                 value = color.toString();
                 image.addAction(Actions.color(color, 0.3f));
+                resetButton.visible = consumer.isModified();
             };
 
             image.addAction(Actions.color(color, 0.3f));

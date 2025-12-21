@@ -2,17 +2,14 @@ package MinRi2.PatchEditor.ui.editor;
 
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.modifier.*;
+import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.graphics.*;
-import arc.input.*;
-import arc.scene.*;
 import arc.scene.actions.*;
-import arc.scene.event.*;
 import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import arc.scene.utils.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
@@ -20,7 +17,6 @@ import mindustry.ctype.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
-import mindustry.ui.dialogs.*;
 
 /**
  * @author minri2
@@ -33,10 +29,11 @@ public class NodeCard extends Table{
     private final Table cardCont, nodesTable; // workingTable / childrenNodesTable
     public boolean editing;
     public NodeCard parent, childCard;
-    private NodeData data;
-    private OrderedMap<Class<?>, Seq<NodeData>> mappedChildren;
 
-    private NodeData lastChildData;
+    private EditorNode rootEditorNode;
+
+    private String editorPath, lastEditorPath;
+    private OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren;
 
     private String searchText = "";
 
@@ -49,8 +46,12 @@ public class NodeCard extends Table{
         nodesTable.top().left();
     }
 
-    public void setData(NodeData data){
-        this.data = data;
+    public void setRootEditorNode(EditorNode rootEditorNode){
+        this.rootEditorNode = rootEditorNode;
+    }
+
+    public void setEditorNode(String path){
+        editorPath = path;
     }
 
     public NodeCard getFrontCard(){
@@ -63,37 +64,47 @@ public class NodeCard extends Table{
         return card;
     }
 
-    private void editChildNode(NodeData childNodeData){
+    private void editChildNode(String path){
         if(childCard == null){
             childCard = new NodeCard();
+            childCard.setRootEditorNode(rootEditorNode);
             childCard.parent = this;
         }else if(childCard.editing){
             childCard.editChildNode(null);
         }
 
-        editing = childNodeData != null;
-        childCard.setData(childNodeData);
+        EditorNode editorNode = rootEditorNode.navigate(path);
+        if(editorNode != null && !editorNode.isEditable()){
+            editing = false;
+        }else{
+            editing = path != null;
+            childCard.setEditorNode(path);
+        }
 
         rebuildCont();
     }
 
     public void extractWorking(){
         if(parent != null){
-            parent.lastChildData = data;
+            parent.lastEditorPath = editorPath;
             parent.editChildNode(null);
         }
     }
 
     public void editLastData(){
-        // 仅支持最前面的卡片
-        if((childCard == null || !childCard.editing) && lastChildData != null){
-            editChildNode(lastChildData);
+        if((childCard == null || !childCard.editing) && lastEditorPath != null && lastEditorPath.startsWith(editorPath)){
+            editChildNode(lastEditorPath);
         }
     }
 
     public void rebuild(){
         clearChildren();
-        if(data == null) return;
+
+        EditorNode editorNode = getEditorNode();
+        if(editorNode == null){
+            editChildNode(null);
+            return;
+        }
 
         defaults().growX();
         buildTitle(this);
@@ -102,17 +113,16 @@ public class NodeCard extends Table{
         add(cardCont).grow();
     }
 
+    public EditorNode getEditorNode(){
+        return editorPath == null ? null : rootEditorNode.navigate(editorPath);
+    }
+
     private void rebuildCont(){
         cardCont.clearChildren();
 
         cardCont.defaults().padLeft(16f);
 
         if(editing){
-            if(childCard.data.parentData == null){
-                Core.app.post(() -> editChildNode(null));
-                return;
-            }
-
             childCard.rebuild();
             cardCont.add(childCard).grow();
         }else{
@@ -148,7 +158,8 @@ public class NodeCard extends Table{
         nodesTable.clearChildren();
 
         // 下一帧可能正好被清除
-        if(data == null){
+        EditorNode editorNode = getEditorNode();
+        if(editorNode == null){
             return;
         }
 
@@ -156,7 +167,7 @@ public class NodeCard extends Table{
 
         var map = mappedChildren();
         for(var entry : map){
-            Seq<NodeData> children = entry.value;
+            Seq<EditorNode> children = entry.value;
             Class<?> declareClass = entry.key;
             if(children.isEmpty() && declareClass != Object.class) continue;
 
@@ -174,14 +185,11 @@ public class NodeCard extends Table{
             cont.defaults().size(buttonWidth, buttonWidth / 4).pad(4f).margin(8f).top().left();
 
             int index = 0;
-            for(NodeData child : children){
-                // sign have its own place
-                if(child.isSign()) continue;
-
+            for(EditorNode child : children){
                 if(!searchText.isEmpty()){
-                    String displayName = NodeDisplay.getDisplayName(child.getObject());
+                    String displayName = NodeDisplay.getDisplayName(child.getDisplayValue());
 
-                    if(!Strings.matches(searchText, child.name)
+                    if(!Strings.matches(searchText, child.getObjNode().name)
                     && (displayName == null || !Strings.matches(searchText, displayName))){
                         continue;
                     }
@@ -198,9 +206,8 @@ public class NodeCard extends Table{
                 }
             }
 
-            if(declareClass == Object.class){
-                NodeData plusData = data.getSign(ModifierSign.PLUS);
-                if(plusData != null) addPlusButton(cont, plusData);
+            if(declareClass == Object.class && editorNode.getObjNode().hasSign(ModifierSign.PLUS) && editorNode.getObjNode().elementType != null){
+                addPlusButton(cont, editorNode);
             }
 
             children.clear();
@@ -209,10 +216,10 @@ public class NodeCard extends Table{
         map.clear();
     }
 
-    private void addEditTable(Table table, NodeData node, DataModifier<?> modifier){
+    private void addEditTable(Table table, EditorNode node, DataModifier<?> modifier){
         Color modifiedColor = EPalettes.modified, unmodifiedColor0 = EPalettes.unmodified;
-        if(node.isDynamic()) unmodifiedColor0 = EPalettes.add;
-        else if(isRequired(node)) unmodifiedColor0 = EPalettes.required;
+//        if(node.isDynamic()) unmodifiedColor0 = EPalettes.add;
+        if(isRequired(node)) unmodifiedColor0 = EPalettes.required;
 
         Color unmodifiedColor = unmodifiedColor0;
 
@@ -234,27 +241,24 @@ public class NodeCard extends Table{
             t.setColor(modifier.isModified() ? modifiedColor : unmodifiedColor);
 
             modifier.onModified(modified -> {
-                t.addAction(Actions.color(modifier.isModified() ? modifiedColor : unmodifiedColor, 0.2f));
+                t.addAction(Actions.color(modified ? modifiedColor : unmodifiedColor, 0.2f));
             });
         });
     }
 
-    private static boolean isRequired(NodeData node){
-        return node.getJsonData() == null && PatchJsonIO.fieldRequired(node);
+    private static boolean isRequired(EditorNode node){
+        return node.getPatch() == null && PatchJsonIO.fieldRequired(node);
     }
 
-    private void addChildButton(Table table, NodeData node){
-        NodeData removeData = node.getSign(ModifierSign.REMOVE);
-        boolean isKeyRemoved = removeData != null && removeData.getJsonData() != null;
-
+    private void addChildButton(Table table, EditorNode node){
         ImageButtonStyle style = EStyles.cardButtoni;
         if(isRequired(node)){
             style = EStyles.cardRequiredi;
-        }else if(node.isDynamic()){
+        }else if(node.isAppending()){
             style = EStyles.addButtoni;
-        }else if(isKeyRemoved){
+        }else if(node.isRemoving()){
             style = EStyles.cardRemovedi;
-        }else if(data.hasJsonChild(node.name)){
+        }else if(node.hasValue()){
             style = EStyles.cardModifiedButtoni;
         }
 
@@ -271,18 +275,18 @@ public class NodeCard extends Table{
             Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
             horizontalLine.colspan(b.getColumns());
         }, style, () -> {
-            NodeData modifyData = node.getSign(ModifierSign.MODIFY);
-            editChildNode(modifyData == null || modifyData.getJsonData() == null ? node : modifyData);
-        }).disabled(node.getObject() == null || (removeData != null && removeData.getJsonData() != null));
+            editChildNode(node.getPath());
+        }).disabled(node.isRemoving() || (node.getObject() == null && !node.isOverriding()));
     }
 
-    private void addPlusButton(Table table, NodeData plusData){
-        if(plusData.meta == null || plusData.meta.elementType == null) return;
+    private void addPlusButton(Table table, EditorNode editorNode){
+        ObjectNode objNode = editorNode.getObjNode();
+        if(objNode.elementType == null) return;
 
         table.button(b -> {
             b.image(Icon.add).pad(8f).padRight(16f);
 
-            b.add(ClassHelper.getDisplayName(plusData.meta.elementType)).color(EPalettes.type)
+            b.add(ClassHelper.getDisplayName(objNode.elementType)).color(EPalettes.type)
             .style(Styles.outlineLabel).ellipsis(true).fillX();
 
             b.image().width(4f).color(Color.darkGray).growY().right();
@@ -290,83 +294,100 @@ public class NodeCard extends Table{
             Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
             horizontalLine.colspan(b.getColumns());
         }, EStyles.addButtoni, () -> {
-            Class<?> keyType = plusData.meta.keyType;
+            Class<?> keyType = objNode.keyType;
             if(keyType != null){
                 ContentType type = PatchJsonIO.getContentType(keyType);
                 if(type == null){
                     // TODO: unsupported key type
+                    Vars.ui.showErrorMessage("#Unsupported key type " + ClassHelper.getDisplayName(keyType));
                     return;
                 }
-                EUI.selector.select(type, c -> true, c -> {
-                    NodeModifier.addDynamicChild(plusData, null, PatchJsonIO.getKeyName(c));
+
+                ObjectMap map = (ObjectMap)editorNode.getObject();
+                EUI.selector.select(type, c -> !map.containsKey(c), c -> {
+                    editorNode.putKey(PatchJsonIO.getKeyName(c));
                     rebuildNodesTable();
                     return true;
                 });
             }else{
-                NodeModifier.addDynamicChild(plusData);
+                PatchNode patchNode = editorNode.getPatch();
+                if(patchNode != null && patchNode.sign == ModifierSign.MODIFY){
+                    editorNode.append(false);
+                }else{
+                    // if array is null, don't use plus syntax
+                    editorNode.append(editorNode.getObject() != null);
+                }
                 rebuildNodesTable();
             }
         });
     }
 
-    private void setupEditButton(Table table, NodeData data, boolean hasModifier){
+    private void setupEditButton(Table table, EditorNode node, boolean hasModifier){
         table.defaults().width(32f).pad(4f).growY();
+        EditorNode editorNode = getEditorNode();
 
-        NodeData modifyData = data.getSign(ModifierSign.MODIFY);
-        NodeData removeData = data.getSign(ModifierSign.REMOVE);
+        // remove: map's key
+        if(!node.isChangedType() && ClassHelper.isMap(editorNode.getTypeIn()) && !node.isAppending()){
+            boolean undoMode = node.isRemoving();
+            table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
+                if(undoMode){
+                    node.clearJson();
+                }else{
+                    node.setValue(ModifierSign.REMOVE.sign);
+                    node.setSign(ModifierSign.REMOVE);
+                }
+                rebuildNodesTable();
+            }).tooltip(undoMode ? "##revertRemove" : "##removeKey");
+            if(undoMode) return;
+        }
 
-        boolean isOverride = modifyData != null && modifyData.getJsonData() != null;
-        if(isOverride){
+        if(node.isOverriding()){
             table.button(Icon.undo, Styles.clearNonei, () -> {
-                modifyData.clearJson();
+                node.setSign(null);
+                node.clearJson();
                 rebuildNodesTable();
-            }).tooltip("#revertOverride").grow();
-            return;
-        }
-
-        if(removeData != null){
-            boolean isRemoved = removeData.getJsonData() != null;
-            table.button(isRemoved ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
-                if(!isRemoved) removeData.initJsonData();
-                else removeData.clearJson();
-                rebuildNodesTable();
-            }).tooltip(isRemoved ? "##revertRemove" : "##removeKey");
-            if(isRemoved) return;
-        }
-
-        if(data.isDynamic()){
-            table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, PatchJsonIO.getTypeIn(data), clazz -> {
-                    NodeModifier.changeType(data, clazz);
-                    rebuildNodesTable();
-                    return true;
-                });
-            }).tooltip("##changeType");
+            }).tooltip("##revertOverride");
+        }else if(node.isAppending() || node.isChangedType()){
+            if(!hasModifier && !ClassHelper.isArray(node.getTypeIn())){
+                table.button(Icon.wrench, Styles.clearNonei, () -> {
+                    EUI.classSelector.select(null, node.getTypeIn(), clazz -> {
+                        node.changeType(clazz);
+                        rebuildNodesTable();
+                        return true;
+                    });
+                }).tooltip("##changeType");
+            }
 
             table.button(Icon.cancel, Styles.clearNonei, () -> {
-                data.clearJson();
+                node.clearJson();
                 rebuildNodesTable();
-            }).grow().row();
-        }else if(!hasModifier && modifyData != null && modifyData.getJsonData() == null){
+            }).grow().tooltip("##remove");
+        }else if(!hasModifier && (node.getObject() == null || ClassHelper.isArrayLike(node.getTypeIn()))){
+            PatchNode patchNode = node.getPatch();
+            if(patchNode == null || patchNode.sign == null){
+                table.button(Icon.wrench, Styles.clearNonei, () -> {
+                    node.setSign(ModifierSign.MODIFY);
+                    rebuildNodesTable();
+                }).tooltip("##override");
+            }
+        }else if(!hasModifier && ClassHelper.isMap(editorNode.getTypeIn())){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, PatchJsonIO.getTypeIn(data), clazz -> {
-                    NodeData newData = NodeModifier.changeType(modifyData, clazz);
-                    if(newData != null){
-                        editChildNode(newData);
-                    }else{
-                        Vars.ui.showErrorMessage("Type '" + clazz.getSimpleName() + "' not available.");
-                    }
+                EUI.classSelector.select(null, node.getTypeIn(), clazz -> {
+                    node.changeType(clazz);
+                    rebuildNodesTable();
                     return true;
                 });
             }).tooltip("##override");
         }
 
-        if(isRequired(data)){
+        if(isRequired(node)){
             table.image(Icon.infoCircle).height(32f).tooltip("##mayRequired");
         }
     }
 
     private void buildTitle(Table table){
+        EditorNode editorNode = getEditorNode();
+
         Color titleColor = parent == null ? EPalettes.main2 : EPalettes.main3;
         table.table(Tex.whiteui, nodeTitle -> {
             nodeTitle.defaults().pad(8f);
@@ -374,7 +395,7 @@ public class NodeCard extends Table{
             nodeTitle.table(Tex.whiteui, nameTable -> {
                 nameTable.table(t -> {
                     t.left();
-                    NodeDisplay.display(t, data);
+                    NodeDisplay.display(t, editorNode);
                 }).pad(8f).grow();
 
                 nameTable.image().width(4f).color(Color.darkGray).growY().right();
@@ -385,8 +406,8 @@ public class NodeCard extends Table{
 
             // Clear data
             nodeTitle.button(Icon.refresh, Styles.cleari, () -> {
-                Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", data.name), () -> {
-                    data.clearJson();
+                Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", editorNode.getPath()), () -> {
+                    editorNode.clearJson();
                     getFrontCard().rebuildNodesTable();
                 });
             }).size(64f).tooltip("@node-card.clear-data", true);
@@ -401,14 +422,16 @@ public class NodeCard extends Table{
         }).color(titleColor);
     }
 
-    private OrderedMap<Class<?>, Seq<NodeData>> mappedChildren(){
+    private OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren(){
+        EditorNode editorNode = getEditorNode();
+
         if(mappedChildren == null) mappedChildren = new OrderedMap<>();
         for(var entry : mappedChildren){
             entry.value.clear();
         }
         mappedChildren.clear();
 
-        Class<?> type = PatchJsonIO.getTypeOut(data);
+        Class<?> type = editorNode.getTypeOut();
         if(type == null) return mappedChildren;
 
         while(type != null){
@@ -416,18 +439,13 @@ public class NodeCard extends Table{
             type = type.getSuperclass();
         }
 
-        for(NodeData child : data.getChildren()){
-            if(child.isSign(ModifierSign.PLUS)){
-                mappedChildren.get(Object.class).addAll(child.getChildren());
-                continue;
-            }
-
-            if(child.meta == null || child.meta.field == null){
+        for(EditorNode child : editorNode.getChildren().values()){
+            if(child.getObjNode() == null || child.getObjNode().field == null){
                 mappedChildren.get(Object.class).add(child); // Object means unknow declaring class
                 continue;
             }
 
-            mappedChildren.get(child.meta.field.getDeclaringClass()).add(child);
+            mappedChildren.get(child.getObjNode().field.getDeclaringClass()).add(child);
         }
 
         for(var entry : mappedChildren){
@@ -436,7 +454,7 @@ public class NodeCard extends Table{
             Structs.comps(
                 Structs.comparingBool(n -> !isRequired(n)),
                 Structs.comps(
-                    Structs.comparingBool(n -> n.getJsonData() == null),
+                    Structs.comparingBool(n -> !n.hasValue()),
                     Structs.comparingInt(NodeModifier::getModifierIndex).reversed()
                 )
             )
@@ -449,7 +467,7 @@ public class NodeCard extends Table{
     @Override
     public String toString(){
         return "NodeCard{" +
-        "nodeData=" + data +
+        "nodeData=" + editorPath +
         '}';
     }
 }

@@ -1,6 +1,6 @@
 package MinRi2.PatchEditor.node;
 
-import MinRi2.PatchEditor.node.modifier.*;
+import MinRi2.PatchEditor.node.patch.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -8,30 +8,33 @@ import arc.util.serialization.Json.*;
 import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.Jval.*;
 import mindustry.ctype.*;
+import mindustry.entities.abilities.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.consumers.*;
 
 import java.lang.reflect.*;
+import java.util.*;
 
 public class PatchJsonIO{
+    public static final boolean debug = true;
+
     public static final int simplifySingleCount = 3;
 
     private static ContentParser parser;
     private static ObjectMap<String, ContentType> nameToType;
+
+    public static final String appendPrefix = "#ADD_";
 
     /** Classes that is partial when node is dynamic. */
     public static final Seq<Class<?>> partialTypes = Seq.with(
         ItemStack.class, LiquidStack.class, PayloadStack.class
     );
 
-    public static Object readData(NodeData data){
-        if(data.getJsonData() == null) return null;
-        Class<?> type = getTypeIn(data);
-        if(type == null) return null;
-        return getParser().getJson().readValue(type, data.getJsonData());
-    }
+    public static final ObjectMap<Class<?>, Class<?>> defaultClassMap = ObjectMap.of(
+        Ability.class, ForceFieldAbility.class
+    );
 
     public static String getKeyName(Object object){
         if(object instanceof MappableContent mc) return mc.name;
@@ -54,21 +57,6 @@ public class PatchJsonIO{
         return nameToType;
     }
 
-    public static Class<?> getTypeIn(NodeData node){
-        if(node.meta != null) return node.meta.type;
-        if(node.getObject() instanceof MapEntry<?,?> entry) return ClassHelper.unoymousClass(entry.value.getClass());
-        return node.getObject() == null ? null : ClassHelper.unoymousClass(node.getObject().getClass());
-    }
-
-    /**
-     * @return object's class first then meta type.
-     */
-    public static Class<?> getTypeOut(NodeData node){
-        if(node.getObject() == null) return node.meta != null ? node.meta.type : null;
-        if(node.getObject() instanceof MapEntry<?,?> entry) return ClassHelper.unoymousClass(entry.value.getClass());
-        return ClassHelper.unoymousClass(node.getObject().getClass());
-    }
-
     public static ContentType getContentType(Class<?> type){
         if(Block.class.isAssignableFrom(type)) return ContentType.block;
         if(Item.class.isAssignableFrom(type)) return ContentType.item;
@@ -78,21 +66,9 @@ public class PatchJsonIO{
         return null;
     }
 
-    public static boolean isArray(NodeData data){
-        return ClassHelper.isArray(getTypeOut(data));
-    }
-
-    public static boolean isArrayLike(NodeData data){
-        return ClassHelper.isArrayLike(getTypeOut(data));
-    }
-
-    public static boolean isMap(NodeData data){
-        return ClassHelper.isMap(getTypeOut(data));
-    }
-
-    public static boolean fieldRequired(NodeData child){
-        if(child.meta == null) return false;
-        Field field = child.meta.field;
+    public static boolean fieldRequired(EditorNode child){
+        if(child.getObjNode() == null) return false;
+        Field field = child.getObjNode().field;
         if(field == null || field.getType().isPrimitive()) return false;
         if(MappableContent.class.isAssignableFrom(field.getType())){
             return !field.getType().isAnnotationPresent(Nullable.class) && child.getObject() == null;
@@ -101,210 +77,215 @@ public class PatchJsonIO{
         return false;
     }
 
-    public static void parseJson(NodeData data, String patch){
+    /** Get type in ContentParser#classParsers */
+    public static Class<?> getTypeParser(Class<?> type){
+        Class<?> toppest = type;
+
+        Class<?> current = type;
+        while(current != Object.class){
+            if(ClassMap.classes.findKey(current, true) != null) toppest = current;
+            current = current.getSuperclass();
+        }
+
+        return toppest;
+    }
+
+    public static Class<?> resolveType(Class<?> base, @Nullable String typeJson){
+        return resolveType(typeJson == null ? base : ClassMap.classes.get(typeJson));
+    }
+
+    public static Class<?> resolveType(Class<?> type){
+        if(type.isPrimitive() || ClassHelper.isArray(type)) return type;
+
+        int typeModifiers = type.getModifiers();
+        if(!Modifier.isAbstract(typeModifiers) && !Modifier.isInterface(typeModifiers)) return type;
+
+        Class<?> defaultType = defaultClassMap.get(type);
+        if(defaultType != null) return defaultType;
+
+        return getTypeParser(type);
+    }
+
+    public static String classTypeName(Class<?> type){
+        String name = ClassMap.classes.findKey(type, true);
+        if(name == null) name = type.getName();
+        return name;
+    }
+
+    public static int getContainerSize(Object containerLike){
+        if(containerLike instanceof Object[] arr) return arr.length;
+        if(containerLike instanceof Seq<?> seq) return seq.size;
+        if(containerLike instanceof ObjectSet<?> set) return set.size;
+        if(containerLike instanceof ObjectMap<?,?> map) return map.size;
+        return -1;
+    }
+
+    public static void parseJson(ObjectNode objectNode, PatchNode patchNode, String patch){
         JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
-
-        data.clearJson();
-        parseJson(data, value);
+        extractDotSyntax(value);
+        desugarJson(objectNode, value);
+        parseJson(objectNode, patchNode, value);
     }
 
-    public static void parseJson(NodeData data, JsonValue value){
-        if(value != null) desugarJson(data, value);
-        if(value != null && value.isString() && ModifierSign.REMOVE.sign.equals(value.asString())){
-            NodeData removeSign = data.getSign(ModifierSign.REMOVE);
-            if(removeSign != null) removeSign.initJsonData();
-            return;
-        }
-        if(value == null || value.isValue()){
-            data.setJsonData(value);
-            return;
-        }
-
+    public static void parseJson(ObjectNode objectNode, PatchNode patchNode, JsonValue value){
         if(value.isArray()){
-            if(!isArrayLike(data)) return;
-
-            // If overriding the array, also move children to plusData.
-            NodeData plusData = data.getSign(ModifierSign.PLUS);
-            if(plusData == null) return;
-
-            data.setJsonData(value);
-            for(JsonValue elemValue : value){
-                JsonValue typeValue = elemValue.remove("type");
-                Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-                NodeData childData = NodeModifier.addDynamicChild(plusData, type);
-                if(childData == null) return; // getaway
-                parseJson(childData, elemValue);
+            // patchNode('array': []) -> override array.
+            int i = 0;
+            for(JsonValue childValue : value){
+                PatchNode childNode = patchNode.getOrCreate("" + i++);
+                childNode.sign = ModifierSign.PLUS;
+                parseJson(null, childNode, childValue);
             }
-            return;
-        }else if(value.has("type")){
-            NodeData modifyData = data.getSign(ModifierSign.MODIFY);
-            if(modifyData == null){
-                Log.warn("@.@ is unmodifiable.", data.parentData.name, data.name);
-                return;
-            }
-
-            Class<?> typeIn = getTypeIn(modifyData);
-            if(typeIn == null){
-                Log.warn("@.@ is unmodifiable.", data.parentData.name, data.name);
-                return;
-            }
-
-            JsonValue typeValue = value.remove("type");
-            Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-            if(type == null || !typeIn.isAssignableFrom(type)){
-                Log.warn("Type '@' is unsustainable to '@'.", type, typeIn);
-                return;
-            }
-
-            NodeData newData = NodeModifier.changeType(modifyData, type);
-            parseJson(newData, value);
+            patchNode.type = ValueType.array;
+            patchNode.sign = ModifierSign.MODIFY;
             return;
         }
 
-        outer:
+        // sign is seen as attribute in PatchNode, not a node
+        if(!value.isValue() && value.has(ModifierSign.PLUS.sign)){
+            JsonValue plusValue = value.remove(ModifierSign.PLUS.sign);
+
+            int i = objectNode != null ? getContainerSize(objectNode.object) : 0;
+            if(plusValue.isArray()){
+                // patchNode(‘+’: []) -> multiple append
+                for(JsonValue childValue : plusValue){
+                    PatchNode childNode = patchNode.getOrCreate(appendPrefix + i++);
+                    childNode.sign = ModifierSign.PLUS;
+                    if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
+                    parseJson(null, childNode, childValue);
+                }
+            }else if(plusValue.isObject()){
+                // patchNode('+': {}) -> single append
+                PatchNode childNode = patchNode.getOrCreate(appendPrefix + i);
+                childNode.sign = ModifierSign.PLUS;
+                if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
+                parseJson(null, childNode, plusValue);
+            }
+
+            if(value.child == null){
+                removeJsonValue(value);
+                return;
+            }
+        }
+
+        if(value.isValue()) patchNode.value = value.asString();
+        patchNode.type = value.type();
+
+        if(value.isValue()) return;
+
         for(JsonValue childValue : value){
-            // impossible?
-            if(childValue.name == null) continue;
+            String name = childValue.name;
 
-            NodeData current = data;
-            String[] childNames = childValue.name.split("\\.");
-            for(int i = 0; i < childNames.length; i++){
-                NodeData childData = current.getChild(childNames[i]);
-                if(childData != null){
-                    current = childData;
-                    continue;
+            ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve(name);
+            PatchNode childNode = patchNode.getOrCreate(name);
+
+            if(objectNode != null && ClassHelper.isMap(objectNode.type) && objectNode.object instanceof ObjectMap map){
+                if(childValue.isValue() && ModifierSign.REMOVE.sign.equals(childValue.asString())){
+                    // patchNode('map': {xxx: '-'}) -> remove the key
+                    childNode.sign = ModifierSign.REMOVE;
+                }else{
+                    // patchNode('map': {}) -> modify(override) or append key
+                    Object key = parser.getJson().readValue(objectNode.keyType, new JsonValue(childValue.name));
+                    if(key != null && !map.containsKey(key)){
+                        childNode.sign = ModifierSign.PLUS;
+                        if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
+                    }
                 }
-
-                // map's key only support in the end
-                if(i == childNames.length - 1 && isMap(current)){
-                    current = parseDynamicChild(current, childNames[i], childValue);
-                    if(current == null) continue outer;
-                    break;
-                }
-
-                Log.warn("Couldn't resolve @.@", current.name, childNames[i]);
-                continue outer;
             }
 
-            childValue.setName(current.name);
-            parseJson(current, childValue);
+            // patchNode('array': {}) -> normal modify(override) do nothing
+            parseJson(childObj, childNode, childValue);
         }
     }
 
-    private static NodeData parseDynamicChild(NodeData data, String childName, JsonValue value){
-        if(isMap(data)){
-            Class<?> keyType = data.meta.keyType;
-
-            NodeData plusData = data.getChild(ModifierSign.PLUS.sign);
-            Object obj = getParser().getJson().readValue(keyType, new JsonValue(childName));
-            if(obj == null) return null;
-
-            JsonValue typeValue = value.remove("type");
-            Class<?> type = typeValue != null && typeValue.isString() ? ClassMap.classes.get(typeValue.asString()) : null;
-            if(type != null && keyType.isAssignableFrom(type)){
-                Log.warn("Type '@' is unsustainable to '@'.", type, keyType);
-                return null;
-            }
-
-            return NodeModifier.addDynamicChild(plusData, type, childName);
-        }
-
-        return null;
+    public static JsonValue toJson(PatchNode patchNode){
+        return toJson(patchNode, new JsonValue(patchNode.type));
     }
 
-    private static void desugarJson(NodeData data, JsonValue value){
-        Class<?> type = getTypeOut(data);
+    private static JsonValue toJson(PatchNode patchNode, JsonValue value){
+        value.setName(patchNode.key);
+        if(patchNode.value != null) value.set(patchNode.value);
+
+        JsonValue plusValue = null;
+        for(PatchNode childNode : patchNode.children.values()){
+            JsonValue childValue = new JsonValue(childNode.type);
+
+            if(childNode.key.startsWith(appendPrefix)){
+                if(plusValue == null){
+                    plusValue = new JsonValue(ValueType.array);
+                    value.parent.addChild(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign, plusValue);
+                }
+
+                plusValue.addChild(childValue.name, childValue);
+            }else{
+                value.addChild(childNode.key, childValue);
+            }
+
+            toJson(childNode, childValue);
+        }
+
+        if(!value.isValue() && value.child == null){
+            removeJsonValue(value);
+        }
+
+        return value;
+    }
+
+    private static void extractDotSyntax(JsonValue value){
+        if(value.name != null && value.parent != null && value.name.contains(NodeManager.pathComp)){
+            String[] names = value.name.split(NodeManager.pathSplitter);
+
+            int i = 0;
+            JsonValue currentParent = new JsonValue(ValueType.object);
+            currentParent.setName(names[i++]);
+            replaceValue(value, currentParent); // don't affect the order
+
+            while(i < names.length - 1){
+                currentParent.addChild(names[i++], currentParent = new JsonValue(ValueType.object));
+            }
+
+            currentParent.addChild(names[i], value);
+        }
+
+        for(JsonValue childValue : value){
+            extractDotSyntax(childValue);
+        }
+    }
+
+    private static void desugarJson(ObjectNode objectNode, JsonValue value){
+        if(objectNode != null){
+            if(value.isValue()){
+                desugarJson(value, objectNode.type);
+            }else if(value.isArray() && objectNode.elementType != null){
+                ObjectNode childObj = ObjectResolver.getTemplate(objectNode.elementType);
+                for(JsonValue childValue : value){
+                    desugarJson(childObj, childValue);
+                }
+            }
+        }
+
+        if(value.isValue()) return;
+
+        for(JsonValue childValue : value){
+            ObjectNode childNode = childValue.name == null ||objectNode == null ? null : objectNode.getOrResolve(childValue.name);
+            desugarJson(childNode, childValue);
+        }
+    }
+
+    private static void desugarJson(JsonValue value, Class<?> type){
+        // TODO: More sugar syntaxes support
         if(type == ItemStack.class || type == PayloadStack.class){
             if(!value.isString() || !value.asString().contains("/")) return;
             String[] split = value.asString().split("/");
             value.setType(ValueType.object);
-            addChildValue(value, "item", new JsonValue(split[0]));
-            addChildValue(value, "amount", new JsonValue(split[1]));
+            value.addChild("item", new JsonValue(split[0]));
+            value.addChild("amount", new JsonValue(split[1]));
         }else if(type == LiquidStack.class || type == ConsumeLiquid.class){
             if(!value.isString() || !value.asString().contains("/")) return;
             String[] split = value.asString().split("/");
             value.setType(ValueType.object);
-            addChildValue(value, "liquid", new JsonValue(split[0]));
-            addChildValue(value, "amount", new JsonValue(split[1]));
-        }
-
-        // TODO: More sugar syntaxes support
-    }
-
-    public static JsonValue toJson(NodeData node){
-        JsonValue jsonData = node.getJsonData();
-        if(jsonData == null) return new JsonValue(ValueType.object);
-        JsonValue linkedValue = linkJsonData(node, new JsonValue(jsonData.type()));
-        processData(node, linkedValue);
-        return linkedValue;
-    }
-
-    private static JsonValue linkJsonData(NodeData node, JsonValue json){
-        JsonValue data = node.getJsonData();
-        if(data == null) return json;
-
-        if(data.isValue()){
-            json.set(data.asString());
-            return json;
-        }
-
-        for(NodeData child : node.getChildren()){
-            JsonValue childData = child.getJsonData();
-            if(childData == null) continue;
-            JsonValue childJson = new JsonValue(childData.type());
-            addChildValue(json, child.name, childJson);
-            linkJsonData(child, childJson);
-        }
-
-        return json;
-    }
-
-    private static void processData(NodeData node, JsonValue value){
-        // add type for modify sign
-        if(!isArrayLike(node) && (node.isSign(ModifierSign.MODIFY) || node.isDynamic())){
-            Class<?> type = getTypeOut(node);
-            if(type != null && !partialTypes.contains(type)){
-                String typeName = ClassMap.classes.findKey(type, true);
-                if(typeName == null) typeName = type.getName();
-                addChildValue(value, "type", new JsonValue(typeName));
-            }
-        }
-
-        // then apply sign
-        if(node.isSign(ModifierSign.MODIFY)){
-            JsonValue effectValue = value.parent;
-            JsonValue effectParentValue = effectValue.parent;
-            removeValue(effectValue);
-            addChildValue(effectParentValue, effectValue.name, value);
-        }else if(node.isSign(ModifierSign.PLUS)){
-            JsonValue effectValue = value.parent;
-            JsonValue effectParentValue = effectValue.parent;
-
-            if(isMap(node.parentData)){
-                removeValue(value);
-                addChildValue(effectValue, value.child.name, value.child);
-            }else{
-                removeValue(value);
-                // clean empty object
-                if(effectValue.child == null) removeValue(effectValue);
-                // If not overriding the array, plus syntax must be used with dot syntax.
-                boolean overriding = isOverride(node.parentData);
-
-                String name = effectValue.name + (!overriding ? "." + value.name : "");
-                addChildValue(effectParentValue, name, value);
-            }
-        }else if(node.isSign(ModifierSign.REMOVE)){
-            JsonValue effectValue = value.parent;
-            JsonValue effectParentValue = effectValue.parent;
-
-            removeValue(value);
-            if(effectValue.child == null) removeValue(effectValue);
-            addChildValue(effectParentValue, effectValue.name, new JsonValue("-"));
-        }
-
-        for(JsonValue childValue : value){
-            NodeData child = node.getChild(childValue.name);
-            if(child != null) processData(child, childValue);
+            value.addChild("liquid", new JsonValue(split[0]));
+            value.addChild("amount", new JsonValue(split[1]));
         }
     }
 
@@ -312,7 +293,7 @@ public class PatchJsonIO{
         int singleCount = 1;
         JsonValue singleEnd = value;
         while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null){
-            if(dotSimplifiable(singleEnd)) break;
+            if(!dotSimplifiable(singleEnd)) break;
             singleEnd = singleEnd.child;
             singleCount++;
         }
@@ -327,25 +308,11 @@ public class PatchJsonIO{
                 else break;
             }
 
-            JsonValue parent = value.parent;
-            removeValue(value);
-            addChildValue(parent, name.toString(), singleEnd);
+            singleEnd.setName(name.toString());
+            replaceValue(value, singleEnd);
             value = singleEnd;
         }
 
-        sugarJson(value);
-
-        for(JsonValue childValue : value){
-            simplifyPatch(childValue);
-        }
-        return value;
-    }
-
-    private static boolean dotSimplifiable(JsonValue singleEnd){
-        return !(singleEnd.isArray() || singleEnd.has("type") || "consumes".equals(singleEnd.name));
-    }
-
-    private static void sugarJson(JsonValue value){
         if(value.isObject()){
             // duck like
             if(value.has("item") && value.has("amount")){
@@ -354,47 +321,41 @@ public class PatchJsonIO{
                 value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
             }
         }
-    }
 
-    private static boolean isOverride(NodeData node){
-        if(node.isSign(ModifierSign.MODIFY)) return true;
-
-        while(node != NodeData.getRootData()){
-            if(node.name.equals("consumes")) return true;
-            node = node.parentData;
+        for(JsonValue childValue : value){
+            simplifyPatch(childValue);
         }
-
-        return false;
+        return value;
     }
 
-    /**
-     * Function 'addChild' doesn't set the child's previous jsonValue.
-     * see {@link JsonValue}
-     */
-    public static void addChildValue(JsonValue jsonValue, String name, JsonValue childValue){
-        childValue.name = name;
-        childValue.parent = jsonValue;
-
-        JsonValue current = jsonValue.child;
-        if(current == null){
-            jsonValue.child = childValue;
-        }else{
-            while(true){
-                if(current.next == null){
-                    current.next = childValue;
-                    childValue.prev = current;
-                    return;
-                }
-                current = current.next;
-            }
-        }
+    private static boolean dotSimplifiable(JsonValue singleEnd){
+        return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
     }
 
-    public static void removeValue(JsonValue value){
-        JsonValue prev = value.prev, next = value.next;
+    public static void removeJsonValue(JsonValue value){
+        JsonValue parent = value.parent, prev = value.prev, next = value.next;
+
         if(prev != null) prev.next = next;
-        else value.parent.child = next;
+        else if(parent != null) parent.child = next;
+
         if(next != null) next.prev = prev;
         value.parent = value.prev = value.next = null;
+    }
+
+    public static void replaceValue(JsonValue replaced, JsonValue value){
+        if(value.parent != null) removeJsonValue(value);
+
+        JsonValue parent = replaced.parent, prev = replaced.prev, next = replaced.next;
+
+        if(prev != null) prev.next = value;
+        else if(parent != null) parent.child = value;
+
+        if(next != null) next.prev = value;
+
+        value.parent = parent;
+        value.prev = prev;
+        value.next = next;
+
+        replaced.parent = replaced.prev = replaced.next = null;
     }
 }

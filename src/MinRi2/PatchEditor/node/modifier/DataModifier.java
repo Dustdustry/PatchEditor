@@ -1,10 +1,9 @@
 package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.EditorNode.*;
 import arc.func.*;
 import arc.scene.ui.layout.*;
-import arc.util.pooling.Pool.*;
-import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 
 import java.util.*;
@@ -17,7 +16,7 @@ import java.util.*;
 public abstract class DataModifier<T> implements ModifyConsumer<T>{
     protected ModifierBuilder<T> builder;
     protected ValueType valueType;
-    protected NodeData nodeData;
+    protected EditorNode data;
     private Boolc onModified;
 
     public void build(Table table){
@@ -29,7 +28,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     }
 
     public T getDefaultValue(){
-        return cast(nodeData.getObject());
+        return cast(data.getObject());
     }
 
     /**
@@ -49,8 +48,8 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
 
     public abstract T cast(Object object);
 
-    public void setNodeData(NodeData data){
-        this.nodeData = data;
+    public void setData(EditorNode data){
+        this.data = data;
     }
 
     @Override
@@ -60,31 +59,24 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
 
     @Override
     public Class<?> getDataType(){
-        return PatchJsonIO.getTypeOut(nodeData);
+        return data.getTypeOut();
     }
 
     @Override
     public Class<?> getTypeMeta(){
-        return PatchJsonIO.getTypeIn(nodeData);
+        return data.getTypeIn();
     }
 
     @Override
     public T getValue(){
-        JsonValue jsonValue = nodeData.getJsonData();
-        if(jsonValue == null || !jsonValue.isValue()){
-            return getDefaultValue();
-        }
-
-        return cast(PatchJsonIO.readData(nodeData));
+        return cast(data.getDisplayValue());
     }
 
     @Override
     public final void onModify(T value){
-        nodeData.initJsonData();
-
         boolean modified = isModified(value);
         if(modified){
-            nodeData.getJsonData().set(PatchJsonIO.getKeyName(value));
+            data.setValue(PatchJsonIO.getKeyName(value));
 
             if(onModified != null){
                 onModified.get(true);
@@ -96,10 +88,10 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
 
     @Override
     public void resetModify(){
-        if(nodeData.isDynamic()){
-            nodeData.getJsonData().set(PatchJsonIO.getKeyName(nodeData.getObject()));
+        if(data.isAppending()){
+            data.setValue(PatchJsonIO.getKeyName(data.getObject()));
         }else{
-            nodeData.clearJson();
+            data.clearJson();
         }
 
         if(onModified != null){

@@ -10,8 +10,6 @@ public enum ModifierSign{
 
     public final String sign;
 
-    public static final ModifierSign[] all = values();
-
     ModifierSign(String sign){
         this.sign = sign;
     }
