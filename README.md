@@ -14,7 +14,7 @@ Anyway, enjoy making wonderful patch!
 
 ## Features
 
-- [x] Edit number, string****
+- [x] Edit number, string
 - [x] Edit fields in Seq, ObjectSet, ObjectMap
 - [x] Add new object in Seq, ObjectSet, ObjectMap.
 - [x] Remove object in ObjectMap.
