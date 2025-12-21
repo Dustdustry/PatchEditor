@@ -162,19 +162,20 @@ public class PatchJsonIO{
             PatchNode childNode = patchNode.getOrCreate(name);
 
             if(objectNode != null && ClassHelper.isMap(objectNode.type) && objectNode.object instanceof ObjectMap map){
-                // patchNode('map': {}) -> modify(override) or append key
-                Object key = parser.getJson().readValue(objectNode.keyType, new JsonValue(childValue.name));
-                if(key != null && !map.containsKey(key)){
-                    childNode.sign = ModifierSign.PLUS;
-                    if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
+                if(childValue.isValue() && ModifierSign.REMOVE.sign.equals(childValue.asString())){
+                    // patchNode('map': {xxx: '-'}) -> remove the key
+                    childNode.sign = ModifierSign.REMOVE;
+                }else{
+                    // patchNode('map': {}) -> modify(override) or append key
+                    Object key = parser.getJson().readValue(objectNode.keyType, new JsonValue(childValue.name));
+                    if(key != null && !map.containsKey(key)){
+                        childNode.sign = ModifierSign.PLUS;
+                        if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
+                    }
                 }
             }
 
-            // patchNode('array': {}) -> modify(override)
-//            if(objectNode != null && ClassHelper.isArrayLike(objectNode.type)){
-//                if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
-//            }
-
+            // patchNode('array': {}) -> normal modify(override) do nothing
             parseJson(childObj, childNode, childValue);
         }
     }
@@ -214,12 +215,19 @@ public class PatchJsonIO{
                 if(plusValue == null){
                     plusValue = new JsonValue(ValueType.array);
                     plusValue.setName(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign);
-                    value.parent.addChild(plusValue.name, plusValue);
-                    removeJsonValue(value);
                 }
 
+                iterator.remove();
+                childValue.setName(null);
                 plusValue.addChild(childValue.name, childValue);
             }
+        }
+
+        if(plusValue != null){
+            // Adding plusValue to tree now is a bad idea.
+            value.parent.addChild(plusValue.name, plusValue);
+            if(value.child == null) removeJsonValue(value);
+            return plusValue;
         }
 
         return value;
