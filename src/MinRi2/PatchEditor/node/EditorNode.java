@@ -148,6 +148,15 @@ public class EditorNode{
         return ClassHelper.unoymousClass(objectNode.object.getClass());
     }
 
+    public boolean isAppending(){
+        return false;
+    }
+
+    public boolean isRemoving(){
+        PatchNode patchNode = getPatch();
+        return patchNode != null && ModifierSign.REMOVE.sign.equals(patchNode.value);
+    }
+
     public boolean isOverriding(){
         PatchNode patchNode = getPatch();
         return patchNode != null && patchNode.sign == ModifierSign.MODIFY;
@@ -159,6 +168,10 @@ public class EditorNode{
 
         PatchNode typePatch = patchNode.getOrNull("type");
         return typePatch != null && typePatch.value != null && PatchJsonIO.resolveType(objectNode.elementType, typePatch.value) != null;
+    }
+
+    public boolean isEditable(){
+        return parent != null && !isRemoving();
     }
 
     public String getPath(){
@@ -244,6 +257,11 @@ public class EditorNode{
         @Override
         public Class<?> getTypeIn(){
             return baseType;
+        }
+
+        @Override
+        public boolean isAppending(){
+            return true;
         }
     }
 }

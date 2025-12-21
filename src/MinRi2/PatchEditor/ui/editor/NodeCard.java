@@ -71,6 +71,11 @@ public class NodeCard extends Table{
             childCard.editChildNode(null);
         }
 
+        EditorNode editorNode = rootEditorNode.navigate(path);
+        if(editorNode != null && !editorNode.isEditable()){
+            path = null;
+        }
+
         editing = path != null;
         childCard.setEditorNode(path);
 
@@ -111,11 +116,6 @@ public class NodeCard extends Table{
         cardCont.defaults().padLeft(16f);
 
         if(editing){
-            if(childCard.getEditorNode() == null){
-                Core.app.post(() -> editChildNode(null));
-                return;
-            }
-
             childCard.rebuild();
             cardCont.add(childCard).grow();
         }else{
@@ -244,15 +244,12 @@ public class NodeCard extends Table{
     }
 
     private void addChildButton(Table table, EditorNode node){
-//        EditorNode removeData = node.getSign(ModifierSign.REMOVE);
-        boolean isKeyRemoved = false; // removeData != null && removeData.getPatch() != null;
-
         ImageButtonStyle style = EStyles.cardButtoni;
         if(isRequired(node)){
             style = EStyles.cardRequiredi;
-        }else if(node instanceof DynamicEditorNode){
+        }else if(node.isAppending()){
             style = EStyles.addButtoni;
-        }else if(isKeyRemoved){
+        }else if(node.isRemoving()){
             style = EStyles.cardRemovedi;
         }else if(node.hasValue()){
             style = EStyles.cardModifiedButtoni;
@@ -271,10 +268,8 @@ public class NodeCard extends Table{
             Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
             horizontalLine.colspan(b.getColumns());
         }, style, () -> {
-//            EditorNode modifyData = node.getSign(ModifierSign.MODIFY);
-//            editChildNode(modifyData == null || modifyData.getPath() == null ? node : modifyData);
             editChildNode(node.getPath());
-        }).disabled(node.getObject() == null && !node.isOverriding());
+        }).disabled(node.isRemoving() || (node.getObject() == null && !node.isOverriding()));
     }
 
     private void addPlusButton(Table table, EditorNode editorNode){
@@ -322,14 +317,20 @@ public class NodeCard extends Table{
         table.defaults().width(32f).pad(4f).growY();
         EditorNode editorNode = getEditorNode();
 
-//        if(removeData != null){
-//            boolean undoMode = removeData.getPath() != null;
-//            table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
-//                if(undoMode) removeData.clearJson();
-//                rebuildNodesTable();
-//            }).tooltip(undoMode ? "##revertRemove" : "##removeKey");
-//            if(undoMode) return;
-//        }
+        // remove: map's key
+        if(ClassHelper.isMap(editorNode.getTypeIn()) && !node.isAppending()){
+            boolean undoMode = node.isRemoving();
+            table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
+                if(undoMode){
+                    node.clearJson();
+                }else{
+                    node.setValue(ModifierSign.REMOVE.sign);
+                    node.setSign(ModifierSign.REMOVE);
+                }
+                rebuildNodesTable();
+            }).tooltip(undoMode ? "##revertRemove" : "##removeKey");
+            if(undoMode) return;
+        }
 
         if(node.isOverriding()){
             table.button(Icon.undo, Styles.clearNonei, () -> {
@@ -337,7 +338,7 @@ public class NodeCard extends Table{
                 node.clearJson();
                 rebuildNodesTable();
             }).tooltip("##revertOverride");
-        }else if(!hasModifier && (node instanceof DynamicEditorNode || node.isChangedType())){
+        }else if(!hasModifier && (node.isAppending() || node.isChangedType())){
             if(!ClassHelper.isArray(node.getTypeIn())){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
                     EUI.classSelector.select(null, node.getTypeIn(), clazz -> {

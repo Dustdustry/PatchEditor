@@ -88,7 +88,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
 
     @Override
     public void resetModify(){
-        if(data instanceof DynamicEditorNode){
+        if(data.isAppending()){
             data.setValue(PatchJsonIO.getKeyName(data.getObject()));
         }else{
             data.clearJson();
