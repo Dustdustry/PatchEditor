@@ -27,7 +27,5 @@ Anyway, enjoy making wonderful patch!
 - [ ] Edit Effect
 - [ ] Errors inspector.
 
-## TODO
-
-- [ ] Remain unsupported fields
+- [x] Remain unsupported fields
 - [ ] Accessible Weapons' name list
