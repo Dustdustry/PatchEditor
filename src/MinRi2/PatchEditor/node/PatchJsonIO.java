@@ -251,12 +251,14 @@ public class PatchJsonIO{
             if(value.isValue()){
                 desugarJson(value, objectNode.type);
             }else if(value.isArray() && objectNode.elementType != null){
+                ObjectNode childObj = ObjectResolver.getTemplate(objectNode.elementType);
                 for(JsonValue childValue : value){
-                    desugarJson(childValue, objectNode.elementType);
+                    desugarJson(childObj, childValue);
                 }
-                return;
             }
         }
+
+        if(value.isValue()) return;
 
         for(JsonValue childValue : value){
             ObjectNode childNode = childValue.name == null ||objectNode == null ? null : objectNode.getOrResolve(childValue.name);

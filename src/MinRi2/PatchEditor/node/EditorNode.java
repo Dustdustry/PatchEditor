@@ -106,7 +106,7 @@ public class EditorNode{
 
         if(type != objectNode.type){
             if(shadowObjectNode == null || shadowObjectNode.type != type){
-                shadowObjectNode = ObjectResolver.getTemplate(objectNode.type, type);
+                shadowObjectNode = ObjectResolver.getTemplate(type);
             }
             return shadowObjectNode;
         }
@@ -217,11 +217,13 @@ public class EditorNode{
 
     public static class DynamicEditorNode extends EditorNode{
         public final String key;
+        public final Class<?> baseType;
 
         public DynamicEditorNode(String key, Class<?> baseType, Class<?> type, NodeManager manager){
-            super(ObjectResolver.getTemplate(baseType, type), manager);
+            super(ObjectResolver.getTemplate(type), manager);
 
             this.key = key;
+            this.baseType = baseType;
         }
 
         @Override
@@ -237,6 +239,11 @@ public class EditorNode{
         @Override
         public String getDisplayName(){
             return key;
+        }
+
+        @Override
+        public Class<?> getTypeIn(){
+            return baseType;
         }
     }
 }

@@ -112,13 +112,13 @@ public class ObjectResolver{
         }
     }
 
-    public static ObjectNode getTemplate(Class<?> base, Class<?> type){
+    public static ObjectNode getTemplate(Class<?> type){
         if(templateNode == null) templateNode = new ObjectMap<>();
 
         ObjectNode objectNode = templateNode.get(type);
         if(objectNode != null) return objectNode;
 
-        objectNode = new ObjectNode("", getExample(base, type), base);
+        objectNode = new ObjectNode("", getExample(type, type), type);
         templateNode.put(type, objectNode);
         return objectNode;
     }
