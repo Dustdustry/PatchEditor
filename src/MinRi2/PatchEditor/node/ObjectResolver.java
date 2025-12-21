@@ -119,6 +119,8 @@ public class ObjectResolver{
         if(objectNode != null) return objectNode;
 
         objectNode = new ObjectNode("", getExample(type, type), type);
+        // TODO: template is always modifiable?
+        objectNode.addSign(ModifierSign.MODIFY, type, null, null);
         templateNode.put(type, objectNode);
         return objectNode;
     }

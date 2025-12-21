@@ -337,7 +337,7 @@ public class NodeCard extends Table{
                 node.clearJson();
                 rebuildNodesTable();
             }).tooltip("##revertOverride");
-        }else if(node instanceof DynamicEditorNode || node.isChangedType()){
+        }else if(!hasModifier && (node instanceof DynamicEditorNode || node.isChangedType())){
             if(!ClassHelper.isArray(node.getTypeIn())){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
                     EUI.classSelector.select(null, node.getTypeIn(), clazz -> {
