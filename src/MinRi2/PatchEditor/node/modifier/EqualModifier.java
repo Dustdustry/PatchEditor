@@ -12,7 +12,7 @@ public abstract class EqualModifier<T> extends DataModifier<T>{
 
     public static class ContentTypeModifier extends EqualModifier<UnlockableContent>{
         public ContentTypeModifier(){
-            builder = new ModifierBuilder.ContentBuilder(this);
+            builder = new ContentBuilder(this);
             valueType = ValueType.stringValue;
         }
 
@@ -24,7 +24,7 @@ public abstract class EqualModifier<T> extends DataModifier<T>{
 
     public static class BooleanModifier extends EqualModifier<Boolean>{
         public BooleanModifier(){
-            builder = new ModifierBuilder.BooleanBuilder(this);
+            builder = new BooleanBuilder(this);
             valueType = ValueType.booleanValue;
         }
 
@@ -36,7 +36,7 @@ public abstract class EqualModifier<T> extends DataModifier<T>{
 
     public static class StringModifier extends EqualModifier<String>{
         public StringModifier(){
-            builder = new ModifierBuilder.TextBuilder(this);
+            builder = new TextBuilder(this);
             valueType = ValueType.stringValue;
         }
 

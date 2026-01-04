@@ -13,6 +13,7 @@ import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 
 public abstract class ModifierBuilder<T>{
     protected T value;
@@ -34,24 +35,46 @@ public abstract class ModifierBuilder<T>{
     }
 
     public static class TextBuilder extends ModifierBuilder<String>{
-
         public TextBuilder(ModifyConsumer<String> consumer){
             super(consumer);
+        }
+
+        private void setValue(String value){
+            this.value = value;
+
+            consumer.onModify(value);
+            if(resetButton != null) resetButton.visible = consumer.isModified();
         }
 
         @Override
         public void build(Table table){
             value = consumer.getValue();
 
-            TextField field = table.field(value, t -> {
-                consumer.onModify(t);
-                resetButton.visible = consumer.isModified();
-            }).valid(consumer::checkValue).pad(4f).width(100f).get();
+            TextField field = table.field(value, this::setValue)
+            .valid(consumer::checkValue).pad(4f).width(100f).get();
 
-            field.setProgrammaticChangeEvents(true);
-            addResetButton(table, () -> field.setText(value = consumer.getValue()));
+            if(consumer.getTypeMeta() == String.class){
+                table.button(Icon.pencil, Styles.clearNonei, () -> {
+                    BaseDialog dialog = new BaseDialog("##Edit Text");
+                    Table cont = dialog.cont;
+
+                    cont.add(dialog.titleTable).fillX().row();
+                    cont.area(value, Styles.areaField, t -> {
+                        setValue(t);
+                        field.setText(t);
+                    }).valid(consumer::checkValue).minSize(400f, 600f);
+
+                    dialog.addCloseButton();
+                    dialog.show();
+                }).pad(4f).size(Vars.iconLarge);
+            }
+
+            addResetButton(table, () -> {
+                setValue(consumer.getValue());
+                field.setText(value);
+            });
         }
-    };
+    }
 
     public static class BooleanBuilder extends ModifierBuilder<Boolean>{
 
