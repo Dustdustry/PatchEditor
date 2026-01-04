@@ -256,10 +256,16 @@ public class PatchJsonIO{
         if(objectNode != null){
             if(value.isValue()){
                 desugarJson(value, objectNode.type);
-            }else if(value.isArray() && objectNode.elementType != null){
+                return;
+            }else if(ClassHelper.isArrayLike(objectNode.type)){
                 ObjectNode childObj = ObjectResolver.getTemplate(objectNode.elementType);
-                for(JsonValue childValue : value){
-                    desugarJson(childObj, childValue);
+                if(value.isObject() && value.has(ModifierSign.PLUS.sign)){
+                    desugarJson(childObj, value.get(ModifierSign.PLUS.sign));
+                }else { // array here
+                    for(JsonValue childValue : value){
+                        desugarJson(childObj, childValue);
+                    }
+                    return;
                 }
             }
         }
@@ -267,6 +273,9 @@ public class PatchJsonIO{
         if(value.isValue()) return;
 
         for(JsonValue childValue : value){
+            // handle plus sign before here
+            if(ModifierSign.PLUS.sign.equals(childValue.name)) continue;
+
             ObjectNode childNode = childValue.name == null ||objectNode == null ? null : objectNode.getOrResolve(childValue.name);
             desugarJson(childNode, childValue);
         }
@@ -330,6 +339,35 @@ public class PatchJsonIO{
 
     private static boolean dotSimplifiable(JsonValue singleEnd){
         return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
+    }
+
+    public static JsonValue migrateTweaker(String patch){
+        JsonValue tweakerJson = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
+        return migrateTweaker(tweakerJson);
+    }
+
+    private static JsonValue migrateTweaker(JsonValue json){
+        if(json.isValue()) return json;
+
+        for(JsonValue childValue : json){
+            if(childValue.name != null){
+                if(childValue.name.startsWith("#")){
+                    String key = childValue.name.substring(1);
+                    childValue.setName(key);
+
+                    if(json.isObject() && Strings.canParsePositiveInt(key)){
+                        json.setType(ValueType.array);
+                    }
+                }else if(childValue.isValue() && childValue.name.equals("=")){
+                    json.set(childValue.asString());
+                    json.setType(childValue.type());
+                    break;
+                }
+            }
+
+            migrateTweaker(childValue);
+        }
+        return json;
     }
 
     public static void removeJsonValue(JsonValue value){
