@@ -124,6 +124,7 @@ public class EditorNode{
     public Object getDisplayValue(){
         PatchNode patchNode = getPatch();
         if(patchNode == null || patchNode.value == null) return getObject();
+        if(isRemoving()) return getObject();
         try{
             JsonValue value = PatchJsonIO.toJson(patchNode);
             return PatchJsonIO.getParser().getJson().readValue(getTypeIn(), value);

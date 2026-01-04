@@ -370,7 +370,7 @@ public class NodeCard extends Table{
                     rebuildNodesTable();
                 }).tooltip("@node.override");
             }
-        }else if(!hasModifier && ClassHelper.isMap(editorNode.getTypeIn())){
+        }else if(!hasModifier && (ClassHelper.isMap(editorNode.getTypeIn()) || ClassHelper.isArrayLike(editorNode.getTypeIn()))){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
                 EUI.classSelector.select(null, node.getTypeIn(), clazz -> {
                     node.changeType(clazz);

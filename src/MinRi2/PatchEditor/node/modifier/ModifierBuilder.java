@@ -187,14 +187,15 @@ public abstract class ModifierBuilder<T>{
 
             image.addAction(Actions.color(color, 0.3f));
             table.button(b -> {
+                b.left();
                 b.add(image).size(32f).pad(8f);
-                b.label(() -> "#" + value).color(EPalettes.value);
+                b.label(() -> "#" + value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX();
             }, Styles.clearNonei, () -> {
                 Vars.ui.picker.show(color, c -> {
                     setColorUI.get(c);
                     consumer.onModify(value);
                 });
-            }).height(48f).growX();
+            }).grow();
 
             addResetButton(table, () -> setColorUI.get(Color.valueOf(consumer.getValue())));
         }

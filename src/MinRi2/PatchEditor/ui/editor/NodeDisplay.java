@@ -101,14 +101,14 @@ public class NodeDisplay{
 
     private static void displayNameType(){
         table.table(nodeInfoTable -> {
-            nodeInfoTable.defaults().width(labelWidth).left();
+            nodeInfoTable.defaults().minWidth(labelWidth).growX();
 
             Class<?> type = node.getTypeOut();
             String typeName = type == null ? "unknown" : ClassHelper.getDisplayName(type);
 
             nodeInfoTable.add(node.getDisplayName()).wrap().tooltip(node.getDisplayName());
             nodeInfoTable.row();
-            nodeInfoTable.add(typeName).fontScale(0.85f).color(EPalettes.type).ellipsis(true).padTop(4f).tooltip(typeName);
+            nodeInfoTable.add(typeName).fontScale(0.85f).color(EPalettes.type).ellipsis(true).wrap().padTop(4f).tooltip(typeName);
         });
     }
 
@@ -122,7 +122,7 @@ public class NodeDisplay{
 
             valueTable.image(icon).scaling(Scaling.fit).size(imageSize);
             valueTable.row();
-            valueTable.add(value).labelAlign(Align.right).ellipsis(true).padTop(8f).width(labelWidth);
+            valueTable.add(value).labelAlign(Align.right).ellipsis(true).wrap().padTop(8f).minWidth(labelWidth).growX();
         });
     }
 }
