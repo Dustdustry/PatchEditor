@@ -8,11 +8,15 @@ import arc.util.serialization.Json.*;
 import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.Jval.*;
 import mindustry.ctype.*;
+import mindustry.entities.*;
 import mindustry.entities.abilities.*;
+import mindustry.entities.bullet.*;
+import mindustry.entities.effect.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.consumers.*;
+import mindustry.world.draw.*;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -41,6 +45,11 @@ public class PatchJsonIO{
         if(object instanceof Enum<?> e) return e.name();
         if(object instanceof Class<?> clazz) return clazz.getName();
         return String.valueOf(object);
+    }
+
+    public static String getClassTypeName(Class<?> clazz){
+        String key = ClassMap.classes.findKey(clazz, true);
+        return key != null ? key : clazz.getSimpleName();
     }
 
     public static ContentParser getParser(){
@@ -254,8 +263,9 @@ public class PatchJsonIO{
 
     private static void desugarJson(ObjectNode objectNode, JsonValue value){
         if(objectNode != null){
+            desugarJson(value, objectNode.type);
+
             if(value.isValue()){
-                desugarJson(value, objectNode.type);
                 return;
             }else if(ClassHelper.isArrayLike(objectNode.type)){
                 ObjectNode childObj = ObjectResolver.getTemplate(objectNode.elementType);
@@ -295,6 +305,37 @@ public class PatchJsonIO{
             value.setType(ValueType.object);
             value.addChild("liquid", new JsonValue(split[0]));
             value.addChild("amount", new JsonValue(split[1]));
+        }
+
+        if (value.isArray()) {
+            if (type == Effect.class) {
+                /* to MultiEffect */
+                value.setType(ValueType.object);
+                JsonValue elementValue = new JsonValue(ValueType.array);
+                elementValue.addChild("", value.child);
+                value.child = null;
+
+                value.addChild("type", new JsonValue(getClassTypeName(MultiEffect.class)));
+                value.addChild("effects", elementValue);
+            }else if(type == BulletType.class){
+                /* to MultiBulletType */
+                value.setType(ValueType.object);
+                JsonValue elementValue = new JsonValue(ValueType.array);
+                elementValue.addChild("", value.child);
+                value.child = null;
+
+                value.addChild("type", new JsonValue(getClassTypeName(MultiBulletType.class)));
+                value.addChild("bullets", elementValue);
+            }else if(type == DrawBlock.class){
+                /* to DrawMulti */
+                value.setType(ValueType.object);
+                JsonValue elementValue = new JsonValue(ValueType.array);
+                elementValue.addChild("", value.child);
+                value.child = null;
+
+                value.addChild("type", new JsonValue(getClassTypeName(DrawMulti.class)));
+                value.addChild("drawers", elementValue);
+            }
         }
     }
 
