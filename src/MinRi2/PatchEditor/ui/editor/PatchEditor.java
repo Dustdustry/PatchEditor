@@ -8,6 +8,7 @@ import arc.*;
 import arc.input.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonWriter.*;
+import arc.util.serialization.Jval.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -27,7 +28,7 @@ public class PatchEditor extends BaseDialog{
     private final NodeManager manager;
 
     public PatchEditor(){
-        super("@contents-editor");
+        super("@patch-editor");
 
         manager = new NodeManager();
         card = new NodeCard();
@@ -44,7 +45,8 @@ public class PatchEditor extends BaseDialog{
         });
         hidden(() -> {
             JsonValue value = PatchJsonIO.toJson(manager.getRoot());
-            editPatch.patch = PatchJsonIO.simplifyPatch(value).toJson(OutputType.json);
+            String minifyJson = PatchJsonIO.simplifyPatch(value).toJson(OutputType.json);
+            editPatch.patch = Jval.read(minifyJson).toString(Jformat.hjson);
 
             card.setRootEditorNode(null);
         });
