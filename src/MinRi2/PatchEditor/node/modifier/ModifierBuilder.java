@@ -66,7 +66,7 @@ public abstract class ModifierBuilder<T>{
 
                     dialog.addCloseButton();
                     dialog.show();
-                }).pad(4f).size(Vars.iconLarge);
+                }).pad(4f).width(32f).growY();
             }
 
             addResetButton(table, () -> {
