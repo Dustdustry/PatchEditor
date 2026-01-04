@@ -10,11 +10,11 @@ public class NodeManager{
     public static final String pathComp = ".";
     public static final String pathSplitter = "\\.";
 
-    private PatchNode root = new PatchNode("root");
+    private PatchNode root = new PatchNode("");
     private final Seq<Cons<String>> listeners = new Seq<>();
 
     public void reset(){
-        root = new PatchNode("root");
+        root = new PatchNode("");
     }
 
     public PatchNode getRoot(){
