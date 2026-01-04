@@ -44,8 +44,8 @@ public class EUI{
             buttonTable.row();
 
             buttonTable.button(b -> {
-                b.add("[accent][CE]").pad(8f).left();
-                b.add("@contents-editor").expandX();
+                b.add("[accent][PE]").pad(8f).left();
+                b.add("@patch-editor").expandX();
             }, Styles.cleari, manager::show)
             .colspan(buttonTable.getColumns()).width(Float.NEGATIVE_INFINITY).growX();
 
