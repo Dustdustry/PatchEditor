@@ -1,3 +1,5 @@
+<img src="./icon.png">
+
 # PatchEditor
 
 A java mod providing an in-game **GUI** for DataPatcher.
