@@ -202,6 +202,7 @@ public abstract class ModifierBuilder<T>{
         @Override
         public void build(Table table){
             table.button(b -> {
+                b.left();
                 image = b.image().scaling(Scaling.fit).size(Vars.iconXLarge).pad(8f).get();
                 label = b.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX().get();
             }, Styles.clearNonei, () -> {

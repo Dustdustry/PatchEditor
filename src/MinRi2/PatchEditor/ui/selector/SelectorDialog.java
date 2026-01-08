@@ -20,6 +20,7 @@ public abstract class SelectorDialog<T> extends BaseDialog{
     }
 
     protected void rebuild(){
+        // TODO: search field
         cont.clearChildren();
 
         Table pane = new Table();

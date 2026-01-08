@@ -1,8 +1,18 @@
 package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.modifier.ModifierBuilder.*;
+import MinRi2.PatchEditor.ui.*;
+import MinRi2.PatchEditor.ui.selector.*;
+import arc.graphics.*;
+import arc.scene.ui.layout.*;
+import arc.struct.*;
+import arc.util.*;
 import arc.util.serialization.JsonValue.*;
+import mindustry.*;
 import mindustry.ctype.*;
+import mindustry.gen.*;
+import mindustry.type.*;
+import mindustry.ui.*;
 
 /**
  * @author minri2
@@ -73,6 +83,13 @@ public abstract class EqualModifier<T> extends DataModifier<T>{
     public static class ColorModifier extends StringModifier{
         public ColorModifier(){
             builder = new ColorBuilder(this);
+        }
+    }
+
+    public static class TextureRegionModifier extends StringModifier{
+        public TextureRegionModifier(){
+            builder = new TextureRegionBuilder(this);
+            valueType = ValueType.stringValue;
         }
     }
 

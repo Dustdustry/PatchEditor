@@ -18,7 +18,7 @@ import java.lang.reflect.*;
 
 public class ObjectResolver{
     private static final Seq<Class<?>> resolveBlacklist = Seq.with(
-    Prov.class, Class.class, Texture.class, TextureRegion.class, Fi.class, Boolf.class, Func.class,
+    Prov.class, Class.class, Texture.class, Fi.class, Boolf.class, Func.class,
     DrawPart.class
     );
 

@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.node.modifier;
 import MinRi2.PatchEditor.node.*;
 import arc.func.*;
 import arc.graphics.*;
+import arc.graphics.g2d.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.type.*;
@@ -23,14 +24,12 @@ public class NodeModifier{
         new ModifierConfig(WeaponNameModifier::new, String.class).fieldOf(Weapon.class, "name"),
 
         new ModifierConfig(ColorModifier::new, Color.class),
-
         new ModifierConfig(ContentTypeModifier::new,
         Block.class, Item.class, Liquid.class, StatusEffect.class, UnitType.class),
-
         new ModifierConfig(BooleanModifier::new, Boolean.class, boolean.class),
 
+        new ModifierConfig(TextureRegionModifier::new, TextureRegion.class),
         new ModifierConfig(StringModifier::new, String.class),
-
         new ModifierConfig(NumberModifier::new,
         Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
         byte.class, short.class, int.class, long.class, float.class, double.class)
