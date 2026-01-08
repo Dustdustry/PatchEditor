@@ -2,6 +2,7 @@ package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.ui.*;
+import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.scene.actions.*;
@@ -24,12 +25,23 @@ public abstract class ModifierBuilder<T>{
         this.consumer = consumer;
     }
 
-    public abstract void build(Table table);
+    public void buildTable(Table table){
+        value = consumer.getValue();
+        build(table);
+        updateUI();
+    }
+
+    protected abstract void build(Table table);
 
     // Sync ui here
     protected void setValue(T value){
         this.value = value;
         consumer.onModify(value);
+
+        updateUI();
+    }
+
+    protected void updateUI(){
         if(resetButton != null) resetButton.visible = consumer.isModified();
     }
 
@@ -47,16 +59,7 @@ public abstract class ModifierBuilder<T>{
         }
 
         @Override
-        protected void setValue(String value){
-            super.setValue(value);
-
-            field.setText(value);
-        }
-
-        @Override
         public void build(Table table){
-            value = consumer.getValue();
-
             field = table.field(value, this::setValue)
             .valid(consumer::checkValue).pad(4f).width(100f).get();
 
@@ -76,6 +79,13 @@ public abstract class ModifierBuilder<T>{
 
             addResetButton(table);
         }
+
+        @Override
+        protected void updateUI(){
+            super.updateUI();
+
+            field.setText(value);
+        }
     }
 
     public static class BooleanBuilder extends ModifierBuilder<Boolean>{
@@ -86,28 +96,23 @@ public abstract class ModifierBuilder<T>{
         }
 
         @Override
-        protected void setValue(Boolean value){
-            super.setValue(value);
-
-            image.clearActions();
-            image.addAction(Actions.color(value ? Color.green : Color.red, 0.3f));
-        }
-
-        @Override
         public void build(Table table){
-            value = consumer.getValue();
-
-            image = new BorderImage();
-            image.addAction(Actions.color(value ? Color.green : Color.red, 0.3f));
-
             table.button(b -> {
-                b.add(image).size(32f).pad(8f).expandX().left();
+                b.add(image = new BorderImage()).size(32f).pad(8f).expandX().left();
                 b.label(() -> value ? "true" : "false").color(EPalettes.value).expandX();
             }, Styles.clearNonei, () -> {
                 setValue(!value);
             }).grow();
 
             addResetButton(table);
+        }
+
+        @Override
+        protected void updateUI(){
+            super.updateUI();
+
+            image.clearActions();
+            image.addAction(Actions.color(value ? Color.green : Color.red, 0.3f));
         }
     }
 
@@ -120,8 +125,6 @@ public abstract class ModifierBuilder<T>{
 
         @Override
         public void build(Table table){
-            value = consumer.getValue();
-
             contentTable = table.button(b -> {}, Styles.clearNonei, () -> {
                 Class<?> type = consumer.getTypeMeta();
                 ContentType contentType = PatchJsonIO.getContentType(type);
@@ -133,15 +136,12 @@ public abstract class ModifierBuilder<T>{
             }).grow().get();
 
             addResetButton(table);
-            rebuildTable();
         }
 
-        protected void setValue(UnlockableContent value){
-            super.setValue(value);
-            if(contentTable != null) rebuildTable();
-        }
+        @Override
+        protected void updateUI(){
+            super.updateUI();
 
-        private void rebuildTable(){
             contentTable.clearChildren();
 
             TextureRegion icon;
@@ -167,57 +167,60 @@ public abstract class ModifierBuilder<T>{
         }
 
         @Override
-        protected void setValue(String value){
-            super.setValue(value);
-
-            image.addAction(Actions.color(Color.valueOf(value), 0.3f));
-        }
-
-        @Override
         public void build(Table table){
-            value = consumer.getValue();
-            image = new BorderImage();
-
-            Color color0 = Color.white.cpy();
-            try{
-                color0 = Color.valueOf(value);
-            }catch(RuntimeException ignored){
-            }
-
-            Color color = color0;
-            image.addAction(Actions.color(color, 0.3f));
             table.button(b -> {
-                b.left();
-                b.add(image).size(32f).pad(8f);
+                b.add(image = new BorderImage()).size(32f).pad(8f);
                 b.label(() -> "#" + value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX();
             }, Styles.clearNonei, () -> {
-                Vars.ui.picker.show(color, c -> setValue(c.toString()));
+                Vars.ui.picker.show(Tmp.c1, c -> setValue(c.toString()));
             }).grow();
 
             addResetButton(table);
         }
+
+        @Override
+        protected void updateUI(){
+            super.updateUI();
+
+            Color color = Color.white.cpy();
+            try{
+                color = Color.valueOf(value);
+            }catch(RuntimeException ignored){
+            }
+            image.addAction(Actions.color(color, 0.3f));
+        }
     }
 
-    public static class WeaponNameBuilder extends TextBuilder{
-        public WeaponNameBuilder(ModifyConsumer<String> consumer){
+    public static class TextureRegionBuilder extends ModifierBuilder<String>{
+        protected Image image;
+        protected Label label;
+
+        public TextureRegionBuilder(ModifyConsumer<String> consumer){
             super(consumer);
         }
 
         @Override
         public void build(Table table){
-            value = consumer.getValue();
-
-            field = table.field(value, this::setValue)
-            .valid(consumer::checkValue).pad(4f).width(100f).get();
-
-            table.button(Icon.book, Styles.clearNonei, () -> {
-                EUI.weaponSelector.select(weapon -> {
-                    setValue(weapon.name);
+            table.button(b -> {
+                image = b.image().scaling(Scaling.fit).size(Vars.iconXLarge).pad(8f).get();
+                label = b.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX().get();
+            }, Styles.clearNonei, () -> {
+                EUI.textureRegionSelector.select(region -> {
+                    setValue(region.name);
                     return true;
                 });
-            }).pad(4f).width(48f).growY().tooltip("@weapon-selector.tooltip");
+            }).grow();
 
             addResetButton(table);
+        }
+
+        @Override
+        protected void updateUI(){
+            super.updateUI();
+
+            TextureRegion region = Core.atlas.getRegionMap().get(value);
+            image.setDrawable(region == null ? Icon.none.getRegion() : region);
+            label.setText(value);
         }
     }
 }

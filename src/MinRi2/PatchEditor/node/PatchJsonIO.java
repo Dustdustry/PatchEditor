@@ -31,11 +31,6 @@ public class PatchJsonIO{
 
     public static final String appendPrefix = "#ADD_";
 
-    /** Classes that is partial when node is dynamic. */
-    public static final Seq<Class<?>> partialTypes = Seq.with(
-        ItemStack.class, LiquidStack.class, PayloadStack.class
-    );
-
     public static final ObjectMap<Class<?>, Class<?>> defaultClassMap = ObjectMap.of(
         Ability.class, ForceFieldAbility.class
     );

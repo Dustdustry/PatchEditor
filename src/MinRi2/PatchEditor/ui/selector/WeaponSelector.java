@@ -21,10 +21,7 @@ public class WeaponSelector extends SelectorDialog<Weapon>{
 
     @Override
     protected void setupItemTable(Table table, Weapon item){
-        table.defaults().right();
-
         table.image(item.region).scaling(Scaling.fit).size(Vars.iconLarge);
-        table.row();
-        table.add(item.name).labelAlign(Align.right).ellipsis(true).wrap().padTop(8f).growX();
+        table.add(item.name).ellipsis(true).wrap().pad(8f).growX();
     }
 }

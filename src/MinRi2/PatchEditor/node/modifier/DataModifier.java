@@ -20,7 +20,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     private Boolc onModified;
 
     public void build(Table table){
-        builder.build(table);
+        builder.buildTable(table);
     }
 
     public void onModified(Boolc onModified){
