@@ -16,16 +16,17 @@ Anyway, enjoy making wonderful patch!
 
 - [x] Edit number, string
 - [x] Edit fields in Seq, ObjectSet, ObjectMap
-- [x] Add new object in Seq, ObjectSet, ObjectMap.
-- [x] Remove object in ObjectMap.
-- [x] Export easy-reading json.
+- [x] Add new object in Seq, ObjectSet, ObjectMap
+- [x] Remove object in ObjectMap
+- [x] Export easy-reading json
 - [x] Override Seq, ObjectSet
 
 - [x] Edit color
-- [ ] Edit Interp, Attribute fields.
-- [ ] Edit consumer.
+- [ ] Edit Interp, Attribute fields
+- [ ] Edit consumer
 - [ ] Edit Effect
-- [ ] Errors inspector.
+- [ ] Errors inspector
 
 - [x] Remain unsupported fields
-- [ ] Accessible Weapons' name list
+- [x] Accessible Weapons' name list
+- [x] Accessible TextureRegion list
