@@ -29,7 +29,7 @@ public class ClassSelector extends SelectorDialog<Class<?>>{
 
     @Override
     protected void setupItemTable(Table table, Class<?> item){
-        table.add(item.getSimpleName()).minHeight(48f);
+        table.add(item.getSimpleName());
     }
 
     public void select(Boolf<Class<?>> selectable, Boolf<Class<?>> consumer){
