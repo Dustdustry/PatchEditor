@@ -2,7 +2,6 @@ package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.ui.*;
-import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.scene.actions.*;
@@ -15,9 +14,10 @@ import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
+// Define ui element fields that need data
 public abstract class ModifierBuilder<T>{
     protected T value;
-    protected Button resetButton;
+    protected @Nullable Button resetButton;
     protected final ModifyConsumer<T> consumer;
 
     public ModifierBuilder(ModifyConsumer<T> consumer){
@@ -26,31 +26,38 @@ public abstract class ModifierBuilder<T>{
 
     public abstract void build(Table table);
 
-    protected void addResetButton(Table table, Runnable clicked){
+    // Sync ui here
+    protected void setValue(T value){
+        this.value = value;
+        consumer.onModify(value);
+        if(resetButton != null) resetButton.visible = consumer.isModified();
+    }
+
+    protected void addResetButton(Table table){
         resetButton = table.button(Icon.undo, Styles.clearNonei, () -> {
-            consumer.resetModify();
-            resetButton.visible = consumer.isModified();
-            clicked.run();
+            setValue(consumer.getDefaultValue());
         }).visible(consumer.isModified()).width(32f).pad(4f).growY().expandX().right().tooltip("@node-modifier.undo", true).get();
     }
 
     public static class TextBuilder extends ModifierBuilder<String>{
+        protected TextField field;
+
         public TextBuilder(ModifyConsumer<String> consumer){
             super(consumer);
         }
 
-        private void setValue(String value){
-            this.value = value;
+        @Override
+        protected void setValue(String value){
+            super.setValue(value);
 
-            consumer.onModify(value);
-            if(resetButton != null) resetButton.visible = consumer.isModified();
+            field.setText(value);
         }
 
         @Override
         public void build(Table table){
             value = consumer.getValue();
 
-            TextField field = table.field(value, this::setValue)
+            field = table.field(value, this::setValue)
             .valid(consumer::checkValue).pad(4f).width(100f).get();
 
             if(consumer.getTypeMeta() == String.class){
@@ -59,51 +66,48 @@ public abstract class ModifierBuilder<T>{
                     Table cont = dialog.cont;
 
                     cont.add(dialog.titleTable).fillX().row();
-                    cont.area(value, Styles.areaField, t -> {
-                        setValue(t);
-                        field.setText(t);
-                    }).valid(consumer::checkValue).minSize(400f, 600f);
+                    cont.area(value, Styles.areaField, this::setValue)
+                    .valid(consumer::checkValue).minSize(400f, 600f);
 
                     dialog.addCloseButton();
                     dialog.show();
                 }).pad(4f).width(32f).growY();
             }
 
-            addResetButton(table, () -> {
-                setValue(consumer.getValue());
-                field.setText(value);
-            });
+            addResetButton(table);
         }
     }
 
     public static class BooleanBuilder extends ModifierBuilder<Boolean>{
+        protected Image image;
 
         public BooleanBuilder(ModifyConsumer<Boolean> consumer){
             super(consumer);
         }
 
         @Override
+        protected void setValue(Boolean value){
+            super.setValue(value);
+
+            image.clearActions();
+            image.addAction(Actions.color(value ? Color.green : Color.red, 0.3f));
+        }
+
+        @Override
         public void build(Table table){
             value = consumer.getValue();
 
-            BorderImage image = new BorderImage();
+            image = new BorderImage();
             image.addAction(Actions.color(value ? Color.green : Color.red, 0.3f));
-
-            Cons<Boolean> setColorUI = bool -> {
-                value = bool;
-                image.addAction(Actions.color(bool ? Color.green : Color.red, 0.3f));
-            };
 
             table.button(b -> {
                 b.add(image).size(32f).pad(8f).expandX().left();
                 b.label(() -> value ? "true" : "false").color(EPalettes.value).expandX();
             }, Styles.clearNonei, () -> {
-                setColorUI.get(!value);
-                consumer.onModify(value);
-                resetButton.visible = consumer.isModified();
+                setValue(!value);
             }).grow();
 
-            addResetButton(table, () -> setColorUI.get(consumer.getValue()));
+            addResetButton(table);
         }
     }
 
@@ -128,18 +132,13 @@ public abstract class ModifierBuilder<T>{
                 });
             }).grow().get();
 
-            addResetButton(table, () -> setValue(consumer.getValue()));
+            addResetButton(table);
             rebuildTable();
         }
 
-        private void setValue(UnlockableContent value){
-            this.value = value;
-            consumer.onModify(value);
-            resetButton.visible = consumer.isModified();
-
-            if(contentTable == null) return;
-
-            rebuildTable();
+        protected void setValue(UnlockableContent value){
+            super.setValue(value);
+            if(contentTable != null) rebuildTable();
         }
 
         private void rebuildTable(){
@@ -161,14 +160,23 @@ public abstract class ModifierBuilder<T>{
     }
 
     public static class ColorBuilder extends ModifierBuilder<String>{
+        protected Image image;
 
         public ColorBuilder(ModifyConsumer<String> consumer){
             super(consumer);
         }
 
         @Override
+        protected void setValue(String value){
+            super.setValue(value);
+
+            image.addAction(Actions.color(Color.valueOf(value), 0.3f));
+        }
+
+        @Override
         public void build(Table table){
             value = consumer.getValue();
+            image = new BorderImage();
 
             Color color0 = Color.white.cpy();
             try{
@@ -177,27 +185,39 @@ public abstract class ModifierBuilder<T>{
             }
 
             Color color = color0;
-            BorderImage image = new BorderImage();
-            Cons<Color> setColorUI = (c) -> {
-                color.set(c);
-                value = color.toString();
-                image.addAction(Actions.color(color, 0.3f));
-                resetButton.visible = consumer.isModified();
-            };
-
             image.addAction(Actions.color(color, 0.3f));
             table.button(b -> {
                 b.left();
                 b.add(image).size(32f).pad(8f);
                 b.label(() -> "#" + value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX();
             }, Styles.clearNonei, () -> {
-                Vars.ui.picker.show(color, c -> {
-                    setColorUI.get(c);
-                    consumer.onModify(value);
-                });
+                Vars.ui.picker.show(color, c -> setValue(c.toString()));
             }).grow();
 
-            addResetButton(table, () -> setColorUI.get(Color.valueOf(consumer.getValue())));
+            addResetButton(table);
+        }
+    }
+
+    public static class WeaponNameBuilder extends TextBuilder{
+        public WeaponNameBuilder(ModifyConsumer<String> consumer){
+            super(consumer);
+        }
+
+        @Override
+        public void build(Table table){
+            value = consumer.getValue();
+
+            field = table.field(value, this::setValue)
+            .valid(consumer::checkValue).pad(4f).width(100f).get();
+
+            table.button(Icon.book, Styles.clearNonei, () -> {
+                EUI.weaponSelector.select(weapon -> {
+                    setValue(weapon.name);
+                    return true;
+                });
+            }).pad(4f).width(48f).growY();
+
+            addResetButton(table);
         }
     }
 }

@@ -4,6 +4,7 @@ import MinRi2.PatchEditor.node.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.struct.*;
+import arc.util.*;
 import mindustry.type.*;
 import mindustry.world.*;
 
@@ -34,49 +35,58 @@ public class NodeModifier{
         );
     }
 
-    public static DataModifier<?> getModifier(EditorNode node){
+    public static DataModifier<?> getModifier(ObjectNode node){
         if(canModify(node)){
-            Class<?> type = node.getTypeIn();
+            Class<?> type = node.type;
             for(ModifierConfig config : modifyConfig){
-                if(config.canModify(type)) return config.getModifier(node);
+                if(config.canModify(node, type)) return config.getModifier();
             }
         }
         return null;
     }
 
-    public static int getModifierIndex(EditorNode node){
+    public static int getModifierIndex(ObjectNode node){
         if(canModify(node)){
             int i = 0;
-            Class<?> type = node.getTypeIn();
+            Class<?> type = node.type;
             for(ModifierConfig config : modifyConfig){
-                if(config.canModify(type)) return i;
+                if(config.canModify(node, type)) return i;
                 i++;
             }
         }
         return -1;
     }
 
-    public static boolean canModify(EditorNode node){
-        return node.getObjNode() != null && node.getObjNode().hasSign(ModifierSign.MODIFY);
+    public static boolean canModify(ObjectNode node){
+        return node != null && node.hasSign(ModifierSign.MODIFY);
     }
 
     public static class ModifierConfig{
         public final Seq<Class<?>> modifierTypes = new Seq<>();
         private final Prov<DataModifier<?>> prov;
 
+        private @Nullable Boolf<ObjectNode> nodeCheck;
+
         public ModifierConfig(Prov<DataModifier<?>> prov, Class<?>... types){
             this.prov = prov;
             modifierTypes.addAll(types);
         }
 
-        public boolean canModify(Class<?> type){
-            return modifierTypes.contains(c -> c.isAssignableFrom(type));
+        public boolean canModify(ObjectNode node, Class<?> type){
+            return (nodeCheck == null || nodeCheck.get(node)) && modifierTypes.contains(c -> c.isAssignableFrom(type));
         }
 
-        public DataModifier<?> getModifier(EditorNode nodeData){
-            DataModifier<?> modifier = prov.get();
-            modifier.setData(nodeData);
-            return modifier;
+        public ModifierConfig check(Boolf<ObjectNode> extraCheck){
+            this.nodeCheck = extraCheck;
+            return this;
+        }
+
+        public ModifierConfig fieldOf(Class<?> clazz, String name){
+            return check(node -> node.getParent() != null && clazz.isAssignableFrom(node.getParent().type) && name.equals(node.name));
+        }
+
+        public DataModifier<?> getModifier(){
+            return prov.get();
         }
     }
 }

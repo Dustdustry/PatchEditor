@@ -195,8 +195,9 @@ public class NodeCard extends Table{
                     }
                 }
 
-                DataModifier<?> modifier = NodeModifier.getModifier(child);
+                DataModifier<?> modifier = NodeModifier.getModifier(child.getObjNode());
                 if(modifier != null){
+                    modifier.setData(child);
                     addEditTable(cont, child, modifier);
                 }else{
                     addChildButton(cont, child);
@@ -439,12 +440,16 @@ public class NodeCard extends Table{
             type = type.getSuperclass();
         }
 
+        ObjectIntMap<EditorNode> modifierIndexer = new ObjectIntMap<>();
+
         for(EditorNode child : editorNode.getChildren().values()){
             if(child.getObjNode() == null || child.getObjNode().field == null){
                 mappedChildren.get(Object.class).add(child); // Object means unknow declaring class
                 continue;
             }
 
+            int index = NodeModifier.getModifierIndex(child.getObjNode());
+            modifierIndexer.put(child, index == -1 ? Integer.MAX_VALUE : index);
             mappedChildren.get(child.getObjNode().field.getDeclaringClass()).add(child);
         }
 
@@ -454,8 +459,8 @@ public class NodeCard extends Table{
             Structs.comps(
                 Structs.comparingBool(n -> !isRequired(n)),
                 Structs.comps(
-                    Structs.comparingBool(n -> !n.hasValue()),
-                    Structs.comparingInt(n -> -NodeModifier.getModifierIndex(n))
+                    Structs.comparingBool(n -> !(n.hasValue() && n.getObjNode() != null)),
+                    Structs.comparingInt(modifierIndexer::get)
                 )
             )
             );

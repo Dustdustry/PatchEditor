@@ -15,6 +15,7 @@ public class ObjectNode{
 
     private boolean isRoot;
 
+    private ObjectNode parent;
     private boolean resolved = false;
     private final OrderedMap<String, ObjectNode> children = new OrderedMap<>();
 
@@ -50,6 +51,10 @@ public class ObjectNode{
         ObjectNode node = new ObjectNode("root", Reflect.get(DataPatcher.class, "root"), Object.class);
         node.isRoot = true;
         return node;
+    }
+
+    public ObjectNode getParent(){
+        return parent;
     }
 
     public boolean hasSign(ModifierSign sign){
@@ -98,6 +103,7 @@ public class ObjectNode{
 
     public ObjectNode addChild(ObjectNode child){
         children.put(child.name, child);
+        child.parent = this;
         return child;
     }
 }

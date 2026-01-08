@@ -27,6 +27,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
         this.onModified = onModified;
     }
 
+    @Override
     public T getDefaultValue(){
         return cast(data.getObject());
     }
