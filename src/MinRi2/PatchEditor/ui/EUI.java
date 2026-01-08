@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.ui;
 
 import MinRi2.PatchEditor.ui.editor.*;
+import MinRi2.PatchEditor.ui.selector.*;
 import arc.*;
 import arc.func.*;
 import arc.math.*;
@@ -22,6 +23,7 @@ public class EUI{
     public static PatchManager manager;
     public static ContentSelector selector;
     public static ClassSelector classSelector;
+    public static WeaponSelector weaponSelector;
 
     public static void init(){
         EStyles.init();
@@ -29,6 +31,7 @@ public class EUI{
         manager = new PatchManager();
         selector = new ContentSelector();
         classSelector = new ClassSelector();
+        weaponSelector = new WeaponSelector();
 
         addUI();
     }

@@ -1,0 +1,30 @@
+package MinRi2.PatchEditor.ui.selector;
+
+import MinRi2.PatchEditor.ui.editor.*;
+import arc.scene.ui.layout.*;
+import arc.struct.*;
+import arc.util.*;
+import mindustry.*;
+import mindustry.type.*;
+
+public class WeaponSelector extends SelectorDialog<Weapon>{
+    public WeaponSelector(){
+        super("@weapon-selector");
+    }
+
+    @Override
+    protected Seq<Weapon> getItems(){
+        ObjectSet<String> weaponNames = new ObjectSet<>();
+        Seq<Weapon> weapons = Vars.content.units().flatMap(unit -> unit.weapons);
+        return weapons.retainAll(w -> weaponNames.add(w.name));
+    }
+
+    @Override
+    protected void setupItemTable(Table table, Weapon item){
+        table.defaults().right();
+
+        table.image(item.region).scaling(Scaling.fit).size(Vars.iconLarge);
+        table.row();
+        table.add(item.name).labelAlign(Align.right).ellipsis(true).wrap().padTop(8f).growX();
+    }
+}

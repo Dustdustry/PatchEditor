@@ -215,7 +215,7 @@ public abstract class ModifierBuilder<T>{
                     setValue(weapon.name);
                     return true;
                 });
-            }).pad(4f).width(48f).growY();
+            }).pad(4f).width(48f).growY().tooltip("@weapon-selector.tooltip");
 
             addResetButton(table);
         }

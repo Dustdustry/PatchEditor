@@ -35,7 +35,7 @@ public abstract class SelectorDialog<T> extends BaseDialog{
                 if(consumer.get(item)){
                     hide();
                 }
-            }).pad(8f).growX();
+            }).pad(8f).margin(4f).growX();
 
             if(++index % columns == 0){
                 pane.row();

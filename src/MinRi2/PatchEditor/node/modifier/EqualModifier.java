@@ -75,4 +75,35 @@ public abstract class EqualModifier<T> extends DataModifier<T>{
             builder = new ColorBuilder(this);
         }
     }
+
+    /** Field Specific */
+    public static class WeaponNameModifier extends StringModifier{
+        public WeaponNameModifier(){
+            builder = new WeaponNameBuilder(this);
+            valueType = ValueType.stringValue;
+        }
+
+        public static class WeaponNameBuilder extends TextBuilder{
+            public WeaponNameBuilder(ModifyConsumer<String> consumer){
+                super(consumer);
+            }
+
+            @Override
+            public void build(Table table){
+                value = consumer.getValue();
+
+                field = table.field(value, this::setValue)
+                .valid(consumer::checkValue).pad(4f).width(100f).get();
+
+                table.button(Icon.book, Styles.clearNonei, () -> {
+                    EUI.weaponSelector.select(weapon -> {
+                        setValue(weapon.name);
+                        return true;
+                    });
+                }).pad(4f).width(48f).growY().tooltip("@weapon-selector.tooltip");
+
+                addResetButton(table);
+            }
+        }
+    }
 }
