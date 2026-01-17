@@ -18,7 +18,7 @@ public class ClassHelper{
     }
 
     public static boolean isMap(Class<?> type){
-        return type != null && ObjectMap.class.isAssignableFrom(type);
+        return type != null && (ObjectMap.class.isAssignableFrom(type) || ObjectFloatMap.class.isAssignableFrom(type));
     }
 
     public static String getDisplayName(Class<?> clazz){

@@ -1,14 +1,13 @@
-<img src="./icon.png">
+<img src="./icon.png" alt="Icon">
 
 # PatchEditor
 
 A java mod providing an in-game **GUI** for DataPatcher.
- 
-This mod will help you make your own path quickly in many ways:
+
+This mod will help you make your own patch quickly in many ways:
 
 * You don't need to **look up what fields are available in wiki**.
-* You don't have to **learn json**.
-* You could **focus on mapping** instead of source code.
+* You could **focus on mapping** instead of wandering from text editor to game.
 
 Anyway, enjoy making wonderful patch!
 
@@ -23,12 +22,15 @@ Anyway, enjoy making wonderful patch!
 - [x] Export easy-reading json
 - [x] Override Seq, ObjectSet
 
-- [x] Edit color
-- [ ] Edit Interp, Attribute fields
-- [ ] Edit consumer
-- [ ] Edit Effect
-- [ ] Errors inspector
-
 - [x] Remain unsupported fields
-- [x] Accessible Weapons' name list
+- [x] Accessible weapons' name list
 - [x] Accessible TextureRegion list
+
+- [x] Edit color
+- [ ] Edit interp
+- [ ] Edit consumer
+- [ ] Edit effect
+- [ ] Edit attribute map
+- [ ] Edit unit's controller, aiController and type
+
+- [ ] Errors inspector

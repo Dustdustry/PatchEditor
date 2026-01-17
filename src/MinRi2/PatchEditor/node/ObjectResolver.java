@@ -40,12 +40,15 @@ public class ObjectResolver{
             return;
         }
 
-        // leaf
         Class<?> objectType = node.type;
+        Object object = node.object;
+        if(object instanceof MapEntry<?, ?> entry) object = entry.value;
+        if(object != null) objectType = object.getClass();
+
+        // type resolve
         if(objectType == null || objectType.isPrimitive() || objectType.isInterface() || Reflect.isWrapper(objectType)) return;
         if(typeBlack(node.elementType)) return;
 
-        // type resolve
         if(ClassHelper.isArrayLike(objectType)){
             node.addSign(ModifierSign.PLUS, node.type, node.elementType, node.elementType);
         }else if(ClassHelper.isMap(objectType)){
@@ -53,9 +56,6 @@ public class ObjectResolver{
         }
 
         // object resolve
-        Object object = node.object;
-        if(object instanceof MapEntry<?,?> entry) object = entry.value;
-        if(object != null) objectType = object.getClass();
 //        if(object instanceof Block){
 //            resolveConsumes(node);
 //        }
@@ -84,6 +84,12 @@ public class ObjectResolver{
                 ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry), node.elementType, node.elementType, node.keyType);
                 entryNode.addSign(ModifierSign.MODIFY, node.type, node.elementType, node.keyType);
             }
+        }else if(object instanceof ObjectFloatMap<?> map){
+            for(var entry : map){
+                String name = PatchJsonIO.getKeyName(entry.key);
+                ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry.key, entry.value), node.elementType, node.elementType, node.keyType);
+                entryNode.addSign(ModifierSign.MODIFY, node.type, node.elementType, node.keyType);
+            }
         }else if(object instanceof ContentType ctype){
             OrderedMap<String, Content> map = new OrderedMap<>(); // in order
             for(Content content : Vars.content.getBy(ctype)){
@@ -100,8 +106,15 @@ public class ObjectResolver{
                 FieldMetadata fieldMeta = entry.value;
                 if(!fieldEditable(fieldMeta.field) || typeBlack(fieldMeta.elementType)) continue;
 
+                FieldMetadata copiedMeta = new FieldMetadata(fieldMeta.field);
                 Object childObj = object == null ? null : Reflect.get(object, fieldMeta.field);
-                ObjectNode child = node.addChild(name, childObj, fieldMeta);
+                // fix meta
+                if(childObj instanceof ObjectFloatMap<?>){
+                    copiedMeta.keyType = copiedMeta.elementType;
+                    copiedMeta.elementType = float.class;
+                }
+
+                ObjectNode child = node.addChild(name, childObj, copiedMeta);
 
                 // no map
                 if(!ClassHelper.isMap(child.type)){
@@ -136,6 +149,7 @@ public class ObjectResolver{
     }
 
     public static Object getExample(Class<?> base, Class<?> type){
+        if(type == float.class) return 0f; // add if necessary
         if(type.isArray()) return Reflect.newArray(type.getComponentType(), 0);
 
         type = PatchJsonIO.resolveType(type);

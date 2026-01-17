@@ -304,12 +304,20 @@ public class NodeCard extends Table{
                     return;
                 }
 
-                ObjectMap map = (ObjectMap)editorNode.getObject();
-                EUI.selector.select(type, c -> !map.containsKey(c), c -> {
-                    editorNode.putKey(PatchJsonIO.getKeyName(c));
-                    rebuildNodesTable();
-                    return true;
-                });
+                // ugly
+                if(editorNode.getObject() instanceof ObjectMap objectMap){
+                    EUI.selector.select(type, c -> !objectMap.containsKey(c), c -> {
+                        editorNode.putKey(PatchJsonIO.getKeyName(c));
+                        rebuildNodesTable();
+                        return true;
+                    });
+                }else if(editorNode.getObject() instanceof ObjectFloatMap map){
+                    EUI.selector.select(type, c -> !map.containsKey(c), c -> {
+                        editorNode.putKey(PatchJsonIO.getKeyName(c));
+                        rebuildNodesTable();
+                        return true;
+                    });
+                }
             }else{
                 PatchNode patchNode = editorNode.getPatch();
                 if(patchNode != null && patchNode.sign == ModifierSign.MODIFY){

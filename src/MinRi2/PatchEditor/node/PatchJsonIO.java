@@ -83,6 +83,8 @@ public class PatchJsonIO{
 
     /** Get type in ContentParser#classParsers */
     public static Class<?> getTypeParser(Class<?> type){
+        if(type.isPrimitive()) return type;
+
         Class<?> toppest = type;
 
         Class<?> current = type;

@@ -114,7 +114,9 @@ public class EditorNode{
     }
 
     public Object getObject(){
-        return getObjNode().object;
+        Object object = getObjNode().object;
+        if(object instanceof MapEntry<?,?> entry) return entry.value;
+        return object;
     }
 
     public String getDisplayName(){
