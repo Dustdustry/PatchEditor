@@ -11,7 +11,6 @@ public class NodeManager{
     public static final String pathSplitter = "\\.";
 
     private PatchNode root = new PatchNode("");
-    private final Seq<Cons<String>> listeners = new Seq<>();
 
     public void reset(){
         root = new PatchNode("");
@@ -31,8 +30,5 @@ public class NodeManager{
         }catch(Exception error){
             Log.err("Unable to apply patch operator to " + operator.path, error);
         }
-    }
-
-    public void listen(String path, Runnable listener){
     }
 }

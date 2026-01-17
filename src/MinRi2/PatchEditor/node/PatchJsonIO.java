@@ -14,12 +14,10 @@ import mindustry.entities.bullet.*;
 import mindustry.entities.effect.*;
 import mindustry.mod.*;
 import mindustry.type.*;
-import mindustry.world.*;
 import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
 
 import java.lang.reflect.*;
-import java.util.*;
 
 public class PatchJsonIO{
     public static final boolean debug = false;
@@ -61,7 +59,7 @@ public class PatchJsonIO{
         return nameToType;
     }
 
-    public static ContentType getContentType(Class<?> type){
+    public static ContentType classContentType(Class<?> type){
         if(classContentType == null){
             classContentType = new ObjectMap<>();
             for(ContentType contentType : ContentType.all){
@@ -72,17 +70,6 @@ public class PatchJsonIO{
         }
 
         return classContentType.get(type);
-    }
-
-    public static boolean fieldRequired(EditorNode child){
-        if(child.getObjNode() == null) return false;
-        Field field = child.getObjNode().field;
-        if(field == null || field.getType().isPrimitive()) return false;
-        if(MappableContent.class.isAssignableFrom(field.getType())){
-            return !field.getType().isAnnotationPresent(Nullable.class) && child.getObject() == null;
-        }
-
-        return false;
     }
 
     /** Get type in ContentParser#classParsers */
@@ -131,6 +118,7 @@ public class PatchJsonIO{
         if(containerLike instanceof Seq<?> seq) return seq.size;
         if(containerLike instanceof ObjectSet<?> set) return set.size;
         if(containerLike instanceof ObjectMap<?,?> map) return map.size;
+        if(containerLike instanceof ObjectFloatMap<?> map) return map.size;
         return -1;
     }
 
@@ -193,14 +181,15 @@ public class PatchJsonIO{
             ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve(name);
             PatchNode childNode = patchNode.getOrCreate(name);
 
-            if(objectNode != null && ClassHelper.isMap(objectNode.type) && objectNode.object instanceof ObjectMap map){
+            if(objectNode != null && ClassHelper.isMap(objectNode.type)){
                 if(childValue.isValue() && ModifierSign.REMOVE.sign.equals(childValue.asString())){
                     // patchNode('map': {xxx: '-'}) -> remove the key
                     childNode.sign = ModifierSign.REMOVE;
                 }else{
                     // patchNode('map': {}) -> modify(override) or append key
                     Object key = parser.getJson().readValue(objectNode.keyType, new JsonValue(childValue.name));
-                    if(key != null && !map.containsKey(key)){
+                    if(key != null && (objectNode.object instanceof ObjectMap objectMap && !objectMap.containsKey(key))
+                    || (objectNode.object instanceof ObjectFloatMap floatMap && !floatMap.containsKey(key))){
                         childNode.sign = ModifierSign.PLUS;
                         if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
                     }

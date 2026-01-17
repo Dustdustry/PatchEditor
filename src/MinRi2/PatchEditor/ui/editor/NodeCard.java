@@ -18,6 +18,8 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 
+import java.lang.reflect.*;
+
 /**
  * @author minri2
  * Create by 2024/2/16
@@ -248,7 +250,14 @@ public class NodeCard extends Table{
     }
 
     private static boolean isRequired(EditorNode node){
-        return node.getPatch() == null && PatchJsonIO.fieldRequired(node);
+        if(node.getPath() != null || node.getObjNode() == null) return false;
+        Field field = node.getObjNode().field;
+        if(field == null || field.getType().isPrimitive()) return false;
+        if(MappableContent.class.isAssignableFrom(field.getType())){
+            return !field.getType().isAnnotationPresent(Nullable.class) && node.getObject() == null;
+        }
+
+        return false;
     }
 
     private void addChildButton(Table table, EditorNode node){
@@ -297,7 +306,7 @@ public class NodeCard extends Table{
         }, EStyles.addButtoni, () -> {
             Class<?> keyType = objNode.keyType;
             if(keyType != null){
-                ContentType type = PatchJsonIO.getContentType(keyType);
+                ContentType type = PatchJsonIO.classContentType(keyType);
                 if(type == null){
                     // TODO: unsupported key type
                     Vars.ui.showErrorMessage("#Unsupported key type " + ClassHelper.getDisplayName(keyType));
@@ -311,8 +320,8 @@ public class NodeCard extends Table{
                         rebuildNodesTable();
                         return true;
                     });
-                }else if(editorNode.getObject() instanceof ObjectFloatMap map){
-                    EUI.selector.select(type, c -> !map.containsKey(c), c -> {
+                }else if(editorNode.getObject() instanceof ObjectFloatMap floatMap){
+                    EUI.selector.select(type, c -> !floatMap.containsKey(c), c -> {
                         editorNode.putKey(PatchJsonIO.getKeyName(c));
                         rebuildNodesTable();
                         return true;

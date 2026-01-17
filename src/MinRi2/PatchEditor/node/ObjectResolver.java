@@ -3,7 +3,6 @@ package MinRi2.PatchEditor.node;
 import arc.files.*;
 import arc.func.*;
 import arc.graphics.*;
-import arc.graphics.g2d.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -159,7 +158,7 @@ public class ObjectResolver{
         if(example != null) return example;
 
         if(MappableContent.class.isAssignableFrom(type)){
-            ContentType contentType = PatchJsonIO.getContentType(type);
+            ContentType contentType = PatchJsonIO.classContentType(type);
             if(contentType != null){
                 example = Vars.content.getBy(contentType).first();
             }
