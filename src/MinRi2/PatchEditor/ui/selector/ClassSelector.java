@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.ui.selector;
 import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.func.*;
+import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import mindustry.mod.*;
@@ -29,7 +30,7 @@ public class ClassSelector extends SelectorDialog<Class<?>>{
 
     @Override
     protected void setupItemTable(Table table, Class<?> item){
-        table.add(item.getSimpleName());
+        table.add(item.getSimpleName()).pad(8f);
     }
 
     public void select(Boolf<Class<?>> selectable, Boolf<Class<?>> consumer){

@@ -14,6 +14,7 @@ public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
 
     @Override
     protected void setupItemTable(Table table, AtlasRegion item){
+        table.margin(8f);
         table.image(item).scaling(Scaling.fit).size(Vars.iconXLarge);
         table.add(item.name).ellipsis(true).wrap().pad(8f).growX();
     }

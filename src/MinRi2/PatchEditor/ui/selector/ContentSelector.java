@@ -44,11 +44,6 @@ public class ContentSelector extends SelectorDialog<UnlockableContent>{
             infoTable.row();
             infoTable.add(item.name).color(EPalettes.grayFront);
         });
-
-        table.image().width(4f).color(Color.darkGray).growY().right();
-        table.row();
-        Cell<?> horizontalLine = table.image().height(4f).color(Color.darkGray).growX();
-        horizontalLine.colspan(table.getColumns());
     }
 
     public void select(ContentType contentType, Boolf<UnlockableContent> selectable, Boolf<UnlockableContent> consumer){

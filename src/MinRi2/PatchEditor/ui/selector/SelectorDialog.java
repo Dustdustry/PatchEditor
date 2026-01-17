@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.ui.selector;
 import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.func.*;
+import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import mindustry.ui.dialogs.*;
@@ -31,12 +32,17 @@ public abstract class SelectorDialog<T> extends BaseDialog{
         int index = 0, columns = (int)(width / 360f);
         for(T item : getItems()){
             pane.button(table -> {
-                setupItemTable(table, item);
+                table.table(t -> setupItemTable(t, item)).growX();
+
+                table.image().width(4f).color(Color.darkGray).growY().right();
+                table.row();
+                Cell<?> horizontalLine = table.image().height(4f).color(Color.darkGray).growX();
+                horizontalLine.colspan(table.getColumns());
             }, EStyles.cardButtoni, () -> {
                 if(consumer.get(item)){
                     hide();
                 }
-            }).pad(8f).margin(8f).growX();
+            }).pad(8f).growX();
 
             if(++index % columns == 0){
                 pane.row();

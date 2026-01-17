@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.ui.selector;
 
 import MinRi2.PatchEditor.ui.editor.*;
+import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
@@ -21,6 +22,7 @@ public class WeaponSelector extends SelectorDialog<Weapon>{
 
     @Override
     protected void setupItemTable(Table table, Weapon item){
+        table.margin(8f);
         table.image(item.region).scaling(Scaling.fit).size(Vars.iconXLarge);
         table.add(item.name).ellipsis(true).wrap().pad(8f).growX();
     }
