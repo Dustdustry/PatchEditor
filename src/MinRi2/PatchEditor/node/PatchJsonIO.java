@@ -96,6 +96,10 @@ public class PatchJsonIO{
         return toppest;
     }
 
+    public static boolean overrideable(Class<?> type){
+        return !type.isPrimitive() && !Reflect.isWrapper(type);
+    }
+
     public static Class<?> resolveType(Class<?> base, @Nullable String typeJson){
         return resolveType(typeJson == null ? base : ClassMap.classes.get(typeJson));
     }

@@ -22,6 +22,6 @@ public class ClassHelper{
     }
 
     public static String getDisplayName(Class<?> clazz){
-        return clazz.getSimpleName() + (isArray(clazz) ? "[]" : "");
+        return clazz.getSimpleName() + (isArray(clazz) ? "[..]" : "");
     }
 }

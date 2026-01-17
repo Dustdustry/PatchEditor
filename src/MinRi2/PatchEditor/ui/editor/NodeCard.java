@@ -331,36 +331,36 @@ public class NodeCard extends Table{
         });
     }
 
-    private void setupEditButton(Table table, EditorNode node, boolean hasModifier){
+    private void setupEditButton(Table table, EditorNode child, boolean hasModifier){
         table.defaults().width(32f).pad(4f).growY();
         EditorNode editorNode = getEditorNode();
 
         // remove: map's key
-        if(!node.isChangedType() && ClassHelper.isMap(editorNode.getTypeIn()) && !node.isAppending()){
-            boolean undoMode = node.isRemoving();
+        if(!child.isChangedType() && ClassHelper.isMap(editorNode.getTypeIn()) && !child.isAppending()){
+            boolean undoMode = child.isRemoving();
             table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
                 if(undoMode){
-                    node.clearJson();
+                    child.clearJson();
                 }else{
-                    node.setValue(ModifierSign.REMOVE.sign);
-                    node.setSign(ModifierSign.REMOVE);
+                    child.setValue(ModifierSign.REMOVE.sign);
+                    child.setSign(ModifierSign.REMOVE);
                 }
                 rebuildNodesTable();
             }).tooltip(undoMode ? "@node.revertRemove" : "@node.removeKey");
             if(undoMode) return;
         }
 
-        if(node.isOverriding()){
+        if(child.isOverriding()){
             table.button(Icon.undo, Styles.clearNonei, () -> {
-                node.setSign(null);
-                node.clearJson();
+                child.setSign(null);
+                child.clearJson();
                 rebuildNodesTable();
             }).tooltip("@node.revertOverride");
-        }else if(node.isAppending() || node.isChangedType()){
-            if(!hasModifier && !ClassHelper.isArray(node.getTypeIn())){
+        }else if(child.isAppending() || child.isChangedType()){
+            if(!hasModifier && !ClassHelper.isArray(child.getTypeIn())){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
-                    EUI.classSelector.select(null, node.getTypeIn(), clazz -> {
-                        node.changeType(clazz);
+                    EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
+                        child.changeType(clazz);
                         rebuildNodesTable();
                         return true;
                     });
@@ -368,28 +368,29 @@ public class NodeCard extends Table{
             }
 
             table.button(Icon.cancel, Styles.clearNonei, () -> {
-                node.clearJson();
+                child.clearJson();
                 rebuildNodesTable();
             }).grow().tooltip("@node.remove");
-        }else if(!hasModifier && (node.getObject() == null || ClassHelper.isArrayLike(node.getTypeIn()))){
-            PatchNode patchNode = node.getPatch();
+        }else if(!hasModifier && PatchJsonIO.overrideable(child.getTypeIn()) && (child.getObject() == null || child.getObjNode().field != null)){
+            // null object or
+            PatchNode patchNode = child.getPatch();
             if(patchNode == null || patchNode.sign == null){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
-                    node.setSign(ModifierSign.MODIFY);
+                    child.setSign(ModifierSign.MODIFY);
                     rebuildNodesTable();
                 }).tooltip("@node.override");
             }
         }else if(!hasModifier && (ClassHelper.isMap(editorNode.getTypeIn()) || ClassHelper.isArrayLike(editorNode.getTypeIn()))){
             table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, node.getTypeIn(), clazz -> {
-                    node.changeType(clazz);
+                EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
+                    child.changeType(clazz);
                     rebuildNodesTable();
                     return true;
                 });
             }).tooltip("@node.override");
         }
 
-        if(isRequired(node)){
+        if(isRequired(child)){
             table.image(Icon.infoCircle).height(32f).tooltip("@node.mayRequired");
         }
     }
