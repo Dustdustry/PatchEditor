@@ -1,8 +1,8 @@
 package MinRi2.PatchEditor.node;
 
 import arc.files.*;
-import arc.func.*;
 import arc.graphics.*;
+import arc.input.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -11,19 +11,25 @@ import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.entities.part.*;
+import mindustry.gen.*;
 import mindustry.mod.*;
+import mindustry.type.*;
+import mindustry.world.blocks.production.*;
 
 import java.lang.reflect.*;
 
 public class ObjectResolver{
-    private static final Seq<Class<?>> resolveBlacklist = Seq.with(
-    Prov.class, Class.class, Texture.class, Fi.class, Boolf.class, Func.class,
-    DrawPart.class
+    private static final Seq<Class<?>> classBlacklist = Seq.with(
+    Class.class, Texture.class, Fi.class, KeyBind.class, UnitEntity.class
+    );
+    private static final ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(
+    Drill.class, Seq.with("oreCount", "itemArray"),
+    UnitType.class, Seq.with("sample")
     );
 
     // For dynamic editor node
     private static ObjectMap<Class<?>, ObjectNode> templateNode;
-    public static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
+    private static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
 
     public static void resolve(ObjectNode node){
         if(node.isRoot()){
@@ -45,8 +51,8 @@ public class ObjectResolver{
         if(object != null) objectType = object.getClass();
 
         // type resolve
-        if(objectType == null || objectType.isPrimitive() || objectType.isInterface() || Reflect.isWrapper(objectType)) return;
-        if(typeBlack(node.elementType)) return;
+        if(!typeResolvable(objectType)) return;
+        if(node.elementType != null && !typeResolvable(node.elementType)) return;
 
         if(ClassHelper.isArrayLike(objectType)){
             node.addSign(ModifierSign.PLUS, node.type, node.elementType, node.elementType);
@@ -100,10 +106,14 @@ public class ObjectResolver{
                 node.addChild(name, entry.value, null, null);
             }
         }else{
+            Seq<String> blacklist = findFieldBlacklist(objectType);
             for(var entry : PatchJsonIO.getFields(objectType)){
                 String name = entry.key;
+                if(blacklist != null && blacklist.contains(name)) continue;
+
                 FieldMetadata fieldMeta = entry.value;
-                if(!fieldEditable(fieldMeta.field) || typeBlack(fieldMeta.elementType)) continue;
+                if(!fieldResolvable(fieldMeta.field)) continue;
+                if(fieldMeta.elementType != null && !typeResolvable(fieldMeta.elementType)) continue;
 
                 FieldMetadata copiedMeta = new FieldMetadata(fieldMeta.field);
                 Object childObj = object == null ? null : Reflect.get(object, fieldMeta.field);
@@ -123,6 +133,17 @@ public class ObjectResolver{
         }
     }
 
+    private static Seq<String> findFieldBlacklist(Class<?> type){
+        Class<?> current = type;
+        while(current != Object.class){
+            Seq<String> list = fieldBlacklist.get(current);
+            if(list != null) return list;
+            current = current.getSuperclass();
+        }
+
+        return null;
+    }
+
     public static ObjectNode getTemplate(Class<?> type){
         if(templateNode == null) templateNode = new ObjectMap<>();
 
@@ -136,14 +157,14 @@ public class ObjectResolver{
         return objectNode;
     }
 
-    public static boolean typeBlack(Class<?> clazz){
-        return clazz != null && resolveBlacklist.contains(black -> black.isAssignableFrom(clazz));
+    public static boolean typeResolvable(Class<?> clazz){
+        return clazz != null && !(clazz.isInterface() || clazz.isSynthetic() || classBlacklist.contains(black -> black.isAssignableFrom(clazz)));
     }
 
-    public static boolean fieldEditable(Field field){
+    public static boolean fieldResolvable(Field field){
         int modifiers = field.getModifiers();
         return (!field.getType().isPrimitive() || !Modifier.isFinal(modifiers))
-        && !typeBlack(field.getType())
+        && typeResolvable(field.getType())
         && !(field.isAnnotationPresent(NoPatch.class) || field.getDeclaringClass().isAnnotationPresent(NoPatch.class));
     }
 
