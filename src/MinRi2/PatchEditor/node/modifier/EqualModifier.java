@@ -20,15 +20,15 @@ import mindustry.ui.*;
  */
 public abstract class EqualModifier<T> extends DataModifier<T>{
 
-    public static class ContentTypeModifier extends EqualModifier<UnlockableContent>{
+    public static class ContentTypeModifier extends EqualModifier<Content>{
         public ContentTypeModifier(){
             builder = new ContentBuilder(this);
             valueType = ValueType.stringValue;
         }
 
         @Override
-        public UnlockableContent cast(Object object){
-            return (UnlockableContent)object;
+        public Content cast(Object object){
+            return (Content)object;
         }
     }
 

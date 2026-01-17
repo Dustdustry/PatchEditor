@@ -2,6 +2,7 @@ package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.ui.*;
+import MinRi2.PatchEditor.ui.editor.*;
 import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -116,10 +117,10 @@ public abstract class ModifierBuilder<T>{
         }
     }
 
-    public static class ContentBuilder extends ModifierBuilder<UnlockableContent>{
+    public static class ContentBuilder extends ModifierBuilder<Content>{
         protected Table contentTable;
 
-        public ContentBuilder(ModifyConsumer<UnlockableContent> consumer){
+        public ContentBuilder(ModifyConsumer<Content> consumer){
             super(consumer);
         }
 
@@ -127,6 +128,7 @@ public abstract class ModifierBuilder<T>{
         public void build(Table table){
             contentTable = table.button(b -> {}, Styles.clearNonei, () -> {
                 Class<?> type = consumer.getTypeMeta();
+                consumer.getDefaultValue().getContentType();
                 ContentType contentType = PatchJsonIO.getContentType(type);
 
                 EUI.selector.select(contentType, type, c -> c != value, c -> {
@@ -143,19 +145,8 @@ public abstract class ModifierBuilder<T>{
             super.updateUI();
 
             contentTable.clearChildren();
-
-            TextureRegion icon;
-            String displayName;
-            if(value == null){
-                icon = Icon.none.getRegion();
-                displayName = "null";
-            }else{
-                icon = value.uiIcon;
-                displayName = value.localizedName;
-            }
-
-            contentTable.image(icon).scaling(Scaling.fit).size(40f).pad(8f).expandX().left();
-            contentTable.add(displayName).pad(4f).ellipsis(true).width(64f);
+            contentTable.image(NodeDisplay.getDisplayIcon(value)).scaling(Scaling.fit).size(40f).pad(8f).expandX().left();
+            contentTable.add(NodeDisplay.getDisplayName(value)).pad(4f).ellipsis(true).width(64f);
         }
     }
 

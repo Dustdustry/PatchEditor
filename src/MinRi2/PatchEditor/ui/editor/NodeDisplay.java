@@ -47,12 +47,24 @@ public class NodeDisplay{
         node = null;
     }
 
-    public static String getDisplayName(Object object){
-        if(object instanceof UnlockableContent content){
-            return content.localizedName;
-        }
+    public static TextureRegion getDisplayIcon(Object object){
+        if(object == null) return Icon.none.getRegion();
+        if(object instanceof ContentType type) return contentSymbolMap.get(type, Icon.effect.getRegion());
+        if(object instanceof UnlockableContent unlockable) return unlockable.uiIcon;
+        if(object instanceof Weapon weapon) return Core.atlas.find(weapon.name, weapon.region);
+        return Icon.effect.getRegion();
+    }
 
-        return "";
+    public static String getDisplayName(Object object){
+        if(object instanceof ContentType type) return Strings.capitalize(type.name());
+        if(object instanceof Content content){
+            return content instanceof UnlockableContent unlockable ? unlockable.localizedName
+            : content instanceof MappableContent mappable ? mappable.name
+            : String.valueOf(content);
+        }
+        if(object instanceof Weapon weapon) return weapon.name;
+
+        return String.valueOf(object);
     }
 
     public static void display(Table table, EditorNode node){
@@ -75,25 +87,18 @@ public class NodeDisplay{
                 t.image(Icon.none).size(imageSize).row();
                 t.add("null").padTop(8f);
             });
-        }else if(object instanceof UnlockableContent content){
+        }else if(object instanceof UnlockableContent || object instanceof Weapon){
             displayNameType();
             table.add().expandX();
-            displayInfo(content.uiIcon, content.localizedName);
-        }else if(object instanceof ContentType contentType
-        && contentType.contentClass != null
-        && UnlockableContent.class.isAssignableFrom(contentType.contentClass)){
+            displayInfo(object);
+        }else if(object instanceof ContentType contentType && contentType.contentClass != null){
             displayNameType();
             table.add().expandX();
 
             Seq<?> seq = Vars.content.getBy(contentType);
             if(seq.isEmpty()) return;
             if(contentSymbolMap == null) intiSymbol();
-            TextureRegion icon = ((UnlockableContent)seq.first()).uiIcon;
-            displayInfo(contentSymbolMap.get(contentType, icon), Strings.capitalize(contentType.name()));
-        }else if(object instanceof Weapon weapon){
-            displayNameType();
-            table.add().expandX();
-            displayInfo(Core.atlas.find(weapon.name, weapon.region), weapon.name);
+            displayInfo(contentType);
         }else{
             displayNameType();
         }
@@ -112,17 +117,13 @@ public class NodeDisplay{
         });
     }
 
-    private static void displayInfo(TextureRegion region, String value){
-        displayInfo(region == null ? Icon.none : new TextureRegionDrawable(region), value);
-    }
-
-    private static void displayInfo(Drawable icon, String value){
+    private static void displayInfo(Object object){
         table.table(valueTable -> {
             valueTable.defaults().right();
 
-            valueTable.image(icon).scaling(Scaling.fit).size(imageSize);
+            valueTable.image(getDisplayIcon(object)).scaling(Scaling.fit).size(imageSize);
             valueTable.row();
-            valueTable.add(value).labelAlign(Align.right).ellipsis(true).wrap().padTop(8f).minWidth(labelWidth).growX();
+            valueTable.add(getDisplayName(object)).labelAlign(Align.right).ellipsis(true).wrap().padTop(8f).minWidth(labelWidth).growX();
         });
     }
 }
