@@ -6,6 +6,7 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.ctype.*;
 import mindustry.type.*;
 import mindustry.world.*;
 
@@ -19,13 +20,16 @@ public class NodeModifier{
     public static final Seq<ModifierConfig> modifyConfig = new Seq<>();
 
     static {
+        Seq<Class<?>> contentClasses = Seq.with(ContentType.all)
+        .retainAll(type -> type.contentClass != null)
+        .map(type -> type.contentClass);
+
         modifyConfig.addAll(
         // field specific first
         new ModifierConfig(WeaponNameModifier::new, String.class).fieldOf(Weapon.class, "name"),
 
         new ModifierConfig(ColorModifier::new, Color.class),
-        new ModifierConfig(ContentTypeModifier::new,
-        Block.class, Item.class, Liquid.class, StatusEffect.class, UnitType.class),
+        new ModifierConfig(ContentTypeModifier::new, contentClasses),
         new ModifierConfig(BooleanModifier::new, Boolean.class, boolean.class),
 
         new ModifierConfig(TextureRegionModifier::new, TextureRegion.class),
@@ -67,6 +71,12 @@ public class NodeModifier{
         private final Prov<DataModifier<?>> prov;
 
         private @Nullable Boolf<ObjectNode> nodeCheck;
+
+        public ModifierConfig(Prov<DataModifier<?>> prov, Seq<Class<?>> types){
+            this.prov = prov;
+            modifierTypes.addAll(types);
+        }
+
 
         public ModifierConfig(Prov<DataModifier<?>> prov, Class<?>... types){
             this.prov = prov;

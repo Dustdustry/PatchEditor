@@ -27,10 +27,10 @@ public class PatchJsonIO{
     public static final int simplifySingleCount = 3;
 
     private static ContentParser parser;
-    private static ObjectMap<String, ContentType> nameToType;
-
     public static final String appendPrefix = "#ADD_";
 
+    private static ObjectMap<String, ContentType> nameToType;
+    public static ObjectMap<Class<?>, ContentType> classContentType;
     public static final ObjectMap<Class<?>, Class<?>> defaultClassMap = ObjectMap.of(
         Ability.class, ForceFieldAbility.class
     );
@@ -62,12 +62,16 @@ public class PatchJsonIO{
     }
 
     public static ContentType getContentType(Class<?> type){
-        if(Block.class.isAssignableFrom(type)) return ContentType.block;
-        if(Item.class.isAssignableFrom(type)) return ContentType.item;
-        if(Liquid.class.isAssignableFrom(type)) return ContentType.liquid;
-        if(StatusEffect.class.isAssignableFrom(type)) return ContentType.status;
-        if(UnitType.class.isAssignableFrom(type)) return ContentType.unit;
-        return null;
+        if(classContentType == null){
+            classContentType = new ObjectMap<>();
+            for(ContentType contentType : ContentType.all){
+                if(contentType.contentClass != null){
+                    classContentType.put(contentType.contentClass, contentType);
+                }
+            }
+        }
+
+        return classContentType.get(type);
     }
 
     public static boolean fieldRequired(EditorNode child){

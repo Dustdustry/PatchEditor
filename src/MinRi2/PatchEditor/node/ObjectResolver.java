@@ -150,6 +150,7 @@ public class ObjectResolver{
 
     public static Object getExample(Class<?> base, Class<?> type){
         if(type == float.class) return 0f; // add if necessary
+        if(type == int.class || type == short.class) return 0;
         if(type.isArray()) return Reflect.newArray(type.getComponentType(), 0);
 
         type = PatchJsonIO.resolveType(type);
