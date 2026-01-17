@@ -31,8 +31,8 @@ Anyway, enjoy making wonderful patch!
 - [ ] Edit Attribute
 - [ ] Edit EnumSet
 
-- [ ] Select weapon region
-- [ ] Select texture region
+- [x] Select weapon region
+- [x] Select texture region
 - [ ] Select unit's controller, aiController and type
 - [ ] Select effect
 - [ ] Select block flag

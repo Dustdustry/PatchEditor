@@ -66,7 +66,7 @@ public abstract class ModifierBuilder<T>{
 
             if(consumer.getTypeMeta() == String.class){
                 table.button(Icon.pencil, Styles.clearNonei, () -> {
-                    BaseDialog dialog = new BaseDialog("##Edit Text");
+                    BaseDialog dialog = new BaseDialog("@dialog.editText");
                     Table cont = dialog.cont;
 
                     cont.add(dialog.titleTable).fillX().row();
@@ -201,7 +201,7 @@ public abstract class ModifierBuilder<T>{
                     setValue(region.name);
                     return true;
                 });
-            }).grow();
+            }).grow().tooltip(t -> t.background(Styles.black3).label(() -> value).pad(4f));
 
             addResetButton(table);
         }
