@@ -23,14 +23,17 @@ Anyway, enjoy making wonderful patch!
 - [x] Override Seq, ObjectSet
 
 - [x] Remain unsupported fields
-- [x] Accessible weapons' name list
-- [x] Accessible TextureRegion list
-
-- [x] Edit color
-- [ ] Edit interp
-- [ ] Edit consumer
-- [ ] Edit effect
-- [ ] Edit attribute map
-- [ ] Edit unit's controller, aiController and type
-
 - [ ] Errors inspector
+
+- [x] Edit Color
+- [ ] Edit Interp
+- [ ] Edit Consumer
+- [ ] Edit Attribute
+- [ ] Edit EnumSet
+
+- [ ] Select weapon region
+- [ ] Select texture region
+- [ ] Select unit's controller, aiController and type
+- [ ] Select effect
+- [ ] Select block flag
+- [ ] Select sound
