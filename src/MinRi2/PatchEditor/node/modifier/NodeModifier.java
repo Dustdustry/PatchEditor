@@ -4,8 +4,10 @@ import MinRi2.PatchEditor.node.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
+import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.ai.*;
 import mindustry.ctype.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -20,16 +22,12 @@ public class NodeModifier{
     public static final Seq<ModifierConfig> modifyConfig = new Seq<>();
 
     static {
-        Seq<Class<?>> contentClasses = Seq.with(ContentType.all)
-        .retainAll(type -> type.contentClass != null)
-        .map(type -> type.contentClass);
-
         modifyConfig.addAll(
         // field specific first
         new ModifierConfig(WeaponNameModifier::new, String.class).fieldOf(Weapon.class, "name"),
 
         new ModifierConfig(ColorModifier::new, Color.class),
-        new ModifierConfig(ContentTypeModifier::new, contentClasses),
+        new ModifierConfig(ContentTypeModifier::new, Block.class, Item.class, Liquid.class, StatusEffect.class, UnitType.class, Plane.class, Weather.class, UnitCommand.class, UnitStance.class),
         new ModifierConfig(BooleanModifier::new, Boolean.class, boolean.class),
 
         new ModifierConfig(TextureRegionModifier::new, TextureRegion.class),
