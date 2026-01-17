@@ -35,8 +35,6 @@ public class PatchEditor extends BaseDialog{
 
         resized(this::rebuild);
         shown(() -> {
-            if(objectTree == null) objectTree = ObjectNode.createRoot();
-            if(editorTree == null) editorTree = new EditorNode(objectTree, manager);
             card.setRootEditorNode(editorTree);
             card.setEditorNode("");
 
@@ -78,6 +76,9 @@ public class PatchEditor extends BaseDialog{
 
     public void edit(EditorPatch patch){
         manager.reset();
+
+        if(objectTree == null) objectTree = ObjectNode.createRoot();
+        if(editorTree == null) editorTree = new EditorNode(objectTree, manager);
 
         try{
             PatchJsonIO.parseJson(objectTree, manager.getRoot(), patch.patch);
