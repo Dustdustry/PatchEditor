@@ -6,6 +6,7 @@ import arc.func.*;
 import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.util.*;
 import mindustry.mod.*;
 import mindustry.ui.dialogs.*;
 
@@ -17,8 +18,18 @@ public class ClassSelector extends SelectorDialog<Class<?>>{
     }
 
     @Override
+    protected void setupItemTable(Table table, Class<?> item){
+        table.add(item.getSimpleName()).pad(8f);
+    }
+
+    @Override
     protected Seq<Class<?>> getItems(){
         return classes;
+    }
+
+    @Override
+    protected boolean matchQuery(Class<?> item){
+        return Strings.matches(query, item.getName());
     }
 
     @Override
@@ -26,11 +37,6 @@ public class ClassSelector extends SelectorDialog<Class<?>>{
         super.resetSelect();
 
         classes.clear();
-    }
-
-    @Override
-    protected void setupItemTable(Table table, Class<?> item){
-        table.add(item.getSimpleName()).pad(8f);
     }
 
     public void select(Boolf<Class<?>> selectable, Boolf<Class<?>> consumer){

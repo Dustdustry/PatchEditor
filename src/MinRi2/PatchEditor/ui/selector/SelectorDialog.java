@@ -4,12 +4,20 @@ import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.func.*;
 import arc.graphics.*;
+import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.util.*;
+import mindustry.gen.*;
+import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
 public abstract class SelectorDialog<T> extends BaseDialog{
     protected Boolf<T> consumer;
+    protected String query = "";
+
+    private Table itemCont;
+    private ScrollPane pane;
 
     public SelectorDialog(String title){
         super(title);
@@ -20,18 +28,30 @@ public abstract class SelectorDialog<T> extends BaseDialog{
         addCloseButton();
     }
 
+    protected float layoutWidth(){
+        return Core.scene.getWidth() * (Core.scene.getWidth() > 1000 ? 0.8f : 0.95f);
+    }
+
     protected void rebuild(){
-        // TODO: search field
+        if(itemCont == null) itemCont = new Table();
+        if(pane == null) pane = new ScrollPane(itemCont);
+
         cont.clearChildren();
+        cont.table(this::setupSearchTable).growX().row();
+        cont.add(pane).scrollX(false).width(layoutWidth()).grow();
 
-        Table pane = new Table();
+        itemCont.clearChildren();
+        setupCont(itemCont);
+    }
 
-        float width = Core.scene.getWidth() * (Core.scene.getWidth() > 1000 ? 0.8f : 0.95f);
-        cont.pane(pane).scrollX(false).width(width).grow();
+    protected void setupCont(Table cont){
+        float width = layoutWidth();
 
         int index = 0, columns = (int)(width / 360f);
         for(T item : getItems()){
-            pane.button(table -> {
+            if(!query.isEmpty() && !matchQuery(item)) continue;
+
+            cont.button(table -> {
                 table.table(t -> setupItemTable(t, item)).growX();
 
                 table.image().width(4f).color(Color.darkGray).growY().right();
@@ -45,12 +65,35 @@ public abstract class SelectorDialog<T> extends BaseDialog{
             }).pad(8f).growX();
 
             if(++index % columns == 0){
-                pane.row();
+                cont.row();
             }
         }
     }
 
+    protected void setupSearchTable(Table table){
+        table.image(Icon.zoom).pad(8f);
+        TextField field = table.field(query, s -> {
+            query = s;
+            itemCont.clearChildren();
+            setupCont(itemCont);
+        }).growX().get();
+        table.button(Icon.cancel, Styles.cleari, () -> {
+            query = "";
+            itemCont.clearChildren();
+            setupCont(itemCont);
+        }).pad(8f);
+
+        field.update(() -> {
+            if(!field.hasKeyboard()){
+                field.requestKeyboard();
+                field.setText(query);
+            }
+        });
+    }
+
     protected abstract void setupItemTable(Table table, T item);
+
+    protected abstract boolean matchQuery(T item);
 
     protected abstract Seq<T> getItems();
 

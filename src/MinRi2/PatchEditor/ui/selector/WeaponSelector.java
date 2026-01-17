@@ -14,6 +14,13 @@ public class WeaponSelector extends SelectorDialog<Weapon>{
     }
 
     @Override
+    protected void setupItemTable(Table table, Weapon item){
+        table.margin(8f);
+        table.image(item.region).scaling(Scaling.fit).size(Vars.iconXLarge);
+        table.add(item.name).ellipsis(true).wrap().pad(8f).growX();
+    }
+
+    @Override
     protected Seq<Weapon> getItems(){
         ObjectSet<String> weaponNames = new ObjectSet<>();
         Seq<Weapon> weapons = Vars.content.units().flatMap(unit -> unit.weapons);
@@ -21,9 +28,7 @@ public class WeaponSelector extends SelectorDialog<Weapon>{
     }
 
     @Override
-    protected void setupItemTable(Table table, Weapon item){
-        table.margin(8f);
-        table.image(item.region).scaling(Scaling.fit).size(Vars.iconXLarge);
-        table.add(item.name).ellipsis(true).wrap().pad(8f).growX();
+    protected boolean matchQuery(Weapon item){
+        return Strings.matches(query, item.name);
     }
 }

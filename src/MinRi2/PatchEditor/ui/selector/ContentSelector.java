@@ -25,14 +25,6 @@ public class ContentSelector extends SelectorDialog<UnlockableContent>{
     }
 
     @Override
-    protected Seq<UnlockableContent> getItems(){
-        Seq<UnlockableContent> contents = Vars.content.getBy(contentType);
-        return contents.select(c -> (selectable == null || selectable.get(c))
-            && (restrictClass == null || restrictClass.isAssignableFrom(c.getClass()))
-        );
-    }
-
-    @Override
     protected void setupItemTable(Table table, UnlockableContent item){
         table.image(item.uiIcon).scaling(Scaling.fit).size(48f).pad(8f).expandX().left();
 
@@ -44,6 +36,19 @@ public class ContentSelector extends SelectorDialog<UnlockableContent>{
             infoTable.row();
             infoTable.add(item.name).color(EPalettes.grayFront);
         });
+    }
+
+    @Override
+    protected boolean matchQuery(UnlockableContent item){
+        return Strings.matches(query, item.name) || Strings.matches(query, item.localizedName);
+    }
+
+    @Override
+    protected Seq<UnlockableContent> getItems(){
+        Seq<UnlockableContent> contents = Vars.content.getBy(contentType);
+        return contents.select(c -> (selectable == null || selectable.get(c))
+        && (restrictClass == null || restrictClass.isAssignableFrom(c.getClass()))
+        );
     }
 
     public void select(ContentType contentType, Boolf<UnlockableContent> selectable, Boolf<UnlockableContent> consumer){
