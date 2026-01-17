@@ -35,6 +35,10 @@ public class EditorNode{
     }
 
     public ObjectMap<String, EditorNode> getChildren(){
+        return getChildren(true);
+    }
+
+    public ObjectMap<String, EditorNode> getChildren(boolean rebuildDynamic){
         PatchNode patchNode = getPatch();
         ObjectNode objectNode = getObjNode();
 
@@ -43,7 +47,6 @@ public class EditorNode{
             resolvedObj = false;
             currentObj = objectNode;
         }
-
 
         boolean isOverriding = isOverriding();
         if(isOverriding){
@@ -62,30 +65,32 @@ public class EditorNode{
             resolvedObj = true;
         }
 
-        var iterator = children.entries().iterator();
-        while(iterator.hasNext()){
-            EditorNode node = iterator.next().value;
-            if(node instanceof DynamicEditorNode){
-                node.children.clear();
-                iterator.remove();
+        if(rebuildDynamic){
+            var iterator = children.entries().iterator();
+            while(iterator.hasNext()){
+                EditorNode node = iterator.next().value;
+                if(node instanceof DynamicEditorNode){
+                    node.children.clear();
+                    iterator.remove();
+                }
             }
-        }
 
-        // data driven
-        if(patchNode != null){
-            for(PatchNode childPatchNode : patchNode.children.values()){
-                if(childPatchNode.sign == ModifierSign.PLUS){
-                    PatchNode typeNode = childPatchNode.getOrNull("type");
-                    String typeJson = typeNode == null ? null : typeNode.value;
+            // data driven
+            if(patchNode != null){
+                for(PatchNode childPatchNode : patchNode.children.values()){
+                    if(childPatchNode.sign == ModifierSign.PLUS){
+                        PatchNode typeNode = childPatchNode.getOrNull("type");
+                        String typeJson = typeNode == null ? null : typeNode.value;
 
-                    try{
-                        Class<?> type = PatchJsonIO.resolveType(getObjNode().elementType, typeJson);
+                        try{
+                            Class<?> type = PatchJsonIO.resolveType(getObjNode().elementType, typeJson);
 
-                        EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
-                        child.parent = this;
-                        children.put(child.name(), child);
-                    }catch(Exception e){
-                        Log.err(e);
+                            EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
+                            child.parent = this;
+                            children.put(child.name(), child);
+                        }catch(Exception e){
+                            Log.err(e);
+                        }
                     }
                 }
             }
@@ -194,12 +199,13 @@ public class EditorNode{
 
         EditorNode current = this;
         for(String name : path.split(NodeManager.pathSplitter)){
-            current = current.getChildren().get(name);
+            current = current.getChildren(false).get(name);
             if(current == null) return null;
         }
         return current;
     }
 
+    // #region utils
     public void setValue(String value){
         manager.applyOp(new SetOp(getPath(), value));
     }
@@ -226,10 +232,7 @@ public class EditorNode{
             manager.applyOp(new SetValueTypeOp(getPath(), ValueType.array));
         }
     }
-
-    public void clearType(){
-        manager.applyOp(new ClearOp(getPath()));
-    }
+    // #endregion
 
     public static class DynamicEditorNode extends EditorNode{
         public final String key;
