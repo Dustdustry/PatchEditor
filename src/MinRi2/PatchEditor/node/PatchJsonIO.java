@@ -256,30 +256,32 @@ public class PatchJsonIO{
     }
 
     private static void desugarJson(ObjectNode objectNode, JsonValue value){
+        boolean isValue = value.isValue();
+
         if(objectNode != null){
             desugarJson(value, objectNode.type);
 
-            if(value.isValue()){
-                return;
-            }else if(ClassHelper.isArrayLike(objectNode.type)){
-                ObjectNode childObj = ObjectResolver.getTemplate(objectNode.elementType);
-                if(value.isObject() && value.has(ModifierSign.PLUS.sign)){
-                    desugarJson(childObj, value.get(ModifierSign.PLUS.sign));
-                }else { // array here
-                    for(JsonValue childValue : value){
-                        desugarJson(childObj, childValue);
+            // desugarJson may destroy the value type so cache isValue
+            if(isValue) return;
+
+            if(ClassHelper.isArrayLike(objectNode.type)){
+                // "requirements": ["item/amount"] | {+: [], {"item": "xxx"}}
+                ObjectNode childNode = ObjectResolver.getTemplate(objectNode.elementType);
+                for(JsonValue childValue : value){
+                    if(ModifierSign.PLUS.sign.equals(childValue.name)){
+                        ObjectNode plusNode = objectNode.getOrResolve(childValue.name);
+                        desugarJson(plusNode, childValue);
+                    }else{
+                        desugarJson(childNode, childValue);
                     }
-                    return;
                 }
+                return;
             }
         }
 
         if(value.isValue()) return;
 
         for(JsonValue childValue : value){
-            // handle plus sign before here
-            if(ModifierSign.PLUS.sign.equals(childValue.name)) continue;
-
             ObjectNode childNode = childValue.name == null ||objectNode == null ? null : objectNode.getOrResolve(childValue.name);
             desugarJson(childNode, childValue);
         }
