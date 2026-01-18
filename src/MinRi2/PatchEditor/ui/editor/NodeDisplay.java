@@ -51,7 +51,7 @@ public class NodeDisplay{
         if(object == null) return Icon.none.getRegion();
         if(object instanceof ContentType type) return contentSymbolMap.get(type, Icon.effect.getRegion());
         if(object instanceof UnlockableContent unlockable) return unlockable.uiIcon;
-        if(object instanceof Weapon weapon) return Core.atlas.find(weapon.name, weapon.region);
+        if(object instanceof Weapon weapon) return Core.atlas.find(weapon.name, Icon.none.getRegion());
         return Icon.effect.getRegion();
     }
 
