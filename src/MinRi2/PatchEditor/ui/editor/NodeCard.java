@@ -167,10 +167,11 @@ public class NodeCard extends Table{
 
         int columns = Math.max(1, (int)(nodesTable.getWidth() / Scl.scl() / buttonWidth));
         var map = mappedChildren();
+        if(!map.containsKey(Object.class)) map.put(Object.class, new Seq<>());
         for(var entry : map){
             Seq<EditorNode> children = entry.value;
             Class<?> declareClass = entry.key;
-            if(children.isEmpty()) continue;
+            if(children.isEmpty() && declareClass != Object.class) continue;
 
             nodesTable.table(t -> {
                 t.image().color(Pal.darkerGray).size(32f, 6f);

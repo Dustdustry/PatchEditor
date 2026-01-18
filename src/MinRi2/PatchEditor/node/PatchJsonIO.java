@@ -221,7 +221,7 @@ public class PatchJsonIO{
             toJson(childNode, childValue);
         }
 
-        if(!value.isValue() && value.child == null){
+        if(!value.isValue() && value.child == null && patchNode.sign != ModifierSign.MODIFY){
             removeJsonValue(value);
         }
 
