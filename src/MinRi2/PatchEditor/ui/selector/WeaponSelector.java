@@ -10,7 +10,7 @@ import mindustry.type.*;
 
 public class WeaponSelector extends SelectorDialog<Weapon>{
     public WeaponSelector(){
-        super("@weapon-selector");
+        super("@selector.weapon");
     }
 
     @Override

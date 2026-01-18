@@ -117,7 +117,7 @@ public abstract class EqualModifier<T> extends DataModifier<T>{
                         setValue(weapon.name);
                         return true;
                     });
-                }).pad(4f).width(48f).growY().tooltip("@weapon-selector.tooltip");
+                }).pad(4f).width(48f).growY().tooltip("@selector.weapon-selector");
 
                 addResetButton(table);
             }

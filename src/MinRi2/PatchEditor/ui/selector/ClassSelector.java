@@ -14,7 +14,7 @@ public class ClassSelector extends SelectorDialog<Class<?>>{
     private final Seq<Class<?>> classes = new Seq<>();
 
     public ClassSelector(){
-        super("@class-selector");
+        super("@selector.class");
     }
 
     @Override

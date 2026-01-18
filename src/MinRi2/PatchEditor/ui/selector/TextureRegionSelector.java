@@ -14,7 +14,7 @@ import mindustry.graphics.*;
 
 public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
     public TextureRegionSelector(){
-        super("@texture-region-selector");
+        super("@selector.texture-region");
     }
 
     @Override

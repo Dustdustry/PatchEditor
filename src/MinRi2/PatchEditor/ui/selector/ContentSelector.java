@@ -22,7 +22,7 @@ public class ContentSelector extends SelectorDialog<Content>{
     private Class<?> restrictClass;
 
     public ContentSelector(){
-        super("@content-selector");
+        super("@selector.content");
     }
 
     @Override
