@@ -361,6 +361,16 @@ public class NodeCard extends Table{
         }
 
         if(child.isOverriding()){
+            if(!ClassHelper.isArrayLike(child.getTypeIn()) && !ClassHelper.isMap(child.getTypeIn())){
+                table.button(Icon.wrench, Styles.clearNonei, () -> {
+                    EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
+                        child.changeType(clazz);
+                        rebuildNodesTable();
+                        return true;
+                    });
+                }).tooltip("@node.changeType");
+            }
+
             table.button(Icon.undo, Styles.clearNonei, () -> {
                 child.setSign(null);
                 child.clearJson();
