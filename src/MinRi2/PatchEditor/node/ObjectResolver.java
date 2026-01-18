@@ -171,13 +171,17 @@ public class ObjectResolver{
     }
 
     public static boolean typeResolvable(Class<?> clazz){
+        return clazz != null && !(clazz.isPrimitive() || Reflect.isWrapper(clazz)) && typeEditable(clazz);
+    }
+
+    public static boolean typeEditable(Class<?> clazz){
         return clazz != null && !(clazz.isInterface() || clazz.isSynthetic() || classBlacklist.contains(black -> black.isAssignableFrom(clazz)));
     }
 
     public static boolean fieldResolvable(Field field){
         int modifiers = field.getModifiers();
         return (!field.getType().isPrimitive() || !Modifier.isFinal(modifiers))
-        && typeResolvable(field.getType())
+        && typeEditable(field.getType())
         && !(field.isAnnotationPresent(NoPatch.class) || field.getDeclaringClass().isAnnotationPresent(NoPatch.class));
     }
 

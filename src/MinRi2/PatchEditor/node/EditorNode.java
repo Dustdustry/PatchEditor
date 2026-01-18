@@ -58,7 +58,7 @@ public class EditorNode{
             resolvedObj = false;
         }
 
-        if(!resolvedObj && !isOverriding){
+        if(!resolvedObj){
             for(ObjectNode node : objectNode.getChildren().values()){
                 if(node.isSign()) continue;
 

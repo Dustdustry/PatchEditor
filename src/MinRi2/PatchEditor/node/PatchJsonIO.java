@@ -175,6 +175,7 @@ public class PatchJsonIO{
             ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve(name);
             PatchNode childNode = patchNode.getOrCreate(name);
 
+            // map sign assign
             if(objectNode != null && ClassHelper.isMap(objectNode.type)){
                 if(childValue.isValue() && ModifierSign.REMOVE.sign.equals(childValue.asString())){
                     // patchNode('map': {xxx: '-'}) -> remove the key
@@ -188,6 +189,12 @@ public class PatchJsonIO{
                         if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
                     }
                 }
+            }
+
+            // override sign assign
+            if(childObj != null && childObj.object == null){
+                childNode.sign = ModifierSign.MODIFY;
+                if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
             }
 
             // patchNode('array': {}) -> normal modify(override) do nothing
