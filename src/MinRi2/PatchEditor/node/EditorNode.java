@@ -28,6 +28,7 @@ public class EditorNode{
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
 
     private final NodeManager manager;
+    private boolean dynamicDirty = true;
 
     public EditorNode(ObjectNode objectNode, NodeManager manager){
         this.objectNode = objectNode;
@@ -39,10 +40,6 @@ public class EditorNode{
     }
 
     public ObjectMap<String, EditorNode> getChildren(){
-        return getChildren(true);
-    }
-
-    public ObjectMap<String, EditorNode> getChildren(boolean rebuildDynamic){
         PatchNode patchNode = getPatch();
         ObjectNode objectNode = getObjNode();
 
@@ -56,6 +53,7 @@ public class EditorNode{
         if(isOverriding){
             children.clear();
             resolvedObj = false;
+            dynamicDirty = true;
         }
 
         if(!resolvedObj){
@@ -69,7 +67,9 @@ public class EditorNode{
             resolvedObj = true;
         }
 
-        if(rebuildDynamic){
+        if(dynamicDirty){
+            dynamicDirty = false;
+
             var iterator = children.entries().iterator();
             while(iterator.hasNext()){
                 EditorNode node = iterator.next().value;
@@ -114,9 +114,9 @@ public class EditorNode{
             }
         }
 
-        if(type != objectNode.type){
+        if(type != objectNode.type || isOverriding()){
             if(shadowObjectNode == null || shadowObjectNode.type != type){
-                shadowObjectNode = ObjectResolver.getTemplate(type);
+                shadowObjectNode = ObjectResolver.getShadowNode(objectNode, type);
             }
             return shadowObjectNode;
         }
@@ -210,40 +210,47 @@ public class EditorNode{
 
         EditorNode current = this;
         for(String name : path.split(NodeManager.pathSplitter)){
-            current = current.getChildren(false).get(name);
+            current = current.getChildren().get(name);
             if(current == null) return null;
         }
         return current;
     }
 
-    // #region utils
     public void setValue(String value){
         manager.applyOp(new SetOp(getPath(), value));
     }
 
     public void clearJson(){
+        dynamicChanged();
         manager.applyOp(new ClearOp(getPath()));
     }
 
     public void append(boolean appendPrefix){
+        dynamicChanged();
         manager.applyOp(new ArrayAppendOp(getPath(), appendPrefix));
     }
 
     public void putKey(String key){
+        dynamicChanged();
         manager.applyOp(new MapPutOp(getPath(), key));
     }
 
     public void changeType(Class<?> type){
+        dynamicChanged();
         manager.applyOp(new ChangeTypeOp(getPath(), type));
     }
 
     public void setSign(ModifierSign sign){
+        dynamicChanged();
         manager.applyOp(new SetSignOp(getPath(), sign));
         if(ClassHelper.isArrayLike(getTypeIn())){
             manager.applyOp(new SetValueTypeOp(getPath(), ValueType.array));
         }
     }
-    // #endregion
+
+    public void dynamicChanged(){
+        dynamicDirty = true;
+    }
 
     public static class DynamicEditorNode extends EditorNode{
         public final String key;

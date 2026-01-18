@@ -378,6 +378,7 @@ public class NodeCard extends Table{
             }
 
             table.button(Icon.cancel, Styles.clearNonei, () -> {
+                editorNode.dynamicChanged();
                 child.clearJson();
                 rebuildNodesTable();
             }).grow().tooltip("@node.remove");
@@ -463,7 +464,7 @@ public class NodeCard extends Table{
 
         for(EditorNode child : editorNode.getChildren().values()){
             if(child.getObjNode() == null || child.getObjNode().field == null){
-                mappedChildren.get(Object.class).add(child); // Object means unknow declaring class
+                mappedChildren.get(Object.class).add(child); // Object means unknown declaring class
                 continue;
             }
 

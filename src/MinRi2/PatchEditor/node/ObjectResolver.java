@@ -157,6 +157,14 @@ public class ObjectResolver{
         return null;
     }
 
+    public static ObjectNode getShadowNode(ObjectNode node, Class<?> newType){
+        ObjectNode shadowNode = new ObjectNode(node.name, getExample(PatchJsonIO.getTypeParser(newType), newType), node.field, node.type, node.elementType, node.keyType);
+        if(node.hasSign(ModifierSign.MODIFY)){
+            shadowNode.addSign(ModifierSign.MODIFY);
+        }
+        return shadowNode;
+    }
+
     public static ObjectNode getTemplate(Class<?> type){
         if(templateNode == null) templateNode = new ObjectMap<>();
 
@@ -165,7 +173,7 @@ public class ObjectResolver{
 
         objectNode = new ObjectNode("", getExample(PatchJsonIO.getTypeParser(type), type), type);
         // TODO: template is always modifiable?
-        objectNode.addSign(ModifierSign.MODIFY, type, null, null);
+        objectNode.addSign(ModifierSign.MODIFY);
         templateNode.put(type, objectNode);
         return objectNode;
     }
