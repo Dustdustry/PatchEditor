@@ -9,8 +9,9 @@ import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
 import arc.util.serialization.JsonValue.*;
 import mindustry.*;
+import mindustry.ai.types.*;
 import mindustry.ctype.*;
-import mindustry.entities.part.*;
+import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
 import mindustry.type.*;
@@ -40,8 +41,7 @@ public class ObjectResolver{
                 }
             }
 
-            node.addChild("name", "Patch0", String.class, null, null)
-            .addSign(ModifierSign.MODIFY, String.class, null, null);
+            node.addChild("name", "Patch0").addSign(ModifierSign.MODIFY);
             return;
         }
 
@@ -55,9 +55,9 @@ public class ObjectResolver{
         if(node.elementType != null && !typeResolvable(node.elementType)) return;
 
         if(ClassHelper.isArrayLike(objectType)){
-            node.addSign(ModifierSign.PLUS, node.type, node.elementType, node.elementType);
+            node.addSign(ModifierSign.PLUS);
         }else if(ClassHelper.isMap(objectType)){
-            node.addSign(ModifierSign.PLUS, node.type, node.elementType, node.keyType);
+            node.addSign(ModifierSign.PLUS);
         }
 
         // object resolve
@@ -87,13 +87,13 @@ public class ObjectResolver{
             for(var entry : map){
                 String name = PatchJsonIO.getKeyName(entry.key);
                 ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry), node.elementType, node.elementType, node.keyType);
-                entryNode.addSign(ModifierSign.MODIFY, node.type, node.elementType, node.keyType);
+                entryNode.addSign(ModifierSign.MODIFY);
             }
         }else if(object instanceof ObjectFloatMap<?> map){
             for(var entry : map){
                 String name = PatchJsonIO.getKeyName(entry.key);
                 ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry.key, entry.value), node.elementType, node.elementType, node.keyType);
-                entryNode.addSign(ModifierSign.MODIFY, node.type, node.elementType, node.keyType);
+                entryNode.addSign(ModifierSign.MODIFY);
             }
         }else if(object instanceof ContentType ctype){
             OrderedMap<String, Content> map = new OrderedMap<>(); // in order
@@ -103,33 +103,46 @@ public class ObjectResolver{
 
             for(var entry : map){
                 String name = PatchJsonIO.getKeyName(entry.key);
-                node.addChild(name, entry.value, null, null);
+                node.addChild(name, entry.value);
             }
         }else{
-            Seq<String> blacklist = findFieldBlacklist(objectType);
-            for(var entry : PatchJsonIO.getFields(objectType)){
-                String name = entry.key;
-                if(blacklist != null && blacklist.contains(name)) continue;
+            resolveFields(node, object, objectType);
+        }
+    }
 
-                FieldMetadata fieldMeta = entry.value;
-                if(!fieldResolvable(fieldMeta.field)) continue;
-                if(fieldMeta.elementType != null && !typeResolvable(fieldMeta.elementType)) continue;
+    private static void resolveFields(ObjectNode node, Object object, Class<?> objectType){
+        Seq<String> blacklist = findFieldBlacklist(objectType);
+        for(var entry : PatchJsonIO.getFields(objectType)){
+            String name = entry.key;
+            if(blacklist != null && blacklist.contains(name)) continue;
 
-                FieldMetadata copiedMeta = new FieldMetadata(fieldMeta.field);
-                Object childObj = object == null ? null : Reflect.get(object, fieldMeta.field);
-                // fix meta
-                if(childObj instanceof ObjectFloatMap<?>){
-                    copiedMeta.keyType = copiedMeta.elementType;
-                    copiedMeta.elementType = float.class;
-                }
+            FieldMetadata fieldMeta = entry.value;
+            if(!fieldResolvable(fieldMeta.field)) continue;
+            if(fieldMeta.elementType != null && !typeResolvable(fieldMeta.elementType)) continue;
 
-                ObjectNode child = node.addChild(name, childObj, copiedMeta);
-
-                // no map
-                if(!ClassHelper.isMap(child.type)){
-                    child.addSign(ModifierSign.MODIFY, child.type, child.elementType, child.keyType);
-                }
+            FieldMetadata copiedMeta = new FieldMetadata(fieldMeta.field);
+            Object childObj = object == null ? null : Reflect.get(object, fieldMeta.field);
+            // fix meta
+            if(childObj instanceof ObjectFloatMap<?>){
+                copiedMeta.keyType = copiedMeta.elementType;
+                copiedMeta.elementType = float.class;
             }
+
+            ObjectNode child = node.addChild(name, childObj, copiedMeta);
+
+            // no map
+            if(!ClassHelper.isMap(child.type)){
+                child.addSign(ModifierSign.MODIFY);
+            }
+        }
+
+        // specific fields
+        if(object instanceof UnitType type){
+            // classTypeName will be resolved to prov
+            String typeName = SelectList.getUnitTypeName(type.constructor.get().getClass());
+            node.addChild("type", typeName == null ? "unknown" : typeName, String.class).addSign(ModifierSign.MODIFY);
+            node.addChild("aiController", type.aiController.get().getClass(), AIController.class).addSign(ModifierSign.MODIFY);
+            node.addChild("controller", CommandAI.class, AIController.class).addSign(ModifierSign.MODIFY);
         }
     }
 
@@ -187,7 +200,7 @@ public class ObjectResolver{
 
         if(example == null){
             JsonValue value = new JsonValue(ValueType.object);
-            value.addChild("type", new JsonValue(PatchJsonIO.classTypeName(type)));
+            value.addChild("type", new JsonValue(PatchJsonIO.getClassTypeName(type)));
 
             try{
                 Json parserJson = PatchJsonIO.getParser().getJson();
