@@ -33,7 +33,7 @@ Anyway, enjoy making wonderful patch!
 
 - [x] Select weapon region
 - [x] Select texture region
-- [ ] Select unit's controller, aiController and type
+- [x] Select unit's controller, aiController and type
 - [ ] Select effect
 - [ ] Select block flag
 - [ ] Select sound
