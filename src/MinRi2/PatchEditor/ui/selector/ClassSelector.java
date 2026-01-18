@@ -19,7 +19,7 @@ public class ClassSelector extends SelectorDialog<Class<?>>{
 
     @Override
     protected void setupItemTable(Table table, Class<?> item){
-        table.add(item.getSimpleName()).pad(8f);
+        table.add(item.getSimpleName());
     }
 
     @Override

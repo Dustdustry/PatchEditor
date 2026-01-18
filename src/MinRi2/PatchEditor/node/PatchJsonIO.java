@@ -107,12 +107,6 @@ public class PatchJsonIO{
         return getTypeParser(type);
     }
 
-    public static String classTypeName(Class<?> type){
-        String name = ClassMap.classes.findKey(type, true);
-        if(name == null) name = type.getName();
-        return name;
-    }
-
     public static int getContainerSize(Object containerLike){
         if(containerLike instanceof Object[] arr) return arr.length;
         if(containerLike instanceof Seq<?> seq) return seq.size;

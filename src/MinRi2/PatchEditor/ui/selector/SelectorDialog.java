@@ -52,7 +52,7 @@ public abstract class SelectorDialog<T> extends BaseDialog{
             if(!query.isEmpty() && !matchQuery(item)) continue;
 
             cont.button(table -> {
-                table.table(t -> setupItemTable(t, item)).growX();
+                table.table(t -> setupItemTable(t, item)).pad(4f).growX();
 
                 table.image().width(4f).color(Color.darkGray).growY().right();
                 table.row();

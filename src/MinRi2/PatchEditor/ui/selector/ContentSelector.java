@@ -27,10 +27,9 @@ public class ContentSelector extends SelectorDialog<Content>{
 
     @Override
     protected void setupItemTable(Table table, Content item){
-        table.image(NodeDisplay.getDisplayIcon(item)).scaling(Scaling.fit).size(48f).pad(8f).expandX().left();
+        table.image(NodeDisplay.getDisplayIcon(item)).scaling(Scaling.fit).size(Vars.iconXLarge).pad(8f);
 
         table.table(infoTable -> {
-            infoTable.right();
             infoTable.defaults().pad(4f).right();
 
             infoTable.add(NodeDisplay.getDisplayName(item));
@@ -38,7 +37,7 @@ public class ContentSelector extends SelectorDialog<Content>{
                 infoTable.row();
                 infoTable.add(unlockable.name).color(EPalettes.grayFront);
             }
-        });
+        }).expandX().right();
     }
 
     @Override

@@ -67,14 +67,13 @@ public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
 
     @Override
     protected void setupItemTable(Table table, AtlasRegion item){
-        table.margin(8f);
-        table.image(item).scaling(Scaling.fit).size(Vars.iconXLarge);
+        table.image(item).scaling(Scaling.fit).size(Vars.iconXLarge).pad(8f);
         table.add(item.name).ellipsis(true).wrap().pad(8f).growX();
     }
 
     @Override
     protected Seq<AtlasRegion> getItems(){
-        return Core.atlas.getRegions().copy().sort(Structs.comparing(region -> region.name));
+        return SelectList.getRegions();
     }
 
     @Override

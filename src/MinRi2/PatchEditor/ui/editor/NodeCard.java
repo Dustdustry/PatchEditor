@@ -166,21 +166,18 @@ public class NodeCard extends Table{
         }
 
         int columns = Math.max(1, (int)(nodesTable.getWidth() / Scl.scl() / buttonWidth));
-
         var map = mappedChildren();
         for(var entry : map){
             Seq<EditorNode> children = entry.value;
             Class<?> declareClass = entry.key;
-            if(children.isEmpty() && declareClass != Object.class) continue;
+            if(children.isEmpty()) continue;
 
-            if(declareClass != Object.class){
-                nodesTable.table(t -> {
-                    t.image().color(Pal.darkerGray).size(32f, 6f);
-                    t.add(ClassHelper.getDisplayName(declareClass)).color(EPalettes.type).padLeft(16f).padRight(16f).left();
-                    t.image().color(Pal.darkerGray).height(4f).growX();
-                }).marginTop(16f).marginBottom(8f).growX();
-                nodesTable.row();
-            }
+            nodesTable.table(t -> {
+                t.image().color(Pal.darkerGray).size(32f, 6f);
+                t.add(declareClass == Object.class ? "Other" : ClassHelper.getDisplayName(declareClass)).color(EPalettes.type).padLeft(16f).padRight(16f).left();
+                t.image().color(Pal.darkerGray).height(4f).growX();
+            }).marginTop(16f).marginBottom(8f).growX();
+            nodesTable.row();
             Table cont = nodesTable.table().left().get();
             nodesTable.row();
 
@@ -209,8 +206,11 @@ public class NodeCard extends Table{
                 }
             }
 
-            if(declareClass == Object.class && editorNode.getObjNode().hasSign(ModifierSign.PLUS) && editorNode.getObjNode().elementType != null){
-                addPlusButton(cont, editorNode);
+            // nodes in Object are regarded as other
+            if(declareClass == Object.class){
+                if(editorNode.getObjNode().hasSign(ModifierSign.PLUS) && editorNode.getObjNode().elementType != null){
+                    addPlusButton(cont, editorNode);
+                }
             }
 
             children.clear();

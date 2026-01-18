@@ -1,7 +1,6 @@
 package MinRi2.PatchEditor.node.patch;
 
 import MinRi2.PatchEditor.node.*;
-import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 
 public abstract class PatchOperator{
@@ -124,7 +123,7 @@ public abstract class PatchOperator{
             PatchNode node = root.navigateChild(path, true);
             if(node == null) return;
 
-            node.getOrCreate("type").value = PatchJsonIO.classTypeName(type);
+            node.getOrCreate("type").value = PatchJsonIO.getClassTypeName(type);
         }
 
         @Override

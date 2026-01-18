@@ -84,8 +84,17 @@ public class ObjectNode{
         return isRoot;
     }
 
+    public ObjectNode addSign(ModifierSign sign){
+        // extend type from parent
+        return addSign(sign, type, elementType, keyType);
+    }
+
     public ObjectNode addSign(ModifierSign sign, Class<?> type, Class<?> elementType, Class<?> keyType){
         return addChild(sign.sign, null, type, elementType, keyType);
+    }
+
+    public ObjectNode addChild(String name, Object object){
+        return addChild(name, object, null, null);
     }
 
     public ObjectNode addChild(String name, Object object, Class<?> elementType, Class<?> keyType){
@@ -95,6 +104,10 @@ public class ObjectNode{
 
     public ObjectNode addChild(String name, Object object, FieldMetadata metadata){
         return addChild(new ObjectNode(name, object, metadata));
+    }
+
+    public ObjectNode addChild(String name, Object object, Class<?> type){
+        return addChild(name, object, type, null, null);
     }
 
     public ObjectNode addChild(String name, Object object, Class<?> type, Class<?> elementType, Class<?> keyType){
