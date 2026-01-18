@@ -91,6 +91,10 @@ public class PatchJsonIO{
         return !type.isPrimitive() && !Reflect.isWrapper(type);
     }
 
+    public static boolean typeOverrideable(Class<?> type){
+        return overrideable(type) && !UnitType.class.isAssignableFrom(type) && !Content.class.isAssignableFrom(type);
+    }
+
     public static Class<?> resolveType(Class<?> base, @Nullable String typeJson){
         return resolveType(typeJson == null ? base : ClassMap.classes.get(typeJson));
     }
@@ -192,7 +196,7 @@ public class PatchJsonIO{
             }
 
             // override sign assign
-            if(childObj != null && childObj.object == null){
+            if(childObj != null && typeOverrideable(childObj.type) && (childObj.object == null || childValue.has("type"))){
                 childNode.sign = ModifierSign.MODIFY;
                 if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
             }

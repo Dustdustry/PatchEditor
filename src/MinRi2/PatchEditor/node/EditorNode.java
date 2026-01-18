@@ -104,12 +104,13 @@ public class EditorNode{
     }
 
     public ObjectNode getObjNode(){
+        if(!PatchJsonIO.typeOverrideable(getTypeIn())) return objectNode;
+
         Class<?> type = objectNode.type;
         PatchNode patchNode = getPatch();
         if(patchNode != null){
             PatchNode typePatch = patchNode.getOrNull("type");
-            // UnitType's type have its resolver.
-            if(typePatch != null && typePatch.value != null && !UnitType.class.isAssignableFrom(type)){
+            if(typePatch != null && typePatch.value != null){
                 type = PatchJsonIO.resolveType(objectNode.elementType, typePatch.value);
             }
         }
@@ -178,11 +179,10 @@ public class EditorNode{
     }
 
     public boolean isChangedType(){
+        if(!PatchJsonIO.typeOverrideable(getTypeIn())) return false;
+
         PatchNode patchNode = getPatch();
         if(patchNode == null) return false;
-
-        // UnitType's type have its resolver.
-        if(UnitType.class.isAssignableFrom(getTypeIn())) return false;
 
         PatchNode typePatch = patchNode.getOrNull("type");
         return typePatch != null && typePatch.value != null
