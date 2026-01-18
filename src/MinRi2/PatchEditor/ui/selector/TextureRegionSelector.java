@@ -2,7 +2,6 @@ package MinRi2.PatchEditor.ui.selector;
 
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.ui.*;
-import arc.*;
 import arc.graphics.*;
 import arc.graphics.g2d.TextureAtlas.*;
 import arc.scene.ui.layout.*;
@@ -73,7 +72,7 @@ public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
 
     @Override
     protected Seq<AtlasRegion> getItems(){
-        return SelectList.getRegions();
+        return PatchSelectList.getRegions();
     }
 
     @Override

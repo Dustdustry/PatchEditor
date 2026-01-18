@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.node;
 
+import MinRi2.PatchEditor.node.PatchSelectList.*;
 import arc.files.*;
 import arc.graphics.*;
 import arc.input.*;
@@ -139,10 +140,9 @@ public class ObjectResolver{
         // specific fields
         if(object instanceof UnitType type){
             // classTypeName will be resolved to prov
-            String typeName = SelectList.getUnitTypeName(type.constructor.get().getClass());
-            node.addChild("type", typeName == null ? "unknown" : typeName, String.class).addSign(ModifierSign.MODIFY);
-            node.addChild("aiController", type.aiController.get().getClass(), AIController.class).addSign(ModifierSign.MODIFY);
-            node.addChild("controller", CommandAI.class, AIController.class).addSign(ModifierSign.MODIFY);
+            node.addChild("type", PatchSelectList.getUnitTypeName(type.constructor.get().getClass()), UnitConstructorType.class).addSign(ModifierSign.MODIFY);
+            node.addChild("aiController", PatchJsonIO.getClassTypeName(type.aiController.get().getClass()), AIController.class).addSign(ModifierSign.MODIFY);
+            node.addChild("controller", PatchJsonIO.getClassTypeName(CommandAI.class), AIController.class).addSign(ModifierSign.MODIFY);
         }
     }
 

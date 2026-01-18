@@ -9,6 +9,7 @@ import arc.graphics.g2d.*;
 import arc.scene.actions.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ctype.*;
@@ -128,7 +129,6 @@ public abstract class ModifierBuilder<T>{
         public void build(Table table){
             contentTable = table.button(b -> {}, Styles.clearNonei, () -> {
                 Class<?> type = consumer.getTypeMeta();
-                consumer.getDefaultValue().getContentType();
                 ContentType contentType = PatchJsonIO.classContentType(type);
 
                 EUI.selector.select(contentType, type, c -> c != value, c -> {
@@ -184,7 +184,6 @@ public abstract class ModifierBuilder<T>{
 
     public static class TextureRegionBuilder extends ModifierBuilder<String>{
         protected Image image;
-        protected Label label;
 
         public TextureRegionBuilder(ModifyConsumer<String> consumer){
             super(consumer);
@@ -195,7 +194,7 @@ public abstract class ModifierBuilder<T>{
             table.button(b -> {
                 b.left();
                 image = b.image().scaling(Scaling.fit).size(Vars.iconXLarge).pad(8f).get();
-                label = b.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX().get();
+                b.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX().get();
             }, Styles.clearNonei, () -> {
                 EUI.textureRegionSelector.select(region -> {
                     setValue(region.name);
@@ -212,7 +211,65 @@ public abstract class ModifierBuilder<T>{
 
             TextureRegion region = Core.atlas.getRegionMap().get(value);
             image.setDrawable(region == null ? Icon.none.getRegion() : region);
-            label.setText(value);
+        }
+    }
+
+    public static class WeaponNameBuilder extends TextBuilder{
+        public WeaponNameBuilder(ModifyConsumer<String> consumer){
+            super(consumer);
+        }
+
+        @Override
+        public void build(Table table){
+            value = consumer.getValue();
+
+            field = table.field(value, this::setValue)
+            .valid(consumer::checkValue).pad(4f).width(100f).get();
+
+            table.button(Icon.book, Styles.clearNonei, () -> {
+                EUI.weaponSelector.select(weapon -> {
+                    setValue(weapon.name);
+                    return true;
+                });
+            }).pad(4f).width(48f).growY().tooltip("@selector.weapon-selector");
+
+            addResetButton(table);
+        }
+    }
+
+    // select only
+    public static class SelectBuilder extends ModifierBuilder<String>{
+        private final Seq<String> names = new Seq<>();
+
+        public SelectBuilder(ModifyConsumer<String> consumer, Seq<String> names){
+            super(consumer);
+
+            this.names.set(names);
+        }
+
+        public SelectBuilder(ModifyConsumer<String> consumer, Enum<?>[] enums){
+            super(consumer);
+
+            for(Enum<?> anEnum : enums){
+                names.add(anEnum.name());
+            }
+        }
+
+        @Override
+        protected void build(Table table){
+            value = consumer.getValue();
+
+            table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX()
+            .tooltip(t -> t.background(Styles.black3).label(() -> value).pad(4f));
+
+            table.button(Icon.book, Styles.clearNonei, () -> {
+                EUI.stringItemSelector.select(names, str -> !str.equals(value), str -> {
+                    setValue(str);
+                    return true;
+                });
+            }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
+
+            addResetButton(table);
         }
     }
 }

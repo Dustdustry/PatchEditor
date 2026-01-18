@@ -1,18 +1,9 @@
 package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.modifier.ModifierBuilder.*;
-import MinRi2.PatchEditor.ui.*;
-import MinRi2.PatchEditor.ui.selector.*;
-import arc.graphics.*;
-import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.util.*;
 import arc.util.serialization.JsonValue.*;
-import mindustry.*;
 import mindustry.ctype.*;
-import mindustry.gen.*;
-import mindustry.type.*;
-import mindustry.ui.*;
 
 /**
  * @author minri2
@@ -53,6 +44,18 @@ public abstract class EqualModifier<T> extends DataModifier<T>{
         @Override
         public String cast(Object object){
             return String.valueOf(object);
+        }
+    }
+
+    public static class EnumModifier extends StringModifier{
+        public EnumModifier(Seq<String> names){
+            builder = new SelectBuilder(this, names);
+            valueType = ValueType.stringValue;
+        }
+
+        public EnumModifier(Enum<?>[] enums){
+            builder = new SelectBuilder(this, enums);
+            valueType = ValueType.stringValue;
         }
     }
 
@@ -98,29 +101,6 @@ public abstract class EqualModifier<T> extends DataModifier<T>{
         public WeaponNameModifier(){
             builder = new WeaponNameBuilder(this);
             valueType = ValueType.stringValue;
-        }
-
-        public static class WeaponNameBuilder extends TextBuilder{
-            public WeaponNameBuilder(ModifyConsumer<String> consumer){
-                super(consumer);
-            }
-
-            @Override
-            public void build(Table table){
-                value = consumer.getValue();
-
-                field = table.field(value, this::setValue)
-                .valid(consumer::checkValue).pad(4f).width(100f).get();
-
-                table.button(Icon.book, Styles.clearNonei, () -> {
-                    EUI.weaponSelector.select(weapon -> {
-                        setValue(weapon.name);
-                        return true;
-                    });
-                }).pad(4f).width(48f).growY().tooltip("@selector.weapon-selector");
-
-                addResetButton(table);
-            }
         }
     }
 }

@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.PatchSelectList.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -8,7 +9,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.*;
-import mindustry.ctype.*;
+import mindustry.entities.units.*;
 import mindustry.type.*;
 import mindustry.world.*;
 
@@ -25,6 +26,9 @@ public class NodeModifier{
         modifyConfig.addAll(
         // field specific first
         new ModifierConfig(WeaponNameModifier::new, String.class).fieldOf(Weapon.class, "name"),
+
+        new ModifierConfig(() -> new EnumModifier(UnitConstructorType.values()), UnitConstructorType.class),
+        new ModifierConfig(() -> new EnumModifier(PatchSelectList.getSubTypeNames(AIController.class)), AIController.class),
 
         new ModifierConfig(ColorModifier::new, Color.class),
         new ModifierConfig(ContentTypeModifier::new, Block.class, Item.class, Liquid.class, StatusEffect.class, UnitType.class, Plane.class, Weather.class, UnitCommand.class, UnitStance.class),

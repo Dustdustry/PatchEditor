@@ -1,8 +1,6 @@
 package MinRi2.PatchEditor.ui.selector;
 
 import MinRi2.PatchEditor.node.*;
-import MinRi2.PatchEditor.ui.editor.*;
-import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
@@ -22,7 +20,7 @@ public class WeaponSelector extends SelectorDialog<Weapon>{
 
     @Override
     protected Seq<Weapon> getItems(){
-        return SelectList.getWeapons();
+        return PatchSelectList.getWeapons();
     }
 
     @Override

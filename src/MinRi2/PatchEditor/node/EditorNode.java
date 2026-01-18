@@ -6,6 +6,10 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
+import mindustry.mod.*;
+import mindustry.type.*;
+
+import java.time.format.*;
 
 /**
  * @author minri2
@@ -104,7 +108,8 @@ public class EditorNode{
         PatchNode patchNode = getPatch();
         if(patchNode != null){
             PatchNode typePatch = patchNode.getOrNull("type");
-            if(typePatch != null && typePatch.value != null){
+            // UnitType's type have its resolver.
+            if(typePatch != null && typePatch.value != null && !UnitType.class.isAssignableFrom(type)){
                 type = PatchJsonIO.resolveType(objectNode.elementType, typePatch.value);
             }
         }
@@ -136,7 +141,9 @@ public class EditorNode{
             JsonValue value = PatchJsonIO.toJson(patchNode);
             return PatchJsonIO.getParser().getJson().readValue(getTypeIn(), value);
         }catch(Exception e){
-            Log.err(e);
+            // may expect class value
+            Class<?> type = ClassMap.classes.get(patchNode.value);
+            if(type != null) return type;
             return getObject();
         }
     }
@@ -174,8 +181,12 @@ public class EditorNode{
         PatchNode patchNode = getPatch();
         if(patchNode == null) return false;
 
+        // UnitType's type have its resolver.
+        if(UnitType.class.isAssignableFrom(getTypeIn())) return false;
+
         PatchNode typePatch = patchNode.getOrNull("type");
-        return typePatch != null && typePatch.value != null && PatchJsonIO.resolveType(objectNode.elementType, typePatch.value) != null;
+        return typePatch != null && typePatch.value != null
+        && PatchJsonIO.resolveType(objectNode.elementType, typePatch.value) != null;
     }
 
     public boolean isEditable(){
