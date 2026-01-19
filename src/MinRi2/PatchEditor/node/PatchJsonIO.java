@@ -83,20 +83,20 @@ public class PatchJsonIO{
         && !UnitType.class.isAssignableFrom(type) && !UnlockableContent.class.isAssignableFrom(type);
     }
 
-    public static Class<?> resolveType(Class<?> base, @Nullable String typeJson){
-        return resolveType(typeJson == null ? base : ClassMap.classes.get(typeJson));
+    public static Class<?> resolveType(@Nullable String typeJson){
+        return typeJson != null && ClassMap.classes.containsKey(typeJson) ? resolveType(ClassMap.classes.get(typeJson)) : null;
     }
 
     public static Class<?> resolveType(Class<?> type){
         if(type.isPrimitive() || ClassHelper.isArray(type)) return type;
 
         int typeModifiers = type.getModifiers();
-        if(!Modifier.isAbstract(typeModifiers) && !Modifier.isInterface(typeModifiers)) return getTypeParser(type);
+        if(!Modifier.isAbstract(typeModifiers) && !Modifier.isInterface(typeModifiers)) return type;
 
         Class<?> defaultType = defaultClassMap.get(type);
         if(defaultType != null) return defaultType;
 
-        return getTypeParser(type);
+        return type;
     }
 
     /** Get available type in ContentParser#classParsers */

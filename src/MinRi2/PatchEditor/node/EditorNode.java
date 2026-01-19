@@ -48,9 +48,7 @@ public class EditorNode{
 
         boolean isOverriding = isOverriding();
         if(isOverriding){
-            children.clear();
-            resolvedObj = false;
-            dynamicDirty = true;
+            clearChildren();
         }
 
         if(!resolvedObj){
@@ -84,7 +82,8 @@ public class EditorNode{
                         String typeJson = typeNode == null ? null : typeNode.value;
 
                         try{
-                            Class<?> type = PatchJsonIO.resolveType(getObjNode().elementType, typeJson);
+                            Class<?> type = PatchJsonIO.resolveType(typeJson);
+                            if(type == null) continue; // type invalid
 
                             EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
                             child.parent = this;
@@ -108,11 +107,12 @@ public class EditorNode{
         if(patchNode != null){
             PatchNode typePatch = patchNode.getOrNull("type");
             if(typePatch != null && typePatch.value != null){
-                type = PatchJsonIO.resolveType(objectNode.elementType, typePatch.value);
+                type = PatchJsonIO.resolveType(typePatch.value);
+                if(type == null) return objectNode; // type invalid
             }
         }
 
-        if(type != objectNode.type || isOverriding()){
+        if(type != objectNode.type){
             if(shadowObjectNode == null || shadowObjectNode.type != type){
                 shadowObjectNode = ObjectResolver.getShadowNode(objectNode, type);
             }
@@ -194,8 +194,7 @@ public class EditorNode{
         if(patchNode == null) return false;
 
         PatchNode typePatch = patchNode.getOrNull("type");
-        return typePatch != null && typePatch.value != null
-        && PatchJsonIO.resolveType(objectNode.elementType, typePatch.value) != null;
+        return typePatch != null && typePatch.value != null && PatchJsonIO.resolveType(typePatch.value) != null;
     }
 
     public boolean isEditable(){
@@ -245,6 +244,7 @@ public class EditorNode{
     }
 
     public void changeType(Class<?> type){
+        clearChildren(); // resolve again
         dynamicChanged();
         manager.applyOp(new ChangeTypeOp(getPath(), type));
     }
@@ -255,6 +255,12 @@ public class EditorNode{
         if(ClassHelper.isArrayLike(getTypeIn())){
             manager.applyOp(new SetValueTypeOp(getPath(), ValueType.array));
         }
+    }
+
+    public void clearChildren(){
+        children.clear();
+        resolvedObj = false;
+        dynamicDirty = true;
     }
 
     public void dynamicChanged(){

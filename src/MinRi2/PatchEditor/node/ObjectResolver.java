@@ -158,7 +158,7 @@ public class ObjectResolver{
     }
 
     public static ObjectNode getShadowNode(ObjectNode node, Class<?> newType){
-        ObjectNode shadowNode = new ObjectNode(node.name, getExample(PatchJsonIO.resolveType(newType), newType), node.field, node.type, node.elementType, node.keyType);
+        ObjectNode shadowNode = new ObjectNode(node.name, getExample(newType, newType), node.field, node.type, node.elementType, node.keyType);
         if(node.hasSign(ModifierSign.MODIFY)){
             shadowNode.addSign(ModifierSign.MODIFY);
         }
@@ -211,6 +211,7 @@ public class ObjectResolver{
         }
 
         if(example == null){
+            base = PatchJsonIO.getTypeParser(base);
             JsonValue value = new JsonValue(ValueType.object);
             value.addChild("type", new JsonValue(PatchJsonIO.getClassTypeName(type)));
 

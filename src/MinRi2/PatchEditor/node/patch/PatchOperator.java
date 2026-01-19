@@ -123,6 +123,7 @@ public abstract class PatchOperator{
             PatchNode node = root.navigateChild(path, true);
             if(node == null) return;
 
+            node.sign = ModifierSign.MODIFY; // type changing base on overriding
             node.getOrCreate("type").value = PatchJsonIO.getClassTypeName(type);
         }
 
