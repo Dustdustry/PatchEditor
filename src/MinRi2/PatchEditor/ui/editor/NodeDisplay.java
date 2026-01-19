@@ -5,6 +5,7 @@ import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.graphics.g2d.*;
 import arc.scene.style.*;
+import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
@@ -52,6 +53,9 @@ public class NodeDisplay{
         if(object instanceof ContentType type) return contentSymbolMap.get(type, Icon.effect.getRegion());
         if(object instanceof UnlockableContent unlockable) return unlockable.uiIcon;
         if(object instanceof Weapon weapon) return Core.atlas.find(weapon.name, Icon.none.getRegion());
+        if(object instanceof ItemStack stack) return stack.item.uiIcon;
+        if(object instanceof LiquidStack stack) return stack.liquid.uiIcon;
+        if(object instanceof PayloadStack stack) return stack.item.uiIcon;
         return Icon.effect.getRegion();
     }
 
@@ -99,6 +103,10 @@ public class NodeDisplay{
             if(seq.isEmpty()) return;
             if(contentSymbolMap == null) intiSymbol();
             displayInfo(contentType);
+        }else if(object instanceof ItemStack || object instanceof LiquidStack || object instanceof PayloadStack){
+            displayNameType();
+            table.add().expandX();
+            displayStack(object);
         }else{
             displayNameType();
         }
@@ -124,6 +132,23 @@ public class NodeDisplay{
             valueTable.image(getDisplayIcon(object)).scaling(Scaling.fit).size(imageSize);
             valueTable.row();
             valueTable.add(getDisplayName(object)).labelAlign(Align.right).ellipsis(true).wrap().padTop(8f).minWidth(labelWidth).growX();
+        });
+    }
+
+    private static void displayStack(Object stack){
+        table.table(valueTable -> {
+            valueTable.defaults().right();
+
+            float displayAmount = stack instanceof ItemStack itemStack ? itemStack.amount
+            : stack instanceof LiquidStack liquidStack ? liquidStack.amount * 60f
+            : stack instanceof PayloadStack payloadStack ? payloadStack.amount : 0;
+
+            valueTable.stack(new Image(getDisplayIcon(stack)){{
+                setScaling(Scaling.fit);
+            }}, new Table(t -> {
+                t.right().bottom();
+                t.add(Strings.autoFixed(displayAmount, 2)).fontScale(0.9f);
+            })).size(imageSize);
         });
     }
 }

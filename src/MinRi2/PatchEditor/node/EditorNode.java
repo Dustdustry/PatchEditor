@@ -133,15 +133,17 @@ public class EditorNode{
 
     public Object getDisplayValue(){
         PatchNode patchNode = getPatch();
-        if(patchNode == null || patchNode.value == null) return getObject();
+        if(patchNode == null) return getObject();
         if(isRemoving()) return getObject();
         try{
             JsonValue value = PatchJsonIO.toJson(patchNode);
             return PatchJsonIO.getParser().getJson().readValue(getTypeIn(), value);
         }catch(Exception e){
             // may expect class value
-            Class<?> type = ClassMap.classes.get(patchNode.value);
-            if(type != null) return type;
+            if(patchNode.value != null){
+                Class<?> type = ClassMap.classes.get(patchNode.value);
+                if(type != null) return type;
+            }
             return getObject();
         }
     }
