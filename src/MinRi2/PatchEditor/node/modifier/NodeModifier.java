@@ -31,7 +31,7 @@ public class NodeModifier{
         new ModifierConfig(() -> new EnumModifier(PatchSelectList.getSubTypeNames(AIController.class)), AIController.class),
 
         new ModifierConfig(ColorModifier::new, Color.class),
-        new ModifierConfig(ContentTypeModifier::new, Block.class, Item.class, Liquid.class, StatusEffect.class, UnitType.class, Plane.class, Weather.class, UnitCommand.class, UnitStance.class),
+        new ModifierConfig(ContentTypeModifier::new, Block.class, Item.class, Liquid.class, StatusEffect.class, UnitType.class, Planet.class, Weather.class, UnitCommand.class, UnitStance.class),
         new ModifierConfig(BooleanModifier::new, Boolean.class, boolean.class),
 
         new ModifierConfig(TextureRegionModifier::new, TextureRegion.class),
