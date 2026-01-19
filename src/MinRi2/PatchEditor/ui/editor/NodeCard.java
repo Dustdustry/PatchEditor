@@ -50,6 +50,7 @@ public class NodeCard extends Table{
 
     public void setRootEditorNode(EditorNode rootEditorNode){
         this.rootEditorNode = rootEditorNode;
+        if(childCard != null) childCard.setRootEditorNode(rootEditorNode);
     }
 
     public void setEditorNode(String path){
