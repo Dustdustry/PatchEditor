@@ -133,11 +133,21 @@ public class EditorNode{
 
     public Object getDisplayValue(){
         PatchNode patchNode = getPatch();
-        if(patchNode == null) return getObject();
-        if(isRemoving()) return getObject();
+        if(patchNode == null || isRemoving()) return getObject();
+        // Parse array or map may cause lag. Using original object is ok.
+        if(ClassHelper.isArrayLike(getTypeIn()) || ClassHelper.isMap(getTypeIn())) return getObject();
+        Json json = PatchJsonIO.getParser().getJson();
         try{
             JsonValue value = PatchJsonIO.toJson(patchNode);
-            return PatchJsonIO.getParser().getJson().readValue(getTypeIn(), value);
+            if(patchNode.value != null) return json.readValue(getTypeIn(), value);
+
+            // TODO: cache?
+            Object copied = PatchJsonIO.cloneObject(getObject());
+            if(copied == null) return json.readValue(getTypeIn(), value);
+
+            // stimulate patch applying
+            json.readFields(copied, value);
+            return copied;
         }catch(Exception e){
             // may expect class value
             if(patchNode.value != null){
@@ -249,6 +259,13 @@ public class EditorNode{
 
     public void dynamicChanged(){
         dynamicDirty = true;
+    }
+
+    @Override
+    public String toString(){
+        return "EditorNode{" +
+        "path='" + path + '\'' +
+        '}';
     }
 
     public static class DynamicEditorNode extends EditorNode{

@@ -17,9 +17,9 @@ import org.w3c.dom.*;
  * Create by 2024/2/17
  */
 public class ContentSelector extends SelectorDialog<Content>{
-    private ContentType contentType;
+    private @Nullable ContentType contentType; // null means all the content
     private Boolf<Content> selectable;
-    private Class<?> restrictClass;
+    private @Nullable Class<?> restrictClass;
 
     public ContentSelector(){
         super("@selector.content");
@@ -48,17 +48,20 @@ public class ContentSelector extends SelectorDialog<Content>{
 
     @Override
     protected Seq<Content> getItems(){
-        Seq<Content> contents = Vars.content.getBy(contentType);
-        return contents.select(c -> (selectable == null || selectable.get(c))
-        && (restrictClass == null || restrictClass.isAssignableFrom(c.getClass()))
-        );
+        Seq<Content> contents = new Seq<>();
+        if(contentType != null){
+            contents.addAll(Vars.content.getBy(contentType));
+        }else{
+            Vars.content.each(contents::add);
+        }
+        return contents.retainAll(c -> (selectable == null || selectable.get(c)) && (restrictClass == null || restrictClass.isAssignableFrom(c.getClass())));
     }
 
-    public void select(ContentType contentType, Boolf<Content> selectable, Boolf<Content> consumer){
+    public void select(@Nullable ContentType contentType, Boolf<Content> selectable, Boolf<Content> consumer){
         select(contentType, null, selectable, consumer);
     }
 
-    public void select(ContentType contentType, Class<?> restrictClass, Boolf<Content> selectable, Boolf<Content> consumer){
+    public void select(@Nullable ContentType contentType, @Nullable Class<?> restrictClass, Boolf<Content> selectable, Boolf<Content> consumer){
         this.contentType = contentType;
         this.restrictClass = restrictClass;
         this.selectable = selectable;

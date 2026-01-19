@@ -121,6 +121,7 @@ public class PatchJsonIO{
         return -1;
     }
 
+    // For stimulating patched result.
     public static Object cloneObject(Object object){
         if(object instanceof ItemStack stack) return new ItemStack(stack.item, stack.amount);
         if(object instanceof LiquidStack stack) return new LiquidStack(stack.liquid, stack.amount);

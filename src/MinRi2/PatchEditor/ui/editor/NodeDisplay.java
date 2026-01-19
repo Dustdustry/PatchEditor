@@ -79,24 +79,24 @@ public class NodeDisplay{
 
     public static void displayNameType(Table table, EditorNode node){
         set(table, node);
-        displayNameType();
+        displayNameType(node.getDisplayValue());
         reset();
     }
 
     private static void displayObject(Object object){
         if(object == null){
-            displayNameType();
+            displayNameType(object);
             table.add().expandX();
             table.table(t -> {
                 t.image(Icon.none).size(imageSize).row();
                 t.add("null").padTop(8f);
             });
         }else if(object instanceof UnlockableContent || object instanceof Weapon){
-            displayNameType();
+            displayNameType(object);
             table.add().expandX();
             displayInfo(object);
         }else if(object instanceof ContentType contentType && contentType.contentClass != null){
-            displayNameType();
+            displayNameType(object);
             table.add().expandX();
 
             Seq<?> seq = Vars.content.getBy(contentType);
@@ -104,24 +104,22 @@ public class NodeDisplay{
             if(contentSymbolMap == null) intiSymbol();
             displayInfo(contentType);
         }else if(object instanceof ItemStack || object instanceof LiquidStack || object instanceof PayloadStack){
-            displayNameType();
+            displayNameType(object);
             table.add().expandX();
             displayStack(object);
         }else{
-            displayNameType();
+            displayNameType(object);
         }
     }
 
-    private static void displayNameType(){
+    private static void displayNameType(Object object){
         table.table(nodeInfoTable -> {
             nodeInfoTable.defaults().minWidth(labelWidth).growX();
 
-            Class<?> type = node.getTypeOut();
-            String typeName = type == null ? "unknown" : ClassHelper.getDisplayName(type);
-
+            Class<?> type = ClassHelper.unoymousClass(object == null ? node.getTypeOut() : object.getClass());
             nodeInfoTable.add(node.getDisplayName()).wrap().tooltip(node.getDisplayName());
             nodeInfoTable.row();
-            nodeInfoTable.add(typeName).fontScale(0.85f).color(EPalettes.type).ellipsis(true).wrap().padTop(4f).tooltip(typeName);
+            nodeInfoTable.add(ClassHelper.getDisplayName(type)).fontScale(0.85f).color(EPalettes.type).ellipsis(true).wrap().padTop(4f).tooltip(ClassHelper.getDisplayName(type));
         });
     }
 

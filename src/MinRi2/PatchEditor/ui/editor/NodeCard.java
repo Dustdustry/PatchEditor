@@ -394,7 +394,7 @@ public class NodeCard extends Table{
                 editorNode.dynamicChanged();
                 child.clearJson();
                 rebuildNodesTable();
-            }).grow().tooltip("@node.remove");
+            }).grow().tooltip(child.isAppended() ? "@node.remove" : "@node.revertOverride");
         }else if(!hasModifier && PatchJsonIO.overrideable(child.getTypeIn()) && (child.getObject() == null || child.getObjNode().field != null)){
             // override null object or field
             PatchNode patchNode = child.getPatch();
