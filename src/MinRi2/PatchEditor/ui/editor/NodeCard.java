@@ -363,8 +363,24 @@ public class NodeCard extends Table{
             if(undoMode) return;
         }
 
-        // overriding null, array, map or field
-        if(!hasModifier && child.isOverriding()){
+        if(!hasModifier && child.isAppended()){
+            if(PatchJsonIO.typeOverrideable(child.getTypeIn())){
+                table.button(Icon.wrench, Styles.clearNonei, () -> {
+                    EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
+                        child.changeType(clazz);
+                        rebuildNodesTable();
+                        return true;
+                    });
+                }).tooltip("@node.changeType");
+            }
+
+            table.button(Icon.cancel, Styles.clearNonei, () -> {
+                editorNode.dynamicChanged();
+                child.clearJson();
+                rebuildNodesTable();
+            }).grow().tooltip("@node.remove");
+        }else if(!hasModifier && child.isOverriding()){
+            // overriding null object, array, map or field
             if(PatchJsonIO.typeOverrideable(child.getTypeIn())){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
                     EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
@@ -380,22 +396,6 @@ public class NodeCard extends Table{
                 child.clearJson();
                 rebuildNodesTable();
             }).tooltip("@node.revertOverride");
-        }else if(child.isAppended() || child.isChangedType()){
-            if(!hasModifier && PatchJsonIO.typeOverrideable(child.getTypeIn())){
-                table.button(Icon.wrench, Styles.clearNonei, () -> {
-                    EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
-                        child.changeType(clazz);
-                        rebuildNodesTable();
-                        return true;
-                    });
-                }).tooltip("@node.changeType");
-            }
-
-            table.button(Icon.cancel, Styles.clearNonei, () -> {
-                editorNode.dynamicChanged();
-                child.clearJson();
-                rebuildNodesTable();
-            }).grow().tooltip(child.isAppended() ? "@node.remove" : "@node.revertOverride");
         }else if(!hasModifier && PatchJsonIO.overrideable(child.getTypeIn()) && (child.getObject() == null || child.getObjNode().field != null)){
             // override null object or field
             PatchNode patchNode = child.getPatch();
@@ -405,8 +405,9 @@ public class NodeCard extends Table{
                     rebuildNodesTable();
                 }).tooltip("@node.override");
             }
-        }else if(!hasModifier && (ClassHelper.isArrayLike(editorNode.getTypeIn()) || ClassHelper.isMap(editorNode.getTypeIn()))){
-            // override array's element or map's key
+        }else if(!hasModifier && (ClassHelper.isArrayLike(editorNode.getTypeIn()) || ClassHelper.isMap(editorNode.getTypeIn()))
+        && PatchJsonIO.typeOverrideable(child.getTypeIn())){
+            // override array's element or map's key must change the type
             table.button(Icon.wrench, Styles.clearNonei, () -> {
                 EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
                     child.changeType(clazz);

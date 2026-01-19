@@ -68,7 +68,7 @@ public class EditorNode{
             var iterator = children.entries().iterator();
             while(iterator.hasNext()){
                 EditorNode node = iterator.next().value;
-                if(node instanceof DynamicEditorNode){
+                if(node.isAppended()){
                     node.children.clear();
                     iterator.remove();
                 }
@@ -82,8 +82,9 @@ public class EditorNode{
                         String typeJson = typeNode == null ? null : typeNode.value;
 
                         try{
+                            // changing type support
                             Class<?> type = PatchJsonIO.resolveType(typeJson);
-                            if(type == null) continue; // type invalid
+                            if(type == null) type = getObjNode().elementType; // Not changing type. Use meta type.
 
                             EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
                             child.parent = this;

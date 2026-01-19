@@ -32,6 +32,10 @@ public class PatchJsonIO{
     public static final ObjectMap<Class<?>, Class<?>> defaultClassMap = ObjectMap.of(
         Ability.class, ForceFieldAbility.class
     );
+    public static final Seq<Class<?>> fixedTypeClasses = Seq.with(
+    UnitType.class, UnlockableContent.class,
+    ItemStack.class, LiquidStack.class, PayloadStack.class
+    );
 
     // internal key name
     public static String getKeyName(Object object){
@@ -79,8 +83,7 @@ public class PatchJsonIO{
     }
 
     public static boolean typeOverrideable(Class<?> type){
-        return overrideable(type) && !ClassHelper.isArrayLike(type)
-        && !UnitType.class.isAssignableFrom(type) && !UnlockableContent.class.isAssignableFrom(type);
+        return overrideable(type) && !(ClassHelper.isArrayLike(type) || fixedTypeClasses.contains(c -> c.isAssignableFrom(type)));
     }
 
     public static Class<?> resolveType(@Nullable String typeJson){
