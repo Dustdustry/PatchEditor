@@ -14,6 +14,7 @@ import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
 import mindustry.type.*;
+import mindustry.ui.*;
 
 /**
  * @author minri2
@@ -145,7 +146,7 @@ public class NodeDisplay{
                 setScaling(Scaling.fit);
             }}, new Table(t -> {
                 t.right().bottom();
-                t.add(Strings.autoFixed(displayAmount, 2)).fontScale(0.9f);
+                t.add(Strings.autoFixed(displayAmount, 2)).fontScale(0.9f).style(Styles.outlineLabel);
             })).size(imageSize);
         });
     }
