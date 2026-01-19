@@ -131,6 +131,7 @@ public abstract class ModifierBuilder<T>{
                 Class<?> type = consumer.getTypeMeta();
                 ContentType contentType = PatchJsonIO.classContentType(type);
 
+                // contentType may be null
                 EUI.selector.select(contentType, type, c -> c != value, c -> {
                     setValue(c);
                     return true;

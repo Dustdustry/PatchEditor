@@ -404,8 +404,8 @@ public class NodeCard extends Table{
                     rebuildNodesTable();
                 }).tooltip("@node.override");
             }
-        }else if(!hasModifier && (ClassHelper.isMap(editorNode.getTypeIn()) || ClassHelper.isArrayLike(editorNode.getTypeIn()))){
-            // override array or map
+        }else if(!hasModifier && (ClassHelper.isArrayLike(editorNode.getTypeIn()) || ClassHelper.isMap(editorNode.getTypeIn()))){
+            // override array's element or map's key
             table.button(Icon.wrench, Styles.clearNonei, () -> {
                 EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
                     child.changeType(clazz);

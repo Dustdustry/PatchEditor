@@ -119,4 +119,12 @@ public class ObjectNode{
         child.parent = this;
         return child;
     }
+
+    @Override
+    public String toString(){
+        return "ObjectNode{" +
+        "name='" + name + '\'' +
+        ", type=" + type +
+        '}';
+    }
 }

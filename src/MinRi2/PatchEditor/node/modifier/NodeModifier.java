@@ -9,6 +9,7 @@ import arc.math.geom.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.*;
+import mindustry.ctype.*;
 import mindustry.entities.units.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -31,13 +32,12 @@ public class NodeModifier{
         new ModifierConfig(() -> new EnumModifier(PatchSelectList.getSubTypeNames(AIController.class)), AIController.class),
 
         new ModifierConfig(ColorModifier::new, Color.class),
-        new ModifierConfig(ContentTypeModifier::new, Block.class, Item.class, Liquid.class, StatusEffect.class, UnitType.class, Planet.class, Weather.class, UnitCommand.class, UnitStance.class),
+        new ModifierConfig(ContentTypeModifier::new, UnlockableContent.class),
         new ModifierConfig(BooleanModifier::new, Boolean.class, boolean.class),
 
         new ModifierConfig(TextureRegionModifier::new, TextureRegion.class),
         new ModifierConfig(StringModifier::new, String.class),
-        new ModifierConfig(NumberModifier::new,
-        Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
+        new ModifierConfig(NumberModifier::new, Number.class,
         byte.class, short.class, int.class, long.class, float.class, double.class)
         );
     }
@@ -100,6 +100,13 @@ public class NodeModifier{
 
         public DataModifier<?> getModifier(){
             return prov.get();
+        }
+
+        @Override
+        public String toString(){
+            return "ModifierConfig{" +
+            "modifierTypes=" + modifierTypes +
+            '}';
         }
     }
 }

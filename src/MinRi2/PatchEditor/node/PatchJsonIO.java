@@ -72,6 +72,31 @@ public class PatchJsonIO{
         return classContentType.get(type);
     }
 
+    public static boolean overrideable(Class<?> type){
+        return !(type.isPrimitive() || Reflect.isWrapper(type) || ClassHelper.isMap(type)); // map is unable to override
+    }
+
+    public static boolean typeOverrideable(Class<?> type){
+        return overrideable(type) && !ClassHelper.isArrayLike(type)
+        && !UnitType.class.isAssignableFrom(type) && !UnlockableContent.class.isAssignableFrom(type);
+    }
+
+    public static Class<?> resolveType(Class<?> base, @Nullable String typeJson){
+        return resolveType(typeJson == null ? base : ClassMap.classes.get(typeJson));
+    }
+
+    public static Class<?> resolveType(Class<?> type){
+        if(type.isPrimitive() || ClassHelper.isArray(type)) return type;
+
+        int typeModifiers = type.getModifiers();
+        if(!Modifier.isAbstract(typeModifiers) && !Modifier.isInterface(typeModifiers)) return getTypeParser(type);
+
+        Class<?> defaultType = defaultClassMap.get(type);
+        if(defaultType != null) return defaultType;
+
+        return getTypeParser(type);
+    }
+
     /** Get type in ContentParser#classParsers */
     public static Class<?> getTypeParser(Class<?> type){
         if(type.isPrimitive()) return type;
@@ -87,32 +112,6 @@ public class PatchJsonIO{
         return toppest;
     }
 
-    public static boolean overrideable(Class<?> type){
-        return !type.isPrimitive() && !Reflect.isWrapper(type);
-    }
-
-    public static boolean typeOverrideable(Class<?> type){
-        return overrideable(type)
-        && !ClassHelper.isArrayLike(type) && !ClassHelper.isMap(type)
-        && !UnitType.class.isAssignableFrom(type) && !Content.class.isAssignableFrom(type);
-    }
-
-    public static Class<?> resolveType(Class<?> base, @Nullable String typeJson){
-        return resolveType(typeJson == null ? base : ClassMap.classes.get(typeJson));
-    }
-
-    public static Class<?> resolveType(Class<?> type){
-        if(type.isPrimitive() || ClassHelper.isArray(type)) return type;
-
-        int typeModifiers = type.getModifiers();
-        if(!Modifier.isAbstract(typeModifiers) && !Modifier.isInterface(typeModifiers)) return type;
-
-        Class<?> defaultType = defaultClassMap.get(type);
-        if(defaultType != null) return defaultType;
-
-        return getTypeParser(type);
-    }
-
     public static int getContainerSize(Object containerLike){
         if(containerLike instanceof Object[] arr) return arr.length;
         if(containerLike instanceof Seq<?> seq) return seq.size;
@@ -120,6 +119,13 @@ public class PatchJsonIO{
         if(containerLike instanceof ObjectMap<?,?> map) return map.size;
         if(containerLike instanceof ObjectFloatMap<?> map) return map.size;
         return -1;
+    }
+
+    public static Object cloneObject(Object object){
+        if(object instanceof ItemStack stack) return new ItemStack(stack.item, stack.amount);
+        if(object instanceof LiquidStack stack) return new LiquidStack(stack.liquid, stack.amount);
+        if(object instanceof PayloadStack stack) return new PayloadStack(stack.item, stack.amount);
+        return null;
     }
 
     public static void parseJson(ObjectNode objectNode, PatchNode patchNode, String patch){
