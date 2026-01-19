@@ -413,7 +413,7 @@ public class NodeCard extends Table{
                     rebuildNodesTable();
                     return true;
                 });
-            }).tooltip("@node.override");
+            }).tooltip("@node.changeType");
         }
 
         if(isRequired(child)){
