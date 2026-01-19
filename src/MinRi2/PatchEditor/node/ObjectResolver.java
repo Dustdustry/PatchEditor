@@ -53,7 +53,7 @@ public class ObjectResolver{
 
         // type resolve
         if(!typeResolvable(objectType)) return;
-        if(node.elementType != null && !typeResolvable(node.elementType)) return;
+        if(node.elementType != null && !typeEditable(node.elementType)) return;
 
         if(ClassHelper.isArrayLike(objectType)){
             node.addSign(ModifierSign.PLUS);

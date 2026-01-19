@@ -225,6 +225,7 @@ public class NodeCard extends Table{
         Color modifiedColor = EPalettes.modified, unmodifiedColor0 = EPalettes.unmodified;
 //        if(node.isDynamic()) unmodifiedColor0 = EPalettes.add;
         if(isRequired(node)) unmodifiedColor0 = EPalettes.required;
+        else if(node.isAppended()) unmodifiedColor0 = EPalettes.add;
 
         Color unmodifiedColor = unmodifiedColor0;
 
@@ -363,8 +364,8 @@ public class NodeCard extends Table{
             if(undoMode) return;
         }
 
-        if(!hasModifier && child.isAppended()){
-            if(PatchJsonIO.typeOverrideable(child.getTypeIn())){
+        if(child.isAppended()){
+            if(!hasModifier && PatchJsonIO.typeOverrideable(child.getTypeIn())){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
                     EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
                         child.changeType(clazz);
