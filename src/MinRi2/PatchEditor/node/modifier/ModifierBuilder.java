@@ -163,7 +163,7 @@ public abstract class ModifierBuilder<T>{
                 b.add(image = new BorderImage()).size(32f).pad(8f);
                 b.label(() -> "#" + value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX();
             }, Styles.clearNonei, () -> {
-                Vars.ui.picker.show(Tmp.c1, c -> setValue(c.toString()));
+                Vars.ui.picker.show(Color.valueOf(value), c -> setValue(c.toString()));
             }).grow();
 
             addResetButton(table);
