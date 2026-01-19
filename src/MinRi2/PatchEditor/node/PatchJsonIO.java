@@ -33,6 +33,7 @@ public class PatchJsonIO{
         Ability.class, ForceFieldAbility.class
     );
 
+    // internal key name
     public static String getKeyName(Object object){
         if(object instanceof MappableContent mc) return mc.name;
         if(object instanceof Enum<?> e) return e.name();
@@ -40,9 +41,10 @@ public class PatchJsonIO{
         return String.valueOf(object);
     }
 
+    // internal type name
     public static String getClassTypeName(Class<?> clazz){
         String key = ClassMap.classes.findKey(clazz, true);
-        return key != null ? key : clazz.getSimpleName();
+        return key != null ? key : clazz.getName();
     }
 
     public static ContentParser getParser(){
@@ -97,7 +99,7 @@ public class PatchJsonIO{
         return getTypeParser(type);
     }
 
-    /** Get type in ContentParser#classParsers */
+    /** Get available type in ContentParser#classParsers */
     public static Class<?> getTypeParser(Class<?> type){
         if(type.isPrimitive()) return type;
 
