@@ -46,6 +46,7 @@ public class PatchEditor extends BaseDialog{
             String minifyJson = PatchJsonIO.simplifyPatch(value).toJson(OutputType.json);
             editPatch.patch = Jval.read(minifyJson).toString(Jformat.hjson);
 
+            // clear the root node reference
             card.setRootEditorNode(null);
         });
 
