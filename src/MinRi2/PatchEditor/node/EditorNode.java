@@ -7,9 +7,6 @@ import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import mindustry.mod.*;
-import mindustry.type.*;
-
-import java.time.format.*;
 
 /**
  * @author minri2
@@ -164,7 +161,7 @@ public class EditorNode{
         return ClassHelper.unoymousClass(objectNode.object.getClass());
     }
 
-    public boolean isAppending(){
+    public boolean isAppended(){
         return false;
     }
 
@@ -284,7 +281,7 @@ public class EditorNode{
         }
 
         @Override
-        public boolean isAppending(){
+        public boolean isAppended(){
             return true;
         }
     }

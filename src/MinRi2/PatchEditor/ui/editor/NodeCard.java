@@ -265,7 +265,7 @@ public class NodeCard extends Table{
         ImageButtonStyle style = EStyles.cardButtoni;
         if(isRequired(node)){
             style = EStyles.cardRequiredi;
-        }else if(node.isAppending()){
+        }else if(node.isAppended()){
             style = EStyles.addButtoni;
         }else if(node.isRemoving()){
             style = EStyles.cardRemovedi;
@@ -346,7 +346,7 @@ public class NodeCard extends Table{
         EditorNode editorNode = getEditorNode();
 
         // remove: map's key
-        if(!child.isChangedType() && ClassHelper.isMap(editorNode.getTypeIn()) && !child.isAppending()){
+        if(ClassHelper.isMap(editorNode.getTypeIn()) && !child.isChangedType() &&  !child.isAppended()){
             boolean undoMode = child.isRemoving();
             table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
                 if(undoMode){
@@ -357,11 +357,14 @@ public class NodeCard extends Table{
                 }
                 rebuildNodesTable();
             }).tooltip(undoMode ? "@node.revertRemove" : "@node.removeKey");
+
+            // This key has been removed. Don't show any buttons or hint.
             if(undoMode) return;
         }
 
-        if(child.isOverriding()){
-            if(!ClassHelper.isArrayLike(child.getTypeIn()) && !ClassHelper.isMap(child.getTypeIn())){
+        // overriding null, array, map or field
+        if(!hasModifier && child.isOverriding()){
+            if(PatchJsonIO.typeOverrideable(child.getTypeIn())){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
                     EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
                         child.changeType(clazz);
@@ -376,8 +379,8 @@ public class NodeCard extends Table{
                 child.clearJson();
                 rebuildNodesTable();
             }).tooltip("@node.revertOverride");
-        }else if(child.isAppending() || child.isChangedType()){
-            if(!hasModifier && !ClassHelper.isArray(child.getTypeIn())){
+        }else if(child.isAppended() || child.isChangedType()){
+            if(!hasModifier && PatchJsonIO.typeOverrideable(child.getTypeIn())){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
                     EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
                         child.changeType(clazz);
@@ -393,7 +396,7 @@ public class NodeCard extends Table{
                 rebuildNodesTable();
             }).grow().tooltip("@node.remove");
         }else if(!hasModifier && PatchJsonIO.overrideable(child.getTypeIn()) && (child.getObject() == null || child.getObjNode().field != null)){
-            // null object or
+            // override null object or field
             PatchNode patchNode = child.getPatch();
             if(patchNode == null || patchNode.sign == null){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
@@ -402,6 +405,7 @@ public class NodeCard extends Table{
                 }).tooltip("@node.override");
             }
         }else if(!hasModifier && (ClassHelper.isMap(editorNode.getTypeIn()) || ClassHelper.isArrayLike(editorNode.getTypeIn()))){
+            // override array or map
             table.button(Icon.wrench, Styles.clearNonei, () -> {
                 EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
                     child.changeType(clazz);

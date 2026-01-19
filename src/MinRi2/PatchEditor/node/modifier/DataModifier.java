@@ -1,7 +1,6 @@
 package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
-import MinRi2.PatchEditor.node.EditorNode.*;
 import arc.func.*;
 import arc.scene.ui.layout.*;
 import arc.util.serialization.JsonValue.*;
@@ -89,7 +88,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
 
     @Override
     public void resetModify(){
-        if(data.isAppending()){
+        if(data.isAppended()){
             data.setValue(PatchJsonIO.getKeyName(data.getObject()));
         }else{
             data.clearJson();
