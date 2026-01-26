@@ -12,6 +12,7 @@ import mindustry.entities.*;
 import mindustry.entities.abilities.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.*;
+import mindustry.io.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.consumers.*;
@@ -134,6 +135,29 @@ public class PatchJsonIO{
         return null;
     }
 
+    public static Object parseJsonObject(PatchNode patchNode, ObjectNode objectNode, Object original){
+        Json json = PatchJsonIO.getParser().getJson();
+        try{
+            JsonValue value = PatchJsonIO.toJson(patchNode);
+            if(patchNode.value != null) return json.readValue(objectNode.type, objectNode.elementType, value);
+
+            // TODO: cache?
+            Object copied = PatchJsonIO.cloneObject(original);
+            if(copied == null) return json.readValue(objectNode.type, objectNode.elementType, value);
+
+            // stimulate patch applying
+            json.readFields(copied, value);
+            return copied;
+        }catch(Exception e){
+            // may expect class value
+            if(patchNode.value != null){
+                Class<?> type = PatchJsonIO.resolveType(patchNode.value);
+                if(type != null) return type;
+            }
+            return original;
+        }
+    }
+
     public static void parseJson(ObjectNode objectNode, PatchNode patchNode, String patch){
         JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
         extractDotSyntax(value);
@@ -228,17 +252,17 @@ public class PatchJsonIO{
         value.setName(patchNode.key);
         if(patchNode.value != null) value.set(patchNode.value);
 
-        JsonValue plusValue = null;
+        JsonValue appendValue = null;
         for(PatchNode childNode : patchNode.children.values()){
             JsonValue childValue = new JsonValue(childNode.type);
 
             if(childNode.key.startsWith(appendPrefix)){
-                if(plusValue == null){
-                    plusValue = new JsonValue(ValueType.array);
-                    value.parent.addChild(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign, plusValue);
+                if(appendValue == null){
+                    appendValue = new JsonValue(ValueType.array);
+                    value.parent.addChild(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign, appendValue);
                 }
 
-                plusValue.addChild(childValue.name, childValue);
+                appendValue.addChild(childValue.name, childValue);
             }else{
                 value.addChild(childNode.key, childValue);
             }
@@ -280,7 +304,7 @@ public class PatchJsonIO{
         if(objectNode != null){
             desugarJson(value, objectNode.type);
 
-            // desugarJson may destroy the value type so cache isValue
+            // desugarJson may change the value type so cache isValue
             if(isValue) return;
 
             if(ClassHelper.isArrayLike(objectNode.type)){

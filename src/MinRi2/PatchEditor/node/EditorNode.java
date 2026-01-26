@@ -134,29 +134,9 @@ public class EditorNode{
 
     public Object getDisplayValue(){
         PatchNode patchNode = getPatch();
-        if(patchNode == null || isRemoving()) return getObject();
-        // Parse array or map may cause lag. Using original object is ok.
-        if(ClassHelper.isArrayLike(getTypeIn()) || ClassHelper.isMap(getTypeIn())) return getObject();
-        Json json = PatchJsonIO.getParser().getJson();
-        try{
-            JsonValue value = PatchJsonIO.toJson(patchNode);
-            if(patchNode.value != null) return json.readValue(getTypeIn(), value);
-
-            // TODO: cache?
-            Object copied = PatchJsonIO.cloneObject(getObject());
-            if(copied == null) return json.readValue(getTypeIn(), value);
-
-            // stimulate patch applying
-            json.readFields(copied, value);
-            return copied;
-        }catch(Exception e){
-            // may expect class value
-            if(patchNode.value != null){
-                Class<?> type = ClassMap.classes.get(patchNode.value);
-                if(type != null) return type;
-            }
-            return getObject();
-        }
+        Object object = getObject();
+        if(patchNode == null || isRemoving()) return object;
+        return PatchJsonIO.parseJsonObject(patchNode, getObjNode(), object);
     }
 
     public boolean hasValue(){
