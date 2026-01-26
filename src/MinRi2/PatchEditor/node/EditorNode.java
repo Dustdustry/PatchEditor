@@ -250,7 +250,7 @@ public class EditorNode{
     @Override
     public String toString(){
         return "EditorNode{" +
-        "path='" + path + '\'' +
+        "path='" + getPath() + '\'' +
         '}';
     }
 

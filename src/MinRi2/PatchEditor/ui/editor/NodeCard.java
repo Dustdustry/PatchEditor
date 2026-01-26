@@ -53,7 +53,7 @@ public class NodeCard extends Table{
         if(childCard != null) childCard.setRootEditorNode(rootEditorNode);
     }
 
-    public void setEditorNode(String path){
+    public void setEditPath(String path){
         editorPath = path;
     }
 
@@ -81,7 +81,7 @@ public class NodeCard extends Table{
             editing = false;
         }else{
             editing = path != null;
-            childCard.setEditorNode(path);
+            childCard.setEditPath(path);
         }
 
         rebuildCont();
