@@ -164,7 +164,7 @@ public abstract class ModifierBuilder<T>{
                 b.add(image = new BorderImage()).size(32f).pad(8f);
                 b.label(() -> "#" + value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX();
             }, Styles.clearNonei, () -> {
-                Vars.ui.picker.show(Color.valueOf(value), c -> setValue(c.toString()));
+                Vars.ui.picker.show(getColorValue(), c -> setValue(c.toString()));
             }).grow();
 
             addResetButton(table);
@@ -173,13 +173,15 @@ public abstract class ModifierBuilder<T>{
         @Override
         protected void updateUI(){
             super.updateUI();
+            image.addAction(Actions.color(getColorValue(), 0.3f));
+        }
 
-            Color color = Color.white.cpy();
+        private Color getColorValue(){
             try{
-                color = Color.valueOf(value);
+                return Color.valueOf(value);
             }catch(RuntimeException ignored){
+                return Color.white.cpy();
             }
-            image.addAction(Actions.color(color, 0.3f));
         }
     }
 
@@ -232,7 +234,7 @@ public abstract class ModifierBuilder<T>{
                     setValue(weapon.name);
                     return true;
                 });
-            }).pad(4f).width(48f).growY().tooltip("@selector.weapon-selector");
+            }).pad(4f).width(48f).growY().tooltip("@selector.weapon.tooltip");
 
             addResetButton(table);
         }
