@@ -223,7 +223,6 @@ public class NodeCard extends Table{
 
     private void addEditTable(Table table, EditorNode node, DataModifier<?> modifier){
         Color modifiedColor = EPalettes.modified, unmodifiedColor0 = EPalettes.unmodified;
-//        if(node.isDynamic()) unmodifiedColor0 = EPalettes.add;
         if(isRequired(node)) unmodifiedColor0 = EPalettes.required;
         else if(node.isAppended()) unmodifiedColor0 = EPalettes.add;
 

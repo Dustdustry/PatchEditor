@@ -80,7 +80,8 @@ public class PatchJsonIO{
     }
 
     public static boolean overrideable(Class<?> type){
-        return !(type.isPrimitive() || Reflect.isWrapper(type) || ClassHelper.isMap(type)); // map is unable to override
+        return !(type.isPrimitive() || type == String.class // String is regarded as primitive type in json
+        || Reflect.isWrapper(type) || ClassHelper.isMap(type)); // map is unable to override
     }
 
     public static boolean typeOverrideable(Class<?> type){
@@ -141,7 +142,6 @@ public class PatchJsonIO{
             JsonValue value = PatchJsonIO.toJson(patchNode);
             if(patchNode.value != null) return json.readValue(objectNode.type, objectNode.elementType, value);
 
-            // TODO: cache?
             Object copied = PatchJsonIO.cloneObject(original);
             if(copied == null) return json.readValue(objectNode.type, objectNode.elementType, value);
 

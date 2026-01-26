@@ -32,7 +32,7 @@ public class NodeModifier{
         new ModifierConfig(() -> new EnumModifier(PatchSelectList.getSubTypeNames(AIController.class)), AIController.class),
 
         new ModifierConfig(ColorModifier::new, Color.class),
-        new ModifierConfig(ContentTypeModifier::new, UnlockableContent.class),
+        new ModifierConfig(ContentTypeModifier::new, MappableContent.class),
         new ModifierConfig(BooleanModifier::new, Boolean.class, boolean.class),
 
         new ModifierConfig(TextureRegionModifier::new, TextureRegion.class),
