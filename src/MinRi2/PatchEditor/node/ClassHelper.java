@@ -18,7 +18,7 @@ public class ClassHelper{
     }
 
     public static boolean isArrayLike(Class<?> type){
-        return type != null && (type.isArray() || Seq.class.isAssignableFrom(type) || ObjectSet.class.isAssignableFrom(type));
+        return type != null && (type.isArray() || Seq.class.isAssignableFrom(type) || ObjectSet.class.isAssignableFrom(type) || EnumSet.class.isAssignableFrom(type));
     }
 
     public static boolean isMap(Class<?> type){

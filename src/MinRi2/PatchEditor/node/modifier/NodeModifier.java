@@ -13,6 +13,7 @@ import mindustry.ctype.*;
 import mindustry.entities.units.*;
 import mindustry.type.*;
 import mindustry.world.*;
+import mindustry.world.meta.*;
 
 import static MinRi2.PatchEditor.node.modifier.EqualModifier.*;
 
@@ -29,6 +30,7 @@ public class NodeModifier{
         new ModifierConfig(WeaponNameModifier::new, String.class).fieldOf(Weapon.class, "name"),
 
         new ModifierConfig(() -> new EnumModifier(UnitConstructorType.values()), UnitConstructorType.class),
+        new ModifierConfig(() -> new EnumModifier(BlockFlag.values()), BlockFlag.class),
         new ModifierConfig(() -> new EnumModifier(PatchSelectList.getSubTypeNames(AIController.class)), AIController.class),
 
         new ModifierConfig(ColorModifier::new, Color.class),

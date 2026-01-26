@@ -69,6 +69,7 @@ public class ObjectResolver{
         if(object instanceof Object[] arr){
             int i = 0;
             for(Object o : arr){
+                if(o == null) continue;
                 node.addChild("" + i++, o, node.elementType, null)
                 .addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
@@ -105,6 +106,17 @@ public class ObjectResolver{
             for(var entry : map){
                 String name = PatchJsonIO.getKeyName(entry.key);
                 node.addChild(name, entry.value);
+            }
+        }else if(object instanceof EnumSet<?> set){
+            Class<?> enumClass = set.array.getClass().getComponentType();
+            if(enumClass == null){
+                Log.warn("Cannot get enum type of enum set ''.", node.name);
+                return;
+            }
+            int i = 0;
+            for(Object o : set.array){
+                node.addChild("" + i++, o, enumClass, null)
+                .addSign(ModifierSign.MODIFY, enumClass, enumClass, null);
             }
         }else{
             // prevent null container resolving
