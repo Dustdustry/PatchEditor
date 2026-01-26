@@ -6,6 +6,7 @@ import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
+import arc.scene.event.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
@@ -60,14 +61,22 @@ public class PatchEditor extends BaseDialog{
 
         keyDown(KeyCode.up, () -> {
             NodeCard front = card.getFrontCard();
-            if(front != card){
-                front.extractWorking();
-            }
+            if(front != card) front.extractWorking();
         });
-
         keyDown(KeyCode.down, () -> card.getFrontCard().editLastData());
 
         addCloseListener();
+
+        update(() -> {
+           if(Core.input.keyTap(KeyCode.tab)){
+               if(!Core.input.shift()){
+                   card.getFrontCard().editLastData();
+               }else{
+                   NodeCard front = card.getFrontCard();
+                   if(front != card) front.extractWorking();
+               }
+           }
+        });
     }
 
     public void clearTree(){
