@@ -5,6 +5,8 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.JsonValue.*;
 
+import java.util.*;
+
 public class PatchNode{
     public String key;
     public @Nullable String value;
@@ -41,6 +43,26 @@ public class PatchNode{
             parent.children.remove(key);
             children.clear();
             parent = null;
+        }
+    }
+
+    public void clearChildren(){
+        Iterator<PatchNode> iterator = children.values();
+        while(iterator.hasNext()){
+            PatchNode child = iterator.next();
+            child.parent = null;
+            iterator.remove();
+        }
+    }
+
+    public void remainBySign(ModifierSign sign){
+        Iterator<PatchNode> iterator = children.values();
+        while(iterator.hasNext()){
+            PatchNode child = iterator.next();
+            if(child.sign != sign){
+                child.parent = null;
+                iterator.remove();
+            }
         }
     }
 

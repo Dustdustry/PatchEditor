@@ -4,9 +4,7 @@ import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.node.patch.PatchOperator.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
-import mindustry.mod.*;
 
 /**
  * @author minri2
@@ -213,9 +211,9 @@ public class EditorNode{
         manager.applyOp(new ClearOp(getPath()));
     }
 
-    public void append(boolean appendPrefix){
+    public void addChild(boolean plusSyntax){
         dynamicChanged();
-        manager.applyOp(new ArrayAppendOp(getPath(), appendPrefix));
+        manager.applyOp(new ArrayAddOp(getPath(), plusSyntax));
     }
 
     public void putKey(String key){
@@ -232,8 +230,9 @@ public class EditorNode{
     public void setSign(ModifierSign sign){
         dynamicChanged();
         manager.applyOp(new SetSignOp(getPath(), sign));
-        if(ClassHelper.isArrayLike(getTypeIn())){
+        if(sign == ModifierSign.MODIFY && ClassHelper.isArrayLike(getTypeIn())){
             manager.applyOp(new SetValueTypeOp(getPath(), ValueType.array));
+            manager.applyOp(new ClearChildrenOp(getPath()));
         }
     }
 

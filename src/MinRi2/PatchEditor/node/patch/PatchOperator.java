@@ -62,29 +62,58 @@ public abstract class PatchOperator{
         }
     }
 
-    public static class ArrayAppendOp extends PatchOperator{
-        public final boolean appendPrefix;
+    public static class ClearChildrenOp extends PatchOperator{
+        private final ModifierSign remainSign;
 
-        public ArrayAppendOp(String path, boolean appendPrefix){
-            super(path);
-            this.appendPrefix = appendPrefix;
+        public ClearChildrenOp(String path){
+            this(path, null);
         }
 
+        public ClearChildrenOp(String path, ModifierSign remainSign){
+            super(path);
+            this.remainSign = remainSign;
+        }
+
+        @Override
+        public void apply(PatchNode root){
+            PatchNode node = root.navigateChild(path, false);
+            if(node == null) return;
+            if(remainSign != null){
+                node.remainBySign(remainSign);
+            }else{
+                node.clearChildren();
+            }
+        }
+
+        @Override
+        public void undo(PatchNode root){
+
+        }
+    }
+
+    public static class ArrayAddOp extends PatchOperator{
+        public final boolean plusSyntax;
+
+        public ArrayAddOp(String path, boolean plusSyntax){
+            super(path);
+            this.plusSyntax = plusSyntax;
+        }
+
+        @Override
         public void apply(PatchNode root) {
             PatchNode node = root.navigateChild(path, true);
-            String prefix = appendPrefix ? PatchJsonIO.appendPrefix : "";
+            String prefix = plusSyntax ? PatchJsonIO.appendPrefix : "";
             PatchNode plusNode = node.getOrCreate(findKey(prefix, node));
             plusNode.sign = ModifierSign.PLUS;
         }
 
+        @Override
         public void undo(PatchNode root) {
         }
 
         private String findKey(String prefix, PatchNode node){
             int index = 0;
-            while(node.getOrNull(prefix + index) != null){
-                index++;
-            }
+            while(node.getOrNull(prefix + index) != null) index++;
             return prefix + index;
         }
     }

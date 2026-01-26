@@ -331,13 +331,7 @@ public class NodeCard extends Table{
                     });
                 }
             }else{
-                PatchNode patchNode = editorNode.getPatch();
-                if(patchNode != null && patchNode.sign == ModifierSign.MODIFY){
-                    editorNode.append(false);
-                }else{
-                    // if array is null, don't use plus syntax
-                    editorNode.append(editorNode.getObject() != null);
-                }
+                editorNode.addChild(editorNode.getObject() != null && !editorNode.isOverriding());
                 rebuildNodesTable();
             }
         });

@@ -183,7 +183,7 @@ public class PatchJsonIO{
         if(!value.isValue() && value.has(ModifierSign.PLUS.sign)){
             JsonValue plusValue = value.remove(ModifierSign.PLUS.sign);
 
-            int i = objectNode != null ? getContainerSize(objectNode.object) : 0;
+            int i = 0;
             if(plusValue.isArray()){
                 // patchNode(‘+’: []) -> multiple append
                 for(JsonValue childValue : plusValue){
@@ -270,7 +270,8 @@ public class PatchJsonIO{
             toJson(childNode, childValue);
         }
 
-        if(!value.isValue() && value.child == null && patchNode.sign != ModifierSign.MODIFY){
+        // Removing empty array and object without the sign.
+        if(!value.isValue() && value.child == null && patchNode.sign == null){
             removeJsonValue(value);
         }
 
