@@ -6,7 +6,6 @@ import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
-import arc.scene.event.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
@@ -36,9 +35,6 @@ public class PatchEditor extends BaseDialog{
 
         resized(this::rebuild);
         shown(() -> {
-            card.setRootEditorNode(editorTree);
-            card.setEditorNode("");
-
             setup();
             rebuild();
         });
@@ -79,16 +75,11 @@ public class PatchEditor extends BaseDialog{
         });
     }
 
-    public void clearTree(){
-        objectTree = null;
-        editorTree = null;
-    }
-
     public void edit(EditorPatch patch){
+        // patcher will change the object so clear all the tree
         manager.reset();
-
-        if(objectTree == null) objectTree = ObjectNode.createRoot();
-        if(editorTree == null) editorTree = new EditorNode(objectTree, manager);
+        objectTree = ObjectNode.createRoot();
+        editorTree = new EditorNode(objectTree, manager);
 
         try{
             PatchJsonIO.parseJson(objectTree, manager.getRoot(), patch.patch);
@@ -96,6 +87,9 @@ public class PatchEditor extends BaseDialog{
             Vars.ui.showException(e);
             return;
         }
+
+        card.setRootEditorNode(editorTree);
+        card.setEditPath("");
 
         editPatch = patch;
 

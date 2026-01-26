@@ -37,8 +37,6 @@ public class PatchManager extends BaseDialog{
         shown(() -> {
             editorPatches.set(state.patcher.patches.map(EditorPatch::new));
             Vars.state.patcher.unapply();
-            // patcher will change the object so clear all the tree
-            editor.clearTree();
 
             setup();
             rebuildCont();
