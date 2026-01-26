@@ -107,6 +107,8 @@ public class ObjectResolver{
                 node.addChild(name, entry.value);
             }
         }else{
+            // prevent null container resolving
+            if(object == null && (ClassHelper.isArrayLike(objectType) || ClassHelper.isMap(objectType))) return;
             resolveFields(node, object, objectType);
         }
     }

@@ -41,18 +41,12 @@ public class EditorNode{
         ObjectNode objectNode = getObjNode();
 
         if(currentObj != objectNode){
-            children.clear();
-            resolvedObj = false;
+            clearChildren();
             currentObj = objectNode;
         }
 
-        boolean isOverriding = isOverriding();
-        if(isOverriding){
-            clearChildren();
-        }
-
         if(!resolvedObj){
-            for(ObjectNode node : objectNode.getChildren().values()){
+            for(ObjectNode node : currentObj.getChildren().values()){
                 if(node.isSign()) continue;
 
                 EditorNode child = new EditorNode(node, manager);
@@ -101,23 +95,27 @@ public class EditorNode{
     }
 
     public ObjectNode getObjNode(){
-        if(!PatchJsonIO.typeOverrideable(getTypeIn())) return objectNode;
+        Class<?> type = getTypeIn();
+        if(!PatchJsonIO.overrideable(type)) return objectNode;
 
-        Class<?> type = objectNode.type;
-        PatchNode patchNode = getPatch();
-        if(patchNode != null){
-            PatchNode typePatch = patchNode.getOrNull("type");
-            if(typePatch != null && typePatch.value != null){
-                type = PatchJsonIO.resolveType(typePatch.value);
-                if(type == null) return objectNode; // type invalid
+        if(PatchJsonIO.typeOverrideable(type)){
+            PatchNode patchNode = getPatch();
+            if(patchNode != null){
+                PatchNode typePatch = patchNode.getOrNull("type");
+                if(typePatch != null && typePatch.value != null){
+                    type = PatchJsonIO.resolveType(typePatch.value);
+                    if(type == null) return objectNode; // type invalid
+                }
             }
-        }
 
-        if(type != objectNode.type){
-            if(shadowObjectNode == null || shadowObjectNode.type != type){
-                shadowObjectNode = ObjectResolver.getShadowNode(objectNode, type);
+            if(type != objectNode.type){
+                if(shadowObjectNode == null || shadowObjectNode.type != type){
+                    shadowObjectNode = ObjectResolver.getShadowNode(objectNode, type);
+                }
+                return shadowObjectNode;
             }
-            return shadowObjectNode;
+        }else if(isOverriding() && (ClassHelper.isArrayLike(type) || ClassHelper.isMap(type))){
+            return ObjectResolver.getShadowNode(objectNode, type);
         }
         return objectNode;
     }
@@ -125,6 +123,7 @@ public class EditorNode{
     public Object getObject(){
         Object object = getObjNode().object;
         if(object instanceof MapEntry<?,?> entry) return entry.value;
+        if(isOverriding()) PatchJsonIO.parseJsonObject(getPatch(), getObjNode(), object);
         return object;
     }
 
