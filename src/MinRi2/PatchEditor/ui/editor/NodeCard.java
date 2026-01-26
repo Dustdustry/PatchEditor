@@ -406,7 +406,7 @@ public class NodeCard extends Table{
                     rebuildNodesTable();
                 }).tooltip("@node.override");
             }
-        }else if(!hasModifier && (ClassHelper.isArrayLike(editorNode.getTypeIn()) || ClassHelper.isMap(editorNode.getTypeIn()))
+        }else if(!hasModifier && ClassHelper.isContainer(editorNode.getTypeIn())
         && PatchJsonIO.typeOverrideable(child.getTypeIn())){
             // override array's element or map's key must change the type
             table.button(Icon.wrench, Styles.clearNonei, () -> {

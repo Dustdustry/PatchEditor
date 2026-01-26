@@ -13,6 +13,10 @@ public class ClassHelper{
         return type != null && type.isArray();
     }
 
+    public static boolean isContainer(Class<?> type){
+        return isArrayLike(type) || isMap(type);
+    }
+
     public static boolean isArrayLike(Class<?> type){
         return type != null && (type.isArray() || Seq.class.isAssignableFrom(type) || ObjectSet.class.isAssignableFrom(type));
     }

@@ -108,7 +108,7 @@ public class ObjectResolver{
             }
         }else{
             // prevent null container resolving
-            if(object == null && (ClassHelper.isArrayLike(objectType) || ClassHelper.isMap(objectType))) return;
+            if(object == null && ClassHelper.isContainer(objectType)) return;
             resolveFields(node, object, objectType);
         }
     }

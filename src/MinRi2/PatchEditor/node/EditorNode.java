@@ -114,7 +114,7 @@ public class EditorNode{
                 }
                 return shadowObjectNode;
             }
-        }else if(isOverriding() && (ClassHelper.isArrayLike(type) || ClassHelper.isMap(type))){
+        }else if(isOverriding() && ClassHelper.isContainer(type)){
             return ObjectResolver.getShadowNode(objectNode, type);
         }
         return objectNode;
