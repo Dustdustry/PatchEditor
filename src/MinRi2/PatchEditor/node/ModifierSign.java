@@ -1,11 +1,17 @@
 package MinRi2.PatchEditor.node;
 
 public enum ModifierSign{
-    // used for Array, Seq, ObjectSet as field
+    /** Used for Array, Seq, ObjectSet as field.
+     * '+' means appending an element in original array or override array.
+     */
     PLUS("+"),
-    // used for ObjectMap as the value
+    /** Used for ObjectMap as the value.
+     * '-' means removing the key of map.
+     */
     REMOVE("-"),
-    // mark as modifiable and overrideable
+    /** Used for fields
+     * '=' means this field is modifiable or overrideable
+     */
     MODIFY("=");
 
     public final String sign;
