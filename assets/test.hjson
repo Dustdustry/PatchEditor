@@ -1,0 +1,43 @@
+name: Patch0
+unit: {
+  toxopid: {
+    weapons.+: [
+      {}
+    ]
+    abilities: [
+      {
+        type: ShieldArcAbility
+        color: ff0000ff
+        whenShooting: "false"
+        cooldown: "240"
+        radius: "45"
+        angle: "120"
+      }
+    ]
+  }
+  avert: {
+    commands.+: [
+      mine
+    ]
+    aiController: MinerAI
+    cachedRequirements: [
+      titanium/10
+    ]
+    firstRequirements: [
+      lead/10
+      metaglass/20
+    ]
+  }
+}
+block: {
+  duo: {
+    ammoTypes: {
+      copper: -
+      blast-compound: {
+        type: RailBulletType
+      }
+    }
+    region: block-atmospheric-concentrator-ui
+  }
+  blast-drill.drillMultipliers.copper: "4"
+}
