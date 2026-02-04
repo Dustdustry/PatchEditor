@@ -29,7 +29,7 @@ Anyway, enjoy making wonderful patch!
 - [ ] Edit Interp
 - [ ] Edit Consumer
 - [ ] Edit Attribute
-- [ ] Edit EnumSet
+- [x] Edit EnumSet
 
 - [x] Select weapon region
 - [x] Select texture region
