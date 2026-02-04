@@ -2,7 +2,6 @@ package MinRi2.PatchEditor.node;
 
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.node.patch.PatchOperator.*;
-import arc.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.JsonValue.*;
@@ -222,9 +221,9 @@ public class EditorNode{
         manager.applyOp(new ArrayAddOp(getPath(), plusSyntax));
     }
 
-    public void putKey(String key){
+    public void touch(String key){
         dynamicChanged();
-        manager.applyOp(new MapPutOp(getPath(), key));
+        manager.applyOp(new TouchOp(getPath(), key));
     }
 
     public void changeType(Class<?> type){

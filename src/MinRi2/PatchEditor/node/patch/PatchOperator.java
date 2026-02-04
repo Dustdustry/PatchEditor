@@ -119,10 +119,10 @@ public abstract class PatchOperator{
         }
     }
 
-    public static class MapPutOp extends PatchOperator{
+    public static class TouchOp extends PatchOperator{
         public final String key;
 
-        public MapPutOp(String path, String key){
+        public TouchOp(String path, String key){
             super(path);
 
             this.key = key;
@@ -130,8 +130,7 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root){
-            PatchNode node = root.navigateChild(path, true);
-            node.getOrCreate(key).sign = ModifierSign.PLUS;
+            root.navigateChild(path, true).getOrCreate(key);
         }
 
         @Override
