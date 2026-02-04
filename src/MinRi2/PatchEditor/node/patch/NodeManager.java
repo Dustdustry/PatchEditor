@@ -20,8 +20,8 @@ public class NodeManager{
         return root;
     }
 
-    public PatchNode getPatch(String path){
-        return root.navigateChild(path);
+    public PatchNode getPatch(String path, boolean create){
+        return root.navigateChild(path, create);
     }
 
     public void applyOp(PatchOperator operator){

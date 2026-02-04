@@ -8,6 +8,7 @@ import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
 import arc.util.serialization.*;
+import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
 import mindustry.*;
@@ -40,18 +41,7 @@ public class PatchEditor extends BaseDialog{
             rebuild();
         });
         hidden(() -> {
-            JsonValue value = PatchJsonIO.toJson(manager.getRoot());
-            if(Core.settings.getBool("patch-editor.simplifyPatch")){
-                PatchJsonIO.simplifyPatch(value);
-            }
-
-            String exportType = Core.settings.getString("patch-editor.exportType");
-            if(ExportType.hjson.name().equals(exportType)){
-                editPatch.patch = Jval.read(value.toJson(OutputType.json)).toString(Jformat.hjson);
-            }else{
-                editPatch.patch = value.toJson(OutputType.json);
-            }
-
+            editPatch.patch = toPatch(manager.getRoot());
             // clear the root node reference
             card.setRootEditorNode(null);
         });
@@ -129,5 +119,20 @@ public class PatchEditor extends BaseDialog{
 
         card.rebuild();
         cont.pane(Styles.noBarPane, card).scrollX(false).pad(16f).padTop(8f).grow();
+    }
+
+    public static String toPatch(PatchNode patchNode){
+        JsonValue value = PatchJsonIO.toJson(patchNode);
+
+        if(Core.settings.getBool("patch-editor.simplifyPatch")){
+            PatchJsonIO.simplifyPatch(value);
+        }
+
+        String exportType = Core.settings.getString("patch-editor.exportType");
+        if(ExportType.hjson.name().equals(exportType)){
+            return Jval.read(value.toJson(OutputType.json)).toString(Jformat.hjson);
+        }else{
+            return value.toJson(OutputType.json);
+        }
     }
 }

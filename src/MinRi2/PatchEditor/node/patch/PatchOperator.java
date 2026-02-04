@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.node.patch;
 
 import MinRi2.PatchEditor.node.*;
+import arc.struct.ObjectMap.*;
 import arc.util.serialization.JsonValue.*;
 
 public abstract class PatchOperator{
@@ -201,26 +202,33 @@ public abstract class PatchOperator{
         }
     }
 
-    public static class ClearType extends PatchOperator{
+    public static class ImportOp extends PatchOperator{
+        public final PatchNode source;
 
-        public ClearType(String path){
+        public ImportOp(String path, PatchNode source){
             super(path);
+
+            this.source = source;
         }
 
         @Override
         public void apply(PatchNode root){
-            PatchNode node = root.navigateChild(path, false);
-            if(node == null || node.sign == null) return;
-
-            PatchNode typeNode = node.getOrNull("type");
-            if(typeNode != null){
-                typeNode.remove();
-            }
+            PatchNode patchNode = root.navigateChild(path, true);
+            importPatch(patchNode, source);
         }
 
         @Override
         public void undo(PatchNode root){
 
+        }
+
+        private void importPatch(PatchNode patchNode, PatchNode sourceNode){
+            patchNode.type = sourceNode.type;
+            patchNode.value = sourceNode.value;
+            patchNode.sign = sourceNode.sign;
+            for(Entry<String, PatchNode> entry : sourceNode.children){
+                importPatch(patchNode.getOrCreate(entry.key), entry.value);
+            }
         }
     }
 }

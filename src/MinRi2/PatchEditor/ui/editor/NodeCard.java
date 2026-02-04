@@ -443,6 +443,26 @@ public class NodeCard extends Table{
                 });
             }).size(64f).tooltip("@node-card.clear-data", true);
 
+            if(editorNode != rootEditorNode){
+                nodeTitle.button(Icon.download, Styles.cleari, () -> {
+                    try{
+                        editorNode.importPatch(Core.app.getClipboardText());
+                    }catch(RuntimeException e){
+                        Vars.ui.showException("@node-card.appendPatchNode.failed", e);
+                        return;
+                    }
+                    rebuildNodesTable();
+                    EUI.infoToast(Core.bundle.format("node-card.appendPatchNode", editorPath));
+                }).size(64f).tooltip(Core.bundle.format("node-card.appendPatchNode", editorPath), true)
+                .disabled(b -> Core.app.getClipboardText() == null);
+
+                nodeTitle.button(Icon.export, Styles.cleari, () -> {
+                    PatchNode patchNode = editorNode.getPatch();
+                    Core.app.setClipboardText(patchNode == null ? "" : PatchEditor.toPatch(patchNode));
+                    EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
+                }).size(64f).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
+            }
+
             nodeTitle.table(cardButtons -> {
                 cardButtons.defaults().size(64f).pad(8f);
 

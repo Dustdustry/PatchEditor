@@ -2,6 +2,7 @@ package MinRi2.PatchEditor.node;
 
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.node.patch.PatchOperator.*;
+import arc.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.JsonValue.*;
@@ -189,7 +190,11 @@ public class EditorNode{
     }
 
     public PatchNode getPatch(){
-        return manager.getPatch(getPath());
+        return getPatch(false);
+    }
+
+    public PatchNode getPatch(boolean create){
+        return manager.getPatch(getPath(), create);
     }
 
     public EditorNode navigate(String path){
@@ -235,6 +240,13 @@ public class EditorNode{
             manager.applyOp(new SetValueTypeOp(getPath(), ValueType.array));
             manager.applyOp(new ClearChildrenOp(getPath()));
         }
+    }
+
+    public void importPatch(String patch){
+        dynamicChanged();
+        PatchNode sourceNode = new PatchNode(name());
+        PatchJsonIO.parseJson(getObjNode(), sourceNode, patch);
+        manager.applyOp(new ImportOp(getPath(), sourceNode));
     }
 
     public void clearChildren(){

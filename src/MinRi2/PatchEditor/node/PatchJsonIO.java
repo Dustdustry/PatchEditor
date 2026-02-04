@@ -259,7 +259,12 @@ public class PatchJsonIO{
             if(childNode.key.startsWith(appendPrefix)){
                 if(appendValue == null){
                     appendValue = new JsonValue(ValueType.array);
-                    value.parent.addChild(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign, appendValue);
+                    if(value.parent == null){
+                        // export supporting
+                        value.addChild(ModifierSign.PLUS.sign, appendValue);
+                    }else{
+                        value.parent.addChild(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign, appendValue);
+                    }
                 }
 
                 appendValue.addChild(childValue.name, childValue);
