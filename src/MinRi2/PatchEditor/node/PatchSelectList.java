@@ -6,29 +6,33 @@ import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.content.*;
+import mindustry.entities.*;
 import mindustry.gen.*;
+import mindustry.logic.LogicFx.*;
 import mindustry.mod.*;
 import mindustry.type.*;
+import mindustry.ui.dialogs.*;
 
 public class PatchSelectList{
     private static final ObjectMap<Class<?>, Seq<String>> subTypeMap = new ObjectMap<>();
 
-    private static final Seq<Weapon> weaponList = new Seq<>();
-    private static final Seq<AtlasRegion> regionList = new Seq<>();
+    private static Seq<Weapon> weaponList;
+    private static Seq<AtlasRegion> regionList;
+    private static Seq<EffectEntry> effectList;
 
     public static Seq<Weapon> getWeapons(){
-        if(weaponList.isEmpty()){
+        if(weaponList == null){
             ObjectSet<String> nameSet = new ObjectSet<>();
-            Seq<Weapon> seq = Vars.content.units().flatMap(unit -> unit.weapons).retainAll(w -> nameSet.add(w.name));
-            weaponList.set(seq);
+            weaponList = Vars.content.units().flatMap(unit -> unit.weapons).retainAll(w -> nameSet.add(w.name));
         }
         return weaponList;
     }
 
     public static Seq<AtlasRegion> getRegions(){
-        if(regionList.isEmpty()){
+        if(regionList == null){
             // yes, sort by name
-            regionList.set(Core.atlas.getRegions());
+            regionList = Seq.with(Core.atlas.getRegions());
             regionList.sort(Structs.comparing(region -> region.name));
         }
         return regionList;

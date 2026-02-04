@@ -29,6 +29,7 @@ public class NodeModifier{
         // field specific first
         new ModifierConfig(WeaponNameModifier::new, String.class).fieldOf(Weapon.class, "name"),
 
+        // enum
         new ModifierConfig(() -> new EnumModifier(UnitConstructorType.values()), UnitConstructorType.class),
         new ModifierConfig(() -> new EnumModifier(BlockFlag.values()), BlockFlag.class),
         new ModifierConfig(() -> new EnumModifier(PatchSelectList.getSubTypeNames(AIController.class)), AIController.class),

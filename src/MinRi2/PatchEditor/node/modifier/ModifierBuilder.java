@@ -224,8 +224,6 @@ public abstract class ModifierBuilder<T>{
 
         @Override
         public void build(Table table){
-            value = consumer.getValue();
-
             field = table.field(value, this::setValue)
             .valid(consumer::checkValue).pad(4f).width(100f).get();
 
@@ -260,8 +258,6 @@ public abstract class ModifierBuilder<T>{
 
         @Override
         protected void build(Table table){
-            value = consumer.getValue();
-
             table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX()
             .tooltip(t -> t.background(Styles.black3).label(() -> value).pad(4f));
 

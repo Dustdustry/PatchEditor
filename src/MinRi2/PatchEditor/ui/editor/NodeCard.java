@@ -235,7 +235,7 @@ public class NodeCard extends Table{
             }).pad(8f).fill();
 
             t.table(modifier::build).pad(4).grow();
-            t.table(btn -> setupEditButton(btn, node, true)).pad(6f).growY();
+            t.table(btn -> setupChildNodeButtons(btn, node, true)).pad(6f).growY();
 
             t.image().width(4f).color(Color.darkGray).growY().right();
             t.row();
@@ -280,7 +280,7 @@ public class NodeCard extends Table{
                 NodeDisplay.display(infoTable, node);
             }).pad(8f).grow();
 
-            b.table(buttons -> setupEditButton(buttons, node, false)).pad(6f).growY();
+            b.table(buttons -> setupChildNodeButtons(buttons, node, false)).pad(6f).growY();
 
             b.image().width(4f).color(Color.darkGray).growY().right();
             b.row();
@@ -336,7 +336,7 @@ public class NodeCard extends Table{
         });
     }
 
-    private void setupEditButton(Table table, EditorNode child, boolean hasModifier){
+    private void setupChildNodeButtons(Table table, EditorNode child, boolean hasModifier){
         table.defaults().width(32f).pad(4f).growY();
         EditorNode editorNode = getEditorNode();
 
