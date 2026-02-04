@@ -70,7 +70,15 @@ public class PatchManager extends BaseDialog{
         table.clearChildren();
 
         table.table(Styles.grayPanel, title -> {
+            title.left();
+
             title.add("@patch-manager").pad(8f).expandX().left();
+            title.button(b -> {
+                b.image(Icon.settingsSmall).pad(4f);
+                b.add("@settings");
+            }, Styles.cleari, () -> {
+                new EditorSettings().show();
+            }).growY().padRight(4f);
         }).pad(8f).growX();
 
         table.row();

@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.ui.editor;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
+import MinRi2.PatchEditor.ui.editor.EditorSettings.*;
 import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
@@ -40,8 +41,16 @@ public class PatchEditor extends BaseDialog{
         });
         hidden(() -> {
             JsonValue value = PatchJsonIO.toJson(manager.getRoot());
-            String minifyJson = PatchJsonIO.simplifyPatch(value).toJson(OutputType.json);
-            editPatch.patch = Jval.read(minifyJson).toString(Jformat.hjson);
+            if(Core.settings.getBool("patch-editor.simplifyPatch")){
+                PatchJsonIO.simplifyPatch(value);
+            }
+
+            String exportType = Core.settings.getString("patch-editor.exportType");
+            if(ExportType.hjson.name().equals(exportType)){
+                editPatch.patch = Jval.read(value.toJson(OutputType.json)).toString(Jformat.hjson);
+            }else{
+                editPatch.patch = value.toJson(OutputType.json);
+            }
 
             // clear the root node reference
             card.setRootEditorNode(null);
