@@ -13,7 +13,9 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ctype.*;
+import mindustry.entities.*;
 import mindustry.gen.*;
+import mindustry.logic.LogicFx.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
@@ -265,6 +267,27 @@ public abstract class ModifierBuilder<T>{
                 EUI.stringItemSelector.select(names, str -> !str.equals(value), str -> {
                     setValue(str);
                     return true;
+                });
+            }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
+
+            addResetButton(table);
+        }
+    }
+
+    public static class EffectBuilder extends ModifierBuilder<String>{
+
+        public EffectBuilder(ModifyConsumer<String> consumer){
+            super(consumer);
+        }
+
+        @Override
+        protected void build(Table table){
+            table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX()
+            .tooltip(t -> t.background(Styles.black3).label(() -> value).pad(4f));
+
+            table.button(Icon.book, Styles.clearNonei, () -> {
+                EffectsDialog.withAllEffects().show(entry -> {
+                    setValue(entry.name);
                 });
             }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
 

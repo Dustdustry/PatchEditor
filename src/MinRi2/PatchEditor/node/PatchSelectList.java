@@ -38,6 +38,14 @@ public class PatchSelectList{
         return regionList;
     }
 
+    public static Seq<EffectEntry> getEffectList(){
+        if(effectList == null){
+            // copy from EffectDialog
+            effectList = Seq.select(Fx.class.getFields(), f -> f.getType() == Effect.class).map(f -> new EffectEntry(Reflect.get(f)).name(f.getName()));
+        }
+        return effectList;
+    }
+
     public static Seq<String> getSubTypeNames(Class<?> clazz){
         Seq<String> typeNames = subTypeMap.get(clazz, Seq::new);
         if(typeNames.isEmpty()){

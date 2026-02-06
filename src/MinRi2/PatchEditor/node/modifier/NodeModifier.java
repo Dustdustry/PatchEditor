@@ -11,6 +11,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ai.*;
 import mindustry.ctype.*;
+import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.type.*;
 import mindustry.world.*;
@@ -32,6 +33,8 @@ public class NodeModifier{
         new ModifierConfig(() -> new EnumModifier(UnitConstructorType.values()), UnitConstructorType.class),
         new ModifierConfig(() -> new EnumModifier(BlockFlag.values()), BlockFlag.class),
         new ModifierConfig(() -> new EnumModifier(PatchSelectList.getSubTypeNames(AIController.class)), AIController.class),
+
+        new ModifierConfig(EffectModifier::new, Effect.class),
 
         new ModifierConfig(ColorModifier::new, Color.class),
         new ModifierConfig(ContentTypeModifier::new, MappableContent.class),
