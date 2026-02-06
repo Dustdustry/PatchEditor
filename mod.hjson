@@ -14,7 +14,7 @@ main: "MinRi2.PatchEditor.Main"
 description: "内容包编辑器 在 地图编辑器-> 地图信息->内容包编辑器 中打开内容包管理器"
 
 #the mod version
-version: 1.7.6
+version: 1.7.7
 
 #the minimum game build required to run this mod
 minGameVersion: 154
