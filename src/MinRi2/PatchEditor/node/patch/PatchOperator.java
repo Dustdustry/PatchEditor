@@ -92,10 +92,10 @@ public abstract class PatchOperator{
         }
     }
 
-    public static class ArrayAddOp extends PatchOperator{
+    public static class AppendOp extends PatchOperator{
         public final boolean plusSyntax;
 
-        public ArrayAddOp(String path, boolean plusSyntax){
+        public AppendOp(String path, boolean plusSyntax){
             super(path);
             this.plusSyntax = plusSyntax;
         }

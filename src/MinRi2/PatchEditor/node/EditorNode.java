@@ -61,7 +61,6 @@ public class EditorNode{
             while(iterator.hasNext()){
                 EditorNode node = iterator.next().value;
                 if(node.isAppended()){
-                    node.children.clear();
                     iterator.remove();
                 }
             }
@@ -216,9 +215,9 @@ public class EditorNode{
         manager.applyOp(new ClearOp(getPath()));
     }
 
-    public void addChild(boolean plusSyntax){
+    public void append(boolean plusSyntax){
         dynamicChanged();
-        manager.applyOp(new ArrayAddOp(getPath(), plusSyntax));
+        manager.applyOp(new AppendOp(getPath(), plusSyntax));
     }
 
     public void touch(String key){
