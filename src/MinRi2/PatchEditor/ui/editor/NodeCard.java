@@ -223,7 +223,7 @@ public class NodeCard extends Table{
 
     private void addEditTable(Table table, EditorNode node, DataModifier<?> modifier){
         Color modifiedColor = EPalettes.modified, unmodifiedColor0 = EPalettes.unmodified;
-        if(isRequired(node)) unmodifiedColor0 = EPalettes.required;
+        if(isWarning(node)) unmodifiedColor0 = EPalettes.warn;
         else if(node.isAppended()) unmodifiedColor0 = EPalettes.add;
 
         Color unmodifiedColor = unmodifiedColor0;
@@ -251,6 +251,12 @@ public class NodeCard extends Table{
         });
     }
 
+    private static boolean isWarning(EditorNode node){
+        if(isRequired(node)) return true;
+        if(node.getObjNode().getParent() != null) return node.getObjNode().getParent().isMultiArrayLike();;
+        return false;
+    }
+
     private static boolean isRequired(EditorNode node){
         if(node.getPath() != null || node.getObjNode() == null) return false;
         Field field = node.getObjNode().field;
@@ -264,8 +270,8 @@ public class NodeCard extends Table{
 
     private void addChildButton(Table table, EditorNode node){
         ImageButtonStyle style = EStyles.cardButtoni;
-        if(isRequired(node)){
-            style = EStyles.cardRequiredi;
+        if(isWarning(node)){
+            style = EStyles.cardWarni;
         }else if(node.isAppended()){
             style = EStyles.addButtoni;
         }else if(node.isRemoving()){
@@ -392,8 +398,9 @@ public class NodeCard extends Table{
                 child.clearJson();
                 rebuildNodesTable();
             }).tooltip("@node.revertOverride");
-        }else if(!hasModifier && PatchJsonIO.overrideable(child.getTypeIn()) && (child.getObject() == null || child.getObjNode().field != null)){
-            // override null object or field
+        }else if(!hasModifier && PatchJsonIO.overrideable(child.getTypeIn()) &&
+        (child.getObject() == null || child.getObjNode().field != null || editorNode.getObjNode().isMultiArrayLike())){
+            // override null object, field or element of multi-dimension array
             PatchNode patchNode = child.getPatch();
             if(patchNode == null || patchNode.sign == null){
                 table.button(Icon.wrench, Styles.clearNonei, () -> {
@@ -415,6 +422,10 @@ public class NodeCard extends Table{
 
         if(isRequired(child)){
             table.image(Icon.infoCircle).height(32f).tooltip("@node.mayRequired");
+        }
+
+        if(editorNode.getObjNode().isMultiArrayLike() && !child.isOverriding() && !child.isAppended()){
+            table.image(Icon.infoCircle).height(32f).tooltip("@node.multiArray.warn", true);
         }
     }
 
@@ -460,7 +471,7 @@ public class NodeCard extends Table{
 
                 nodeTitle.button(Icon.export, Styles.cleari, () -> {
                     PatchNode patchNode = editorNode.getPatch();
-                    Core.app.setClipboardText(patchNode == null ? "" : PatchEditor.toPatch(patchNode));
+                    Core.app.setClipboardText(patchNode == null ? "" : PatchEditor.toPatch(editorNode.getObjNode(), patchNode));
                     EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
                 }).size(64f).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
             }

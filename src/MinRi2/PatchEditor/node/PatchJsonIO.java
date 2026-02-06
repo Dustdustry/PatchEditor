@@ -19,6 +19,7 @@ import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
 
 import java.lang.reflect.*;
+import java.util.*;
 
 public class PatchJsonIO{
     public static final boolean debug = false;
@@ -166,31 +167,18 @@ public class PatchJsonIO{
     }
 
     public static void parseJson(ObjectNode objectNode, PatchNode patchNode, JsonValue value){
-        if(value.isArray()){
-            // patchNode('array': []) -> override array.
-            int i = 0;
-            for(JsonValue childValue : value){
-                PatchNode childNode = patchNode.getOrCreate("" + i++);
-                childNode.sign = ModifierSign.PLUS;
-                parseJson(null, childNode, childValue);
-            }
-            patchNode.type = ValueType.array;
-            patchNode.sign = ModifierSign.MODIFY;
-            return;
-        }
-
         // sign is seen as attribute in PatchNode, not a node
         if(!value.isValue() && value.has(ModifierSign.PLUS.sign)){
             JsonValue plusValue = value.remove(ModifierSign.PLUS.sign);
 
             int i = 0;
             if(plusValue.isArray()){
-                // patchNode(‘+’: []) -> multiple append
+                // patchNode('+': [{}, ""]) -> multiple append
                 for(JsonValue childValue : plusValue){
                     PatchNode childNode = patchNode.getOrCreate(appendPrefix + i++);
-                    childNode.sign = ModifierSign.PLUS;
                     if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
                     parseJson(null, childNode, childValue);
+                    childNode.sign = ModifierSign.PLUS;
                 }
             }else if(plusValue.isObject()){
                 // patchNode('+': {}) -> single append
@@ -204,6 +192,19 @@ public class PatchJsonIO{
                 removeJsonValue(value);
                 return;
             }
+        }
+
+        if(value.isArray()){
+            // patchNode('array': []) -> override array.
+            int i = 0;
+            for(JsonValue childValue : value){
+                PatchNode childNode = patchNode.getOrCreate("" + i++);
+                childNode.sign = ModifierSign.PLUS;
+                parseJson(null, childNode, childValue);
+            }
+            patchNode.type = ValueType.array;
+            patchNode.sign = ModifierSign.MODIFY;
+            return;
         }
 
         if(value.isValue()) patchNode.value = value.asString();
@@ -244,6 +245,7 @@ public class PatchJsonIO{
         }
     }
 
+    /** patchTree to jsonTree */
     public static JsonValue toJson(PatchNode patchNode){
         return toJson(patchNode, new JsonValue(patchNode.type));
     }
@@ -259,12 +261,7 @@ public class PatchJsonIO{
             if(childNode.key.startsWith(appendPrefix)){
                 if(appendValue == null){
                     appendValue = new JsonValue(ValueType.array);
-                    if(value.parent == null){
-                        // export supporting
-                        value.addChild(ModifierSign.PLUS.sign, appendValue);
-                    }else{
-                        value.parent.addChild(value.name + NodeManager.pathComp + ModifierSign.PLUS.sign, appendValue);
-                    }
+                    value.addChild(ModifierSign.PLUS.sign, appendValue);
                 }
 
                 appendValue.addChild(childValue.name, childValue);
@@ -275,12 +272,54 @@ public class PatchJsonIO{
             toJson(childNode, childValue);
         }
 
-        // Removing empty array and object without the sign.
-        if(!value.isValue() && value.child == null && patchNode.sign == null){
-            removeJsonValue(value);
+        return value;
+    }
+
+    /** jsonTree to patchJsonTree. */
+    public static JsonValue processJson(ObjectNode objectNode, JsonValue value){
+        Seq<JsonValue> toAdd = null;
+
+        Iterator<JsonValue> iterator = value.iterator();
+        while(iterator.hasNext()){
+            JsonValue childValue = iterator.next();
+            ObjectNode childNode = childValue.name == null ? null : objectNode.getOrResolve(childValue.name);
+            if(childNode == null) continue;
+
+            processJson(childNode, childValue);
+
+            // Plus syntax for array and index for multi-dimension array must be used with dot syntax.
+            if(childNode.isMultiArrayLike()){
+                iterator.remove();
+                toAdd = new Seq<>();
+                toAdd.addAll(childValue);
+                for(JsonValue indexValue : toAdd){
+                    removeJsonValue(indexValue);
+                    indexValue.setName(childValue.name + "." + indexValue.name);
+                }
+            }else if(childNode.isArrayLike() && childValue.has(ModifierSign.PLUS.sign)){
+                JsonValue plusValue = childValue.remove(ModifierSign.PLUS.sign);
+                if(childValue.child == null){
+                    iterator.remove();
+                }
+
+                toAdd = new Seq<>();
+                toAdd.add(plusValue);
+                plusValue.setName(childValue.name + "." + plusValue.name);
+            }
+        }
+
+        if(toAdd != null){
+            for(JsonValue jsonValue : toAdd){
+                value.addChild(jsonValue);
+            }
         }
 
         return value;
+    }
+
+    /** patchTree to patchJsonTree. */
+    public static JsonValue toPatchJson(ObjectNode objectNode, PatchNode patchNode){
+        return processJson(objectNode, toJson(patchNode));
     }
 
     private static void extractDotSyntax(JsonValue value){

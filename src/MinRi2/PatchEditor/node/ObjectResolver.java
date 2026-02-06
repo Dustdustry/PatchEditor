@@ -56,9 +56,9 @@ public class ObjectResolver{
         if(node.elementType != null && !typeEditable(node.elementType)) return;
 
         if(ClassHelper.isArrayLike(objectType)){
-            node.addSign(ModifierSign.PLUS);
+            node.addSign(ModifierSign.PLUS, null, node.elementType, null);
         }else if(ClassHelper.isMap(objectType)){
-            node.addSign(ModifierSign.PLUS);
+            node.addSign(ModifierSign.PLUS, null, node.elementType, node.keyType);
         }
 
         // object resolve

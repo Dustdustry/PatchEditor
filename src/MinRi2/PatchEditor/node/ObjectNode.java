@@ -84,6 +84,14 @@ public class ObjectNode{
         return isRoot;
     }
 
+    public boolean isArrayLike(){
+        return ClassHelper.isArrayLike(type);
+    }
+
+    public boolean isMultiArrayLike(){
+        return ClassHelper.isArrayLike(type) && ClassHelper.isArrayLike(elementType);
+    }
+
     public ObjectNode addSign(ModifierSign sign){
         // extend type from parent
         return addSign(sign, type, elementType, keyType);

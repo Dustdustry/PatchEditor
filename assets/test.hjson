@@ -1,9 +1,6 @@
 name: Patch0
 unit: {
   toxopid: {
-    weapons.+: [
-      {}
-    ]
     abilities: [
       {
         type: ShieldArcAbility
@@ -14,11 +11,11 @@ unit: {
         angle: "120"
       }
     ]
+    weapons.+: [
+      {}
+    ]
   }
   avert: {
-    commands.+: [
-      mine
-    ]
     aiController: MinerAI
     cachedRequirements: [
       titanium/10
@@ -26,6 +23,9 @@ unit: {
     firstRequirements: [
       lead/10
       metaglass/20
+    ]
+    commands.+: [
+      mine
     ]
   }
 }
@@ -40,4 +40,16 @@ block: {
     region: block-atmospheric-concentrator-ui
   }
   blast-drill.drillMultipliers.copper: "4"
+  additive-reconstructor: {
+    upgrades.+: [
+      [
+        dagger
+        stell
+      ]
+    ]
+    upgrades.0: [
+      merui
+      cleroi
+    ]
+  }
 }

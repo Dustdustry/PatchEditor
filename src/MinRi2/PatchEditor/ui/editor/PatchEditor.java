@@ -55,7 +55,7 @@ public class PatchEditor extends BaseDialog{
             rebuild();
         });
         hidden(() -> {
-            editPatch.patch = toPatch(manager.getRoot());
+            editPatch.patch = toPatch(objectTree, manager.getRoot());
             // clear the root node reference
             card.setRootEditorNode(null);
         });
@@ -135,8 +135,8 @@ public class PatchEditor extends BaseDialog{
         cont.pane(Styles.noBarPane, card).scrollX(false).pad(16f).padTop(8f).grow();
     }
 
-    public static String toPatch(PatchNode patchNode){
-        JsonValue value = PatchJsonIO.toJson(patchNode);
+    public static String toPatch(ObjectNode objectNode, PatchNode patchNode){
+        JsonValue value = PatchJsonIO.toPatchJson(objectNode, patchNode);
 
         if(Core.settings.getBool("patch-editor.simplifyPatch")){
             PatchJsonIO.simplifyPatch(value);

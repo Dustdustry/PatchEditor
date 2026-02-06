@@ -17,7 +17,7 @@ public class EPalettes{
     value = type,
     add = Color.valueOf("#6A8C6A"),
     remove = Color.valueOf("#8C6A6A"),
-    required = Color.valueOf("#8c8069"),
+    warn = Color.valueOf("#8c8069"),
     unmodified = Color.valueOf("#6A7B8C"),
     modified = Color.valueOf("#937156"),
     gray = Color.valueOf("#767676"),

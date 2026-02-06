@@ -2,6 +2,7 @@ package MinRi2.PatchEditor.node.patch;
 
 import MinRi2.PatchEditor.node.*;
 import arc.struct.ObjectMap.*;
+import arc.util.*;
 import arc.util.serialization.JsonValue.*;
 
 public abstract class PatchOperator{
@@ -93,10 +94,18 @@ public abstract class PatchOperator{
     }
 
     public static class AppendOp extends PatchOperator{
+        public final ValueType type;
         public final boolean plusSyntax;
+        public final String defaultValue;
 
         public AppendOp(String path, boolean plusSyntax){
+            this(path, ValueType.object, null, plusSyntax);
+        }
+
+        public AppendOp(String path, ValueType type, @Nullable String defaultValue, boolean plusSyntax){
             super(path);
+            this.type = type;
+            this.defaultValue = defaultValue;
             this.plusSyntax = plusSyntax;
         }
 
@@ -105,7 +114,9 @@ public abstract class PatchOperator{
             PatchNode node = root.navigateChild(path, true);
             String prefix = plusSyntax ? PatchJsonIO.appendPrefix : "";
             PatchNode plusNode = node.getOrCreate(findKey(prefix, node));
+            plusNode.type = type;
             plusNode.sign = ModifierSign.PLUS;
+            if(defaultValue != null) plusNode.value = defaultValue;
         }
 
         @Override
