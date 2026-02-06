@@ -94,12 +94,7 @@ public class ObjectNode{
     }
 
     public ObjectNode addChild(String name, Object object){
-        return addChild(name, object, null, null);
-    }
-
-    public ObjectNode addChild(String name, Object object, Class<?> elementType, Class<?> keyType){
-        Class<?> type = object != null ? object.getClass() : null;
-        return addChild(name, object, type, elementType, keyType);
+        return addChild(name, object, object == null ? null : object.getClass(), null, null);
     }
 
     public ObjectNode addChild(String name, Object object, FieldMetadata metadata){

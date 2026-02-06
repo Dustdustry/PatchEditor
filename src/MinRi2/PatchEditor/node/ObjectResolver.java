@@ -70,19 +70,19 @@ public class ObjectResolver{
             int i = 0;
             for(Object o : arr){
                 if(o == null) continue;
-                node.addChild("" + i++, o, node.elementType, null, null)
+                node.addChild("" + i++, o, node.elementType)
                 .addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
         }else if(object instanceof Seq<?> seq){
             for(int i = 0; i < seq.size; i++){
                 Object o = seq.get(i);
-                node.addChild("" + i, o, node.elementType, null, null)
+                node.addChild("" + i, o, node.elementType)
                 .addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
         }else if(object instanceof ObjectSet<?> set){
             int i = 0;
             for(Object o : set){
-                node.addChild("" + i++, o, node.elementType, null, null)
+                node.addChild("" + i++, o, node.elementType)
                 .addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
         }else if(object instanceof ObjectMap<?, ?> map){
@@ -115,7 +115,7 @@ public class ObjectResolver{
             }
             int i = 0;
             for(Object o : set.array){
-                node.addChild("" + i++, o, enumClass, null)
+                node.addChild("" + i++, o, enumClass)
                 .addSign(ModifierSign.MODIFY, enumClass, enumClass, null);
             }
         }else{
