@@ -290,7 +290,7 @@ public class PatchJsonIO{
             // Plus syntax for array and index for multi-dimension array must be used with dot syntax.
             if(childNode.isMultiArrayLike()){
                 iterator.remove();
-                toAdd = new Seq<>();
+                if(toAdd == null) toAdd = new Seq<>();
                 toAdd.addAll(childValue);
                 for(JsonValue indexValue : toAdd){
                     removeJsonValue(indexValue);
@@ -302,7 +302,7 @@ public class PatchJsonIO{
                     iterator.remove();
                 }
 
-                toAdd = new Seq<>();
+                if(toAdd == null) toAdd = new Seq<>();
                 toAdd.add(plusValue);
                 plusValue.setName(childValue.name + "." + plusValue.name);
             }
