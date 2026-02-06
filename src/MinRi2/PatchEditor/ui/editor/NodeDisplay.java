@@ -4,7 +4,6 @@ import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.graphics.g2d.*;
-import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -28,7 +27,7 @@ public class NodeDisplay{
     private static Table table;
     private static EditorNode node;
 
-    private static void intiSymbol(){
+    private static void initSymbol(){
         contentSymbolMap = ObjectMap.of(
         ContentType.item, Items.copper.uiIcon,
         ContentType.block, Blocks.sand.uiIcon,
@@ -102,7 +101,7 @@ public class NodeDisplay{
 
             Seq<?> seq = Vars.content.getBy(contentType);
             if(seq.isEmpty()) return;
-            if(contentSymbolMap == null) intiSymbol();
+            if(contentSymbolMap == null) initSymbol();
             displayInfo(contentType);
         }else if(object instanceof ItemStack || object instanceof LiquidStack || object instanceof PayloadStack){
             displayNameType(object);
