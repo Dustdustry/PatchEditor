@@ -232,9 +232,9 @@ public class EditorNode{
         manager.applyOp(new AppendOp(getPath(), type, defaultValue, plusSyntax));
     }
 
-    public void touch(String key){
+    public void touch(String key, String value, ModifierSign sign){
         dynamicChanged();
-        manager.applyOp(new TouchOp(getPath(), key));
+        manager.applyOp(new TouchOp(getPath(), key, value, sign));
     }
 
     public void changeType(Class<?> type){

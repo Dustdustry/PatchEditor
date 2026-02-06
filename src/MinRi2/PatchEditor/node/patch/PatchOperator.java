@@ -98,10 +98,6 @@ public abstract class PatchOperator{
         public final boolean plusSyntax;
         public final String defaultValue;
 
-        public AppendOp(String path, boolean plusSyntax){
-            this(path, ValueType.object, null, plusSyntax);
-        }
-
         public AppendOp(String path, ValueType type, @Nullable String defaultValue, boolean plusSyntax){
             super(path);
             this.type = type;
@@ -131,17 +127,22 @@ public abstract class PatchOperator{
     }
 
     public static class TouchOp extends PatchOperator{
-        public final String key;
+        public final String key, value;
+        public final ModifierSign sign;
 
-        public TouchOp(String path, String key){
+        public TouchOp(String path, String key, String value, ModifierSign sign){
             super(path);
 
             this.key = key;
+            this.value = value;
+            this.sign = sign;
         }
 
         @Override
         public void apply(PatchNode root){
-            root.navigateChild(path, true).getOrCreate(key);
+            PatchNode node = root.navigateChild(path, true).getOrCreate(key);
+            node.value = value;
+            node.sign = sign;
         }
 
         @Override

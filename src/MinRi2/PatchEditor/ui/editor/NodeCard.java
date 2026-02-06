@@ -324,15 +324,13 @@ public class NodeCard extends Table{
                 // ugly
                 if(editorNode.getObject() instanceof ObjectMap objectMap){
                     EUI.selector.select(type, c -> !objectMap.containsKey(c), c -> {
-                        editorNode.touch(PatchJsonIO.getKeyName(c));
-                        editorNode.setSign(ModifierSign.PLUS);
+                        editorNode.touch(PatchJsonIO.getKeyName(c), null, ModifierSign.PLUS);
                         rebuildNodesTable();
                         return true;
                     });
                 }else if(editorNode.getObject() instanceof ObjectFloatMap floatMap){
                     EUI.selector.select(type, c -> !floatMap.containsKey(c), c -> {
-                        editorNode.touch(PatchJsonIO.getKeyName(c));
-                        editorNode.setSign(ModifierSign.PLUS);
+                        editorNode.touch(PatchJsonIO.getKeyName(c), null, ModifierSign.PLUS);
                         rebuildNodesTable();
                         return true;
                     });
