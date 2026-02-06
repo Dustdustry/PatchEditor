@@ -2,6 +2,7 @@ package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.PatchSelectList.*;
+import MinRi2.PatchEditor.node.modifier.DataModifier.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -14,8 +15,6 @@ import mindustry.entities.units.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.meta.*;
-
-import static MinRi2.PatchEditor.node.modifier.EqualModifier.*;
 
 /**
  * @author minri2

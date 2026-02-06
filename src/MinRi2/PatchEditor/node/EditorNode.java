@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.node;
 
+import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.node.patch.PatchOperator.*;
 import arc.struct.*;
@@ -59,8 +60,9 @@ public class EditorNode{
 
             var iterator = children.entries().iterator();
             while(iterator.hasNext()){
-                EditorNode node = iterator.next().value;
-                if(node.isAppended()){
+                EditorNode childNode = iterator.next().value;
+                if(childNode instanceof DynamicEditorNode){
+                    childNode.children.clear();
                     iterator.remove();
                 }
             }
@@ -217,7 +219,17 @@ public class EditorNode{
 
     public void append(boolean plusSyntax){
         dynamicChanged();
-        manager.applyOp(new AppendOp(getPath(), plusSyntax));
+        ValueType type = ClassHelper.isArrayLike(objectNode.elementType) ? ValueType.array : ValueType.object;
+        String defaultValue = null;
+
+        ObjectNode template = ObjectResolver.getTemplate(objectNode.elementType);
+        DataModifier<?> modifier = NodeModifier.getModifier(template);
+        if(modifier != null){
+            type = modifier.valueType();
+            defaultValue = modifier.toJsonValue(template.object);
+        }
+
+        manager.applyOp(new AppendOp(getPath(), type, defaultValue, plusSyntax));
     }
 
     public void touch(String key){
