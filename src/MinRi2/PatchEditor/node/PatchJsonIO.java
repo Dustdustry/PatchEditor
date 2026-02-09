@@ -282,7 +282,8 @@ public class PatchJsonIO{
         Iterator<JsonValue> iterator = value.iterator();
         while(iterator.hasNext()){
             JsonValue childValue = iterator.next();
-            ObjectNode childNode = childValue.name == null ? null : objectNode.getOrResolve(childValue.name);
+            ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
+            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType);
             if(childNode == null) continue;
 
             processJson(childNode, childValue);
