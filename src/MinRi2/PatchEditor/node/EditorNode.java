@@ -1,6 +1,5 @@
 package MinRi2.PatchEditor.node;
 
-import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.node.patch.PatchOperator.*;
 import arc.struct.*;
@@ -24,7 +23,10 @@ public class EditorNode{
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
 
     private final NodeManager manager;
+    private boolean parseObjectDirty = true;
     private boolean dynamicDirty = true;
+
+    private Object cacheParseObject;
 
     public EditorNode(ObjectNode objectNode, NodeManager manager){
         this.objectNode = objectNode;
@@ -135,7 +137,13 @@ public class EditorNode{
         Object object = getObject();
         if(patchNode == null || isRemoving()) return object;
         if(PatchJsonIO.overrideable(getTypeIn()) && !(isOverriding() || isAppended() || patchNode.value != null)) return object;
-        return PatchJsonIO.parseJsonObject(patchNode, getObjNode(), object);
+
+        if(parseObjectDirty){
+            parseObjectDirty = false;
+            return cacheParseObject = PatchJsonIO.parseJsonObject(patchNode, getObjNode(), object);
+        }else{
+            return cacheParseObject;
+        }
     }
 
     public boolean hasValue(){
@@ -217,28 +225,23 @@ public class EditorNode{
     }
 
     public void clearJson(){
-        dynamicChanged();
         manager.applyOp(new ClearOp(getPath()));
     }
 
     public void append(boolean plusSyntax){
-        dynamicChanged();
         manager.applyOp(new AppendOp(getPath(), objectNode.elementType, plusSyntax));
     }
 
     public void touch(String key, String value, ModifierSign sign){
-        dynamicChanged();
         manager.applyOp(new TouchOp(getPath(), key, value, sign));
     }
 
     public void changeType(Class<?> type){
         clearChildren(); // resolve again
-        dynamicChanged();
         manager.applyOp(new ChangeTypeOp(getPath(), type));
     }
 
     public void setSign(ModifierSign sign){
-        dynamicChanged();
         manager.applyOp(new SetSignOp(getPath(), sign));
         if(sign == ModifierSign.MODIFY && ClassHelper.isArrayLike(getTypeIn())){
             manager.applyOp(new SetValueTypeOp(getPath(), ValueType.array));
@@ -247,7 +250,6 @@ public class EditorNode{
     }
 
     public void importPatch(String patch){
-        dynamicChanged();
         PatchNode sourceNode = new PatchNode(name());
         PatchJsonIO.parseJson(getObjNode(), sourceNode, patch);
         manager.applyOp(new ImportOp(getPath(), sourceNode));
@@ -259,8 +261,11 @@ public class EditorNode{
         dynamicDirty = true;
     }
 
-    public void dynamicChanged(){
+    public void patchChanged(){
+        parseObjectDirty = true;
         dynamicDirty = true;
+
+        if(parent != null) parent.patchChanged();
     }
 
     @Override

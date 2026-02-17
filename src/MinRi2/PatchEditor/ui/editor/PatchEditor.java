@@ -49,6 +49,14 @@ public class PatchEditor extends BaseDialog{
         manager = new NodeManager();
         card = new NodeCard();
 
+        // notify here?
+        manager.onChanged((operator, node) -> {
+            if(editorTree != null){
+                EditorNode editorNode = editorTree.navigate(operator.path);
+                if(editorNode != null) editorNode.patchChanged();
+            }
+        });
+
         resized(this::rebuild);
         shown(() -> {
             setup();

@@ -375,7 +375,6 @@ public class NodeCard extends Table{
             }
 
             table.button(Icon.cancel, Styles.clearNonei, () -> {
-                editorNode.dynamicChanged();
                 child.clearJson();
                 rebuildNodesTable();
             }).grow().tooltip("@node.remove");
