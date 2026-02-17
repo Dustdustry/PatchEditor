@@ -16,7 +16,9 @@ import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
 import mindustry.type.*;
+import mindustry.world.blocks.*;
 import mindustry.world.blocks.production.*;
+import mindustry.world.meta.*;
 
 import java.lang.reflect.*;
 
@@ -117,6 +119,10 @@ public class ObjectResolver{
             for(Object o : set.array){
                 node.addChild("" + i++, o, enumClass)
                 .addSign(ModifierSign.MODIFY, enumClass, enumClass, null);
+            }
+        }else if(object instanceof Attributes attributes){
+            for(Attribute att : Attribute.all){
+                node.addChild(att.name, attributes.get(att)).addSign(ModifierSign.MODIFY);
             }
         }else{
             // prevent null container resolving
