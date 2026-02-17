@@ -2,6 +2,7 @@ package MinRi2.PatchEditor.node;
 
 import arc.*;
 import arc.graphics.g2d.TextureAtlas.*;
+import arc.math.*;
 import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
@@ -9,17 +10,19 @@ import mindustry.*;
 import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.gen.*;
-import mindustry.logic.LogicFx.*;
 import mindustry.mod.*;
 import mindustry.type.*;
-import mindustry.ui.dialogs.*;
+import mindustry.world.meta.*;
 
-public class PatchSelectList{
+import java.lang.reflect.*;
+
+public class EditorList{
     private static final ObjectMap<Class<?>, Seq<String>> subTypeMap = new ObjectMap<>();
 
     private static Seq<Weapon> weaponList;
     private static Seq<AtlasRegion> regionList;
-    private static Seq<EffectEntry> effectList;
+
+    private static Seq<String> visibilityList, interpList;
 
     public static Seq<Weapon> getWeapons(){
         if(weaponList == null){
@@ -36,14 +39,6 @@ public class PatchSelectList{
             regionList.sort(Structs.comparing(region -> region.name));
         }
         return regionList;
-    }
-
-    public static Seq<EffectEntry> getEffectList(){
-        if(effectList == null){
-            // copy from EffectDialog
-            effectList = Seq.select(Fx.class.getFields(), f -> f.getType() == Effect.class).map(f -> new EffectEntry(Reflect.get(f)).name(f.getName()));
-        }
-        return effectList;
     }
 
     public static Seq<String> getSubTypeNames(Class<?> clazz){
@@ -63,6 +58,19 @@ public class PatchSelectList{
             if(consType.type.isAssignableFrom(type)) return consType;
         }
         return UnitConstructorType.flying;
+    }
+    public static Seq<String> getVisibilityList(){
+        if(visibilityList == null){
+            visibilityList = Seq.with(BuildVisibility.class.getFields()).map(Field::getName);
+        }
+        return visibilityList;
+    }
+
+    public static Seq<String> getInterpList(){
+        if(interpList == null){
+            interpList = Seq.with(Interp.class.getFields()).map(Field::getName);
+        }
+        return interpList;
     }
 
     public enum UnitConstructorType{

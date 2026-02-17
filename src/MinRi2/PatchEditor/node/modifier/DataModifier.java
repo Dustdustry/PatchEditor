@@ -147,7 +147,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
 
         @Override
         public String cast(Object object){
-            return String.valueOf(object);
+            return PatchJsonIO.getKeyName(object);
         }
     }
 

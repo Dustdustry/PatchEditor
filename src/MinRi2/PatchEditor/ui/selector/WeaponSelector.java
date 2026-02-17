@@ -20,7 +20,7 @@ public class WeaponSelector extends SelectorDialog<Weapon>{
 
     @Override
     protected Seq<Weapon> getItems(){
-        return PatchSelectList.getWeapons();
+        return EditorList.getWeapons();
     }
 
     @Override

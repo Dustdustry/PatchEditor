@@ -1,20 +1,18 @@
 package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
-import MinRi2.PatchEditor.node.PatchSelectList.*;
+import MinRi2.PatchEditor.node.EditorList.*;
 import MinRi2.PatchEditor.node.modifier.DataModifier.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
-import arc.math.geom.*;
+import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
-import mindustry.ai.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.units.*;
 import mindustry.type.*;
-import mindustry.world.*;
 import mindustry.world.meta.*;
 
 /**
@@ -32,7 +30,9 @@ public class NodeModifier{
         // enum
         new ModifierConfig(() -> new EnumModifier(UnitConstructorType.values()), UnitConstructorType.class),
         new ModifierConfig(() -> new EnumModifier(BlockFlag.values()), BlockFlag.class),
-        new ModifierConfig(() -> new EnumModifier(PatchSelectList.getSubTypeNames(AIController.class)), AIController.class),
+        new ModifierConfig(() -> new EnumModifier(EditorList.getSubTypeNames(AIController.class)), AIController.class),
+        new ModifierConfig(() -> new EnumModifier(EditorList.getVisibilityList()), BuildVisibility.class),
+        new ModifierConfig(() -> new EnumModifier(EditorList.getInterpList()), Interp.class),
 
         new ModifierConfig(EffectModifier::new, Effect.class),
 

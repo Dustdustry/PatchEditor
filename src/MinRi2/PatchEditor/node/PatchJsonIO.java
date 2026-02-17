@@ -1,12 +1,14 @@
 package MinRi2.PatchEditor.node;
 
 import MinRi2.PatchEditor.node.patch.*;
+import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
 import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.Jval.*;
+import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.abilities.*;
@@ -16,6 +18,7 @@ import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
+import mindustry.world.meta.*;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -30,6 +33,9 @@ public class PatchJsonIO{
 
     private static ObjectMap<String, ContentType> nameToType;
     public static ObjectMap<Class<?>, ContentType> classContentType;
+
+    private static final ObjectMap<Class<?>, ObjectMap<String, Object>> objectNameMap = new ObjectMap<>();
+
     public static final ObjectMap<Class<?>, Class<?>> defaultClassMap = ObjectMap.of(
         Ability.class, ForceFieldAbility.class
     );
@@ -37,13 +43,37 @@ public class PatchJsonIO{
     UnitType.class, UnlockableContent.class,
     ItemStack.class, LiquidStack.class, PayloadStack.class
     );
+    public static final ObjectMap<Class<?>, Class<?>> keyFieldsClasses = ObjectMap.of(
+    Effect.class, Fx.class,
+    BlockFlag.class, BlockFlag.class,
+    BuildVisibility.class, BuildVisibility.class,
+    Interp.class, Interp.class
+    );
 
     // internal key name
     public static String getKeyName(Object object){
+        if(object == null) return "null";
         if(object instanceof MappableContent mc) return mc.name;
         if(object instanceof Enum<?> e) return e.name();
         if(object instanceof Class<?> clazz) return clazz.getName();
+
+        Class<?> type = keyFieldsClasses.keys().toSeq().find(c -> c.isAssignableFrom(object.getClass()));
+        if(type != null){
+            String buildIn = getKeyEntryMap(type, keyFieldsClasses.get(type)).findKey(object, true);
+            if(buildIn != null) return buildIn;
+        }
+
         return String.valueOf(object);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <T> ObjectMap<String, T> getKeyEntryMap(Class<T> type, Class<?> declare){
+        ObjectMap<String, Object> map = objectNameMap.get(declare);
+        if(map != null) return (ObjectMap<String, T>)map;
+
+        map = Seq.select(declare.getFields(), f -> f.getType() == type).asMap(Field::getName, Reflect::get);
+        objectNameMap.put(declare, map);
+        return (ObjectMap<String, T>)map;
     }
 
     // internal type name

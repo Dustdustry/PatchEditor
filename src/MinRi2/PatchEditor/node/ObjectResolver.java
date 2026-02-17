@@ -1,6 +1,6 @@
 package MinRi2.PatchEditor.node;
 
-import MinRi2.PatchEditor.node.PatchSelectList.*;
+import MinRi2.PatchEditor.node.EditorList.*;
 import arc.files.*;
 import arc.graphics.*;
 import arc.input.*;
@@ -160,7 +160,7 @@ public class ObjectResolver{
         // specific fields
         if(object instanceof UnitType type){
             // classTypeName will be resolved to prov
-            node.addChild("type", PatchSelectList.getUnitTypeName(type.constructor.get().getClass()), UnitConstructorType.class).addSign(ModifierSign.MODIFY);
+            node.addChild("type", EditorList.getUnitTypeName(type.constructor.get().getClass()), UnitConstructorType.class).addSign(ModifierSign.MODIFY);
             node.addChild("aiController", PatchJsonIO.getClassTypeName(type.aiController.get().getClass()), AIController.class).addSign(ModifierSign.MODIFY);
             node.addChild("controller", PatchJsonIO.getClassTypeName(CommandAI.class), AIController.class).addSign(ModifierSign.MODIFY);
         }
@@ -203,7 +203,7 @@ public class ObjectResolver{
     }
 
     public static boolean typeEditable(Class<?> clazz){
-        return clazz != null && !(clazz.isInterface() || clazz.isSynthetic() || classBlacklist.contains(black -> black.isAssignableFrom(clazz)));
+        return clazz != null && !(clazz.isSynthetic() || classBlacklist.contains(black -> black.isAssignableFrom(clazz)));
     }
 
     public static boolean fieldResolvable(Field field){

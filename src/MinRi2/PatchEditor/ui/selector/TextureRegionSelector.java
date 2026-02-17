@@ -72,7 +72,7 @@ public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
 
     @Override
     protected Seq<AtlasRegion> getItems(){
-        return PatchSelectList.getRegions();
+        return EditorList.getRegions();
     }
 
     @Override
