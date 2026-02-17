@@ -1,8 +1,8 @@
 package MinRi2.PatchEditor.node.patch;
 
 import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.modifier.*;
 import arc.struct.ObjectMap.*;
-import arc.util.*;
 import arc.util.serialization.JsonValue.*;
 
 public abstract class PatchOperator{
@@ -16,18 +16,25 @@ public abstract class PatchOperator{
     public abstract void undo(PatchNode root);
 
     public static class SetOp extends PatchOperator{
-        public String value;
+        public final String value;
+        public final ValueType type;
 
         public SetOp(String path, String value){
+            this(path, value, null);
+        }
+
+        public SetOp(String path, String value, ValueType type){
             super(path);
 
             this.value = value;
+            this.type = type;
         }
 
         @Override
         public void apply(PatchNode root){
             PatchNode node = root.navigateChild(path, true);
             node.value = value;
+            if(type != null) node.type = type;
         }
 
         @Override

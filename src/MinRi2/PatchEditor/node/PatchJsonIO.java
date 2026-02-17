@@ -139,11 +139,19 @@ public class PatchJsonIO{
     public static Object parseJsonObject(PatchNode patchNode, ObjectNode objectNode, Object original){
         Json json = PatchJsonIO.getParser().getJson();
         try{
+            Class<?> type = objectNode.type;
+            if(type == float.class || type == Float.class) return Float.parseFloat(patchNode.value);
+            if(type == double.class || type == Double.class) return Double.parseDouble(patchNode.value);
+            if(type == long.class || type == Long.class) return Long.parseLong(patchNode.value);
+            if(type == int.class || type == Integer.class
+            || type == short.class || type == Short.class
+            || type == byte.class || type == Byte.class) return Integer.parseInt(patchNode.value);
+
             JsonValue value = PatchJsonIO.toJson(patchNode);
-            if(patchNode.value != null) return json.readValue(objectNode.type, objectNode.elementType, value);
+            if(patchNode.value != null) return json.readValue(type, objectNode.elementType, value);
 
             Object copied = PatchJsonIO.cloneObject(original);
-            if(copied == null) return json.readValue(objectNode.type, objectNode.elementType, value);
+            if(copied == null) return json.readValue(type, objectNode.elementType, value);
 
             // stimulate patch applying
             json.readFields(copied, value);
@@ -251,7 +259,13 @@ public class PatchJsonIO{
 
     private static JsonValue toJson(PatchNode patchNode, JsonValue value){
         value.setName(patchNode.key);
-        if(patchNode.value != null) value.set(patchNode.value);
+        if(patchNode.value != null){
+            if(patchNode.type == ValueType.doubleValue || patchNode.type == ValueType.longValue){
+                value.set(Strings.parseDouble(patchNode.value, 0), patchNode.value);
+            }else{
+                value.set(patchNode.value);
+            }
+        }
 
         JsonValue appendValue = null;
         for(PatchNode childNode : patchNode.children.values()){

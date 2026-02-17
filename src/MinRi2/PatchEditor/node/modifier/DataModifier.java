@@ -83,7 +83,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     public final void onModify(T value){
         boolean modified = isModified(value);
         if(modified){
-            data.setValue(PatchJsonIO.getKeyName(value));
+            data.setValue(PatchJsonIO.getKeyName(value), valueType);
 
             if(onModified != null){
                 onModified.get(true);
@@ -96,7 +96,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     @Override
     public void resetModify(){
         if(data.isAppended()){
-            data.setValue(toJsonValue(data.getObject()));
+            data.setValue(toJsonValue(data.getObject()), valueType);
         }else{
             data.clearJson();
         }
@@ -164,6 +164,10 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     }
 
     public static class NumberModifier extends StringModifier{
+        public NumberModifier(){
+            super();
+            valueType = ValueType.doubleValue;
+        }
 
         @Override
         public boolean checkTypeValid(String string, Class<?> type){

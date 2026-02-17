@@ -209,7 +209,11 @@ public class EditorNode{
     }
 
     public void setValue(String value){
-        manager.applyOp(new SetOp(getPath(), value));
+        setValue(value, null);
+    }
+
+    public void setValue(String value, ValueType valueType){
+        manager.applyOp(new SetOp(getPath(), value, valueType));
     }
 
     public void clearJson(){
