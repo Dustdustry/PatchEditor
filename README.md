@@ -26,14 +26,15 @@ Anyway, enjoy making wonderful patch!
 - [ ] Errors inspector
 
 - [x] Edit Color
-- [ ] Edit Interp
+- [x] Edit Interp
 - [ ] Edit Consumer
-- [ ] Edit Attribute
+- [x] Edit Attribute
+- [x] Edit BuildVisibility
 - [x] Edit EnumSet
 
 - [x] Select weapon region
 - [x] Select texture region
 - [x] Select unit's controller, aiController and type
-- [ ] Select effect
+- [x] Select effect
 - [x] Select block flag
 - [ ] Select sound
