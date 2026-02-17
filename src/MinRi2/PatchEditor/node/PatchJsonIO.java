@@ -12,7 +12,6 @@ import mindustry.entities.*;
 import mindustry.entities.abilities.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.*;
-import mindustry.io.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.consumers.*;

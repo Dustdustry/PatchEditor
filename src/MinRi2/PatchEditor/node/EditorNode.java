@@ -219,17 +219,7 @@ public class EditorNode{
 
     public void append(boolean plusSyntax){
         dynamicChanged();
-        ValueType type = ClassHelper.isArrayLike(objectNode.elementType) ? ValueType.array : ValueType.object;
-        String defaultValue = null;
-
-        ObjectNode template = ObjectResolver.getTemplate(objectNode.elementType);
-        DataModifier<?> modifier = NodeModifier.getModifier(template);
-        if(modifier != null){
-            type = modifier.valueType();
-            defaultValue = modifier.toJsonValue(template.object);
-        }
-
-        manager.applyOp(new AppendOp(getPath(), type, defaultValue, plusSyntax));
+        manager.applyOp(new AppendOp(getPath(), objectNode.elementType, plusSyntax));
     }
 
     public void touch(String key, String value, ModifierSign sign){

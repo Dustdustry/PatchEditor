@@ -94,25 +94,30 @@ public abstract class PatchOperator{
     }
 
     public static class AppendOp extends PatchOperator{
-        public final ValueType type;
+        public final Class<?> type;
         public final boolean plusSyntax;
-        public final String defaultValue;
 
-        public AppendOp(String path, ValueType type, @Nullable String defaultValue, boolean plusSyntax){
+        public AppendOp(String path, Class<?> type, boolean plusSyntax){
             super(path);
             this.type = type;
-            this.defaultValue = defaultValue;
             this.plusSyntax = plusSyntax;
         }
 
         @Override
         public void apply(PatchNode root) {
             PatchNode node = root.navigateChild(path, true);
+
             String prefix = plusSyntax ? PatchJsonIO.appendPrefix : "";
-            PatchNode plusNode = node.getOrCreate(findKey(prefix, node));
-            plusNode.type = type;
-            plusNode.sign = ModifierSign.PLUS;
-            if(defaultValue != null) plusNode.value = defaultValue;
+            PatchNode appended = node.getOrCreate(findKey(prefix, node));
+            appended.sign = ModifierSign.PLUS;
+            appended.type = ClassHelper.isArrayLike(type) ? ValueType.array : ValueType.object;
+
+            ObjectNode template = ObjectResolver.getTemplate(type);
+            DataModifier<?> modifier = NodeModifier.getModifier(template);
+            if(modifier != null){
+                appended.type = modifier.valueType();
+                appended.value = modifier.toJsonValue(template.object);
+            }
         }
 
         @Override
