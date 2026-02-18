@@ -2,11 +2,17 @@ package MinRi2.PatchEditor.node;
 
 import arc.struct.*;
 
+import java.lang.reflect.*;
+
 public class ClassHelper{
     public static Class<?> unoymousClass(Class<?> clazz){
         if(clazz == null) return null;
         while(clazz.isAnonymousClass()) clazz = clazz.getSuperclass();
         return clazz;
+    }
+
+    public static boolean isAbstractClass(Class<?> clazz){
+        return Modifier.isAbstract(clazz.getModifiers()) && !clazz.isInterface() && !clazz.isArray();
     }
 
     public static boolean isArray(Class<?> type){

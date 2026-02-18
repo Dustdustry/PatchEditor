@@ -4,6 +4,7 @@ import MinRi2.PatchEditor.node.EditorList.*;
 import arc.files.*;
 import arc.graphics.*;
 import arc.input.*;
+import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
@@ -16,8 +17,10 @@ import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
 import mindustry.type.*;
+import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.production.*;
+import mindustry.world.consumers.*;
 import mindustry.world.meta.*;
 
 import java.lang.reflect.*;
@@ -50,8 +53,14 @@ public class ObjectResolver{
 
         Class<?> objectType = node.type;
         Object object = node.object;
-        if(object instanceof MapEntry<?, ?> entry) object = entry.value;
-        if(object != null) objectType = object.getClass();
+        if(object == null && objectType == null) return;
+
+        if(object != null){
+            if(object instanceof MapEntry<?, ?> entry) object = entry.value;
+            objectType = object.getClass();
+        }else{
+            object = getExample(objectType, objectType);
+        }
 
         // type resolve
         if(!typeResolvable(objectType)) return;
@@ -64,10 +73,6 @@ public class ObjectResolver{
         }
 
         // object resolve
-//        if(object instanceof Block){
-//            resolveConsumes(node);
-//        }
-
         if(object instanceof Object[] arr){
             int i = 0;
             for(Object o : arr){
@@ -125,8 +130,6 @@ public class ObjectResolver{
                 node.addChild(att.name, attributes.get(att)).addSign(ModifierSign.MODIFY);
             }
         }else{
-            // prevent null container resolving
-            if(object == null && ClassHelper.isContainer(objectType)) return;
             resolveFields(node, object, objectType);
         }
     }
@@ -164,6 +167,28 @@ public class ObjectResolver{
             node.addChild("aiController", PatchJsonIO.getClassTypeName(type.aiController.get().getClass()), AIController.class).addSign(ModifierSign.MODIFY);
             node.addChild("controller", PatchJsonIO.getClassTypeName(CommandAI.class), AIController.class).addSign(ModifierSign.MODIFY);
         }
+
+        if(object instanceof Block){
+            ObjectNode consumesNode = node.addChild("consumes", null, Consume.class);
+
+            consumesNode.addSign(ModifierSign.MODIFY);
+
+            consumesNode.addChild("item", null, Item.class).addSign(ModifierSign.MODIFY);
+            consumesNode.addChild("itemCharged", null, ConsumeItemCharged.class).addSign(ModifierSign.MODIFY);
+            consumesNode.addChild("itemFlammable", null, ConsumeItemFlammable.class).addSign(ModifierSign.MODIFY);
+            consumesNode.addChild("itemRadioactive", null, ConsumeItemRadioactive.class).addSign(ModifierSign.MODIFY);
+            consumesNode.addChild("itemExplosive", null, ConsumeItemExplosive.class).addSign(ModifierSign.MODIFY);
+            consumesNode.addChild("itemList", null, ConsumeItemList.class).addSign(ModifierSign.MODIFY);
+            consumesNode.addChild("itemExplode", null, ConsumeItemExplode.class).addSign(ModifierSign.MODIFY);
+//            consumesNode.addChild("items") // TODO: desugar string and array
+
+            consumesNode.addChild("liquidFlammable", null, ConsumeLiquidFlammable.class).addSign(ModifierSign.MODIFY);
+            consumesNode.addChild("liquid", null, ConsumeLiquid.class).addSign(ModifierSign.MODIFY);
+//            consumesNode.addChild("liquids", null, ) // TODO: desugar string and array
+            consumesNode.addChild("coolant", null, ConsumeCoolant.class).addSign(ModifierSign.MODIFY);
+            consumesNode.addChild("power", null, ConsumePower.class).addSign(ModifierSign.MODIFY); // TODO: desugar number
+            consumesNode.addChild("powerBuffered", null, float.class).addSign(ModifierSign.MODIFY);
+        }
     }
 
     private static Seq<String> findFieldBlacklist(Class<?> type){
@@ -199,11 +224,13 @@ public class ObjectResolver{
     }
 
     public static boolean typeResolvable(Class<?> clazz){
-        return clazz != null && !(clazz.isPrimitive() || Reflect.isWrapper(clazz)) && typeEditable(clazz);
+        return clazz != null && !(clazz.isPrimitive() || Reflect.isWrapper(clazz))
+        && !ClassHelper.isAbstractClass(clazz) && typeEditable(clazz);
     }
 
     public static boolean typeEditable(Class<?> clazz){
-        return clazz != null && !(clazz.isSynthetic() || classBlacklist.contains(black -> black.isAssignableFrom(clazz)));
+        return clazz != null && (!clazz.isInterface() || clazz == Interp.class)
+        && !(clazz.isSynthetic() || classBlacklist.contains(black -> black.isAssignableFrom(clazz)));
     }
 
     public static boolean fieldResolvable(Field field){
