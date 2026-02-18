@@ -368,7 +368,7 @@ public class NodeCard extends Table{
                     });
                 }
             }else{
-                editorNode.append(editorNode.getObject() != null && !editorNode.isOverriding() && !editorNode.isAppended());
+                editorNode.append(editorNode.getObject() != null && !editorNode.isOverriding() && !editorNode.isParentOverriding() && !editorNode.isAppended());
             }
         });
     }

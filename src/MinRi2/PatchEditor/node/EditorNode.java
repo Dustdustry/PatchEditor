@@ -167,6 +167,15 @@ public class EditorNode{
         return patchNode != null && patchNode.sign == ModifierSign.MODIFY;
     }
 
+    public boolean isParentOverriding(){
+        EditorNode current = parent;
+        while(current != null){
+            if(current.isOverriding()) return true;
+            current = current.parent;
+        }
+        return false;
+    }
+
     public boolean isChangedType(){
         if(!PatchJsonIO.typeOverrideable(getTypeIn())) return false;
 

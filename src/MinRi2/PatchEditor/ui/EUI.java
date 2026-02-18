@@ -107,6 +107,8 @@ public class EUI{
         btn.addListener(new ClickListener(){
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                if(btn.isDisabled()) return;
+
                 Element current = event.targetActor;
                 while(current != null && !(current instanceof Button)){
                     current = current.parent;

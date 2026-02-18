@@ -421,7 +421,7 @@ public class PatchJsonIO{
         if(value.isValue()) return;
 
         for(JsonValue childValue : value){
-            ObjectNode childNode = childValue.name == null ||objectNode == null ? null : objectNode.getOrResolve(childValue.name);
+            ObjectNode childNode = childValue.name == null || objectNode == null ? null : objectNode.getOrResolve(childValue.name);
             desugarJson(childNode, childValue);
         }
     }
@@ -442,8 +442,33 @@ public class PatchJsonIO{
             value.addChild("amount", new JsonValue(split[1]));
         }
 
-        if (value.isArray()) {
-            if (type == Effect.class) {
+        if(type == ConsumeItems.class && (value.isString() || value.isArray())){
+            JsonValue desugared = new JsonValue(ValueType.object);
+            desugared.setName(value.name);
+            replaceValue(value, desugared);
+
+            if(value.isString()){
+                // items: copper/2 -> items: {items: [copper/2]}
+                JsonValue itemsValue = new JsonValue(ValueType.array);
+                itemsValue.addChild("", value);
+                desugared.addChild("items", itemsValue);
+            }else if(value.isArray()){
+                // items: [copper/2] -> items: {items: [copper/2]}
+                desugared.addChild("items", value);
+            }
+            return;
+        }else if(type == ConsumeLiquids.class){
+            // liquids: [water/0.1] -> liquids: {liquids: [water/0.1]}
+            JsonValue desugared = new JsonValue(ValueType.object);
+            desugared.setName(value.name);
+            replaceValue(value, desugared);
+
+            desugared.addChild("liquids", value);
+            return;
+        }
+
+        if(value.isArray()){
+            if(type == Effect.class){
                 /* to MultiEffect */
                 value.setType(ValueType.object);
                 JsonValue elementValue = new JsonValue(ValueType.array);

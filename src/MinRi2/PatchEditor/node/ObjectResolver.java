@@ -168,7 +168,7 @@ public class ObjectResolver{
             node.addChild("controller", PatchJsonIO.getClassTypeName(CommandAI.class), AIController.class).addSign(ModifierSign.MODIFY);
         }
 
-        if(object instanceof Block){
+        if(object instanceof Block block){
             ObjectNode consumesNode = node.addChild("consumes", null, Consume.class);
 
             consumesNode.addSign(ModifierSign.MODIFY);
@@ -180,11 +180,11 @@ public class ObjectResolver{
             consumesNode.addChild("itemExplosive", null, ConsumeItemExplosive.class).addSign(ModifierSign.MODIFY);
             consumesNode.addChild("itemList", null, ConsumeItemList.class).addSign(ModifierSign.MODIFY);
             consumesNode.addChild("itemExplode", null, ConsumeItemExplode.class).addSign(ModifierSign.MODIFY);
-//            consumesNode.addChild("items") // TODO: desugar string and array
+            consumesNode.addChild("items", null, ConsumeItems.class).addSign(ModifierSign.MODIFY);
 
             consumesNode.addChild("liquidFlammable", null, ConsumeLiquidFlammable.class).addSign(ModifierSign.MODIFY);
             consumesNode.addChild("liquid", null, ConsumeLiquid.class).addSign(ModifierSign.MODIFY);
-//            consumesNode.addChild("liquids", null, ) // TODO: desugar string and array
+            consumesNode.addChild("liquids", null, ConsumeLiquids.class).addSign(ModifierSign.MODIFY);
             consumesNode.addChild("coolant", null, ConsumeCoolant.class).addSign(ModifierSign.MODIFY);
             consumesNode.addChild("power", null, ConsumePower.class).addSign(ModifierSign.MODIFY); // TODO: desugar number
             consumesNode.addChild("powerBuffered", null, float.class).addSign(ModifierSign.MODIFY);
