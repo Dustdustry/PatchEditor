@@ -59,6 +59,7 @@ public class EditorList{
         }
         return UnitConstructorType.flying;
     }
+
     public static Seq<String> getVisibilityList(){
         if(visibilityList == null){
             visibilityList = Seq.with(BuildVisibility.class.getFields()).map(Field::getName);

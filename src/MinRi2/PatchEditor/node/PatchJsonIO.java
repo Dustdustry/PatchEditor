@@ -1,6 +1,9 @@
 package MinRi2.PatchEditor.node;
 
 import MinRi2.PatchEditor.node.patch.*;
+import arc.*;
+import arc.graphics.g2d.*;
+import arc.graphics.g2d.TextureAtlas.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
@@ -56,6 +59,10 @@ public class PatchJsonIO{
         if(object instanceof MappableContent mc) return mc.name;
         if(object instanceof Enum<?> e) return e.name();
         if(object instanceof Class<?> clazz) return clazz.getName();
+        if(object instanceof TextureRegion region){
+            String key = Core.atlas.getRegionMap().findKey(region, true);
+            return key == null ? "error" : key;
+        }
 
         Class<?> type = keyFieldsClasses.keys().toSeq().find(c -> c.isAssignableFrom(object.getClass()));
         if(type != null){

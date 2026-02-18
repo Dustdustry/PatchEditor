@@ -244,6 +244,7 @@ public class ObjectResolver{
         if(type == float.class) return 0f; // add more primitive cases if necessary
         if(type == int.class || type == short.class) return 0;
         if(type.isArray()) return Reflect.newArray(type.getComponentType(), 0);
+        // TODO: example map?
 
         type = PatchJsonIO.resolveType(type);
 

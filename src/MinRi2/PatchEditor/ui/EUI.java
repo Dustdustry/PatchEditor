@@ -4,7 +4,9 @@ import MinRi2.PatchEditor.ui.editor.*;
 import MinRi2.PatchEditor.ui.selector.*;
 import arc.*;
 import arc.func.*;
+import arc.input.*;
 import arc.math.*;
+import arc.scene.*;
 import arc.scene.actions.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
@@ -99,6 +101,22 @@ public class EUI{
 
         t.act(0.1f);
         Core.scene.add(t);
+    }
+
+    public static void backButtonClick(Button btn, Runnable backClicked){
+        btn.addListener(new ClickListener(){
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Element current = event.targetActor;
+                while(current != null && !(current instanceof Button)){
+                    current = current.parent;
+                }
+
+                if(current == btn){
+                    backClicked.run();
+                }
+            }
+        });
     }
 
     public static class DeboundTextField extends TextField{

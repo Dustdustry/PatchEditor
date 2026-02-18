@@ -123,7 +123,7 @@ public abstract class PatchOperator{
             DataModifier<?> modifier = NodeModifier.getModifier(template);
             if(modifier != null){
                 appended.type = modifier.valueType();
-                appended.value = modifier.toJsonValue(template.object);
+                appended.value = PatchJsonIO.getKeyName(template.object);
             }
         }
 

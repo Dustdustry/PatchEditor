@@ -12,7 +12,7 @@ import arc.util.serialization.JsonValue.*;
  */
 public class EditorNode{
     private String path;
-    private boolean resolvedObj;
+    private boolean needResolve;
 
     private ObjectNode shadowObjectNode;
     private final ObjectNode objectNode;
@@ -23,10 +23,7 @@ public class EditorNode{
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
 
     private final NodeManager manager;
-    private boolean parseObjectDirty = true;
     private boolean dynamicDirty = true;
-
-    private Object cacheParseObject;
 
     public EditorNode(ObjectNode objectNode, NodeManager manager){
         this.objectNode = objectNode;
@@ -37,7 +34,7 @@ public class EditorNode{
         return objectNode.name;
     }
 
-    public ObjectMap<String, EditorNode> getChildren(){
+    public ObjectMap<String, EditorNode> buildChildren(){
         PatchNode patchNode = getPatch();
         ObjectNode objectNode = getObjNode();
 
@@ -46,7 +43,8 @@ public class EditorNode{
             currentObj = objectNode;
         }
 
-        if(!resolvedObj){
+        if(needResolve){
+            needResolve = false;
             for(ObjectNode node : currentObj.getChildren().values()){
                 if(node.isSign()) continue;
 
@@ -54,7 +52,6 @@ public class EditorNode{
                 child.parent = this;
                 children.put(child.name(), child);
             }
-            resolvedObj = true;
         }
 
         if(dynamicDirty){
@@ -64,6 +61,7 @@ public class EditorNode{
             while(iterator.hasNext()){
                 EditorNode childNode = iterator.next().value;
                 if(childNode instanceof DynamicEditorNode){
+                    childNode.parent = null;
                     childNode.children.clear();
                     iterator.remove();
                 }
@@ -137,13 +135,7 @@ public class EditorNode{
         Object object = getObject();
         if(patchNode == null || isRemoving()) return object;
         if(PatchJsonIO.overrideable(getTypeIn()) && !(isOverriding() || isAppended() || patchNode.value != null)) return object;
-
-        if(parseObjectDirty){
-            parseObjectDirty = false;
-            return cacheParseObject = PatchJsonIO.parseJsonObject(patchNode, getObjNode(), object);
-        }else{
-            return cacheParseObject;
-        }
+        return PatchJsonIO.parseJsonObject(patchNode, getObjNode(), getObject());
     }
 
     public boolean hasValue(){
@@ -210,7 +202,7 @@ public class EditorNode{
 
         EditorNode current = this;
         for(String name : path.split(NodeManager.pathSplitter)){
-            current = current.getChildren().get(name);
+            current = current.buildChildren().get(name);
             if(current == null) return null;
         }
         return current;
@@ -257,12 +249,17 @@ public class EditorNode{
 
     public void clearChildren(){
         children.clear();
-        resolvedObj = false;
+        needResolve = true;
         dynamicDirty = true;
     }
 
+    public void sync(){
+        if(needResolve || dynamicDirty){
+            buildChildren();
+        }
+    }
+
     public void patchChanged(){
-        parseObjectDirty = true;
         dynamicDirty = true;
 
         if(parent != null) parent.patchChanged();

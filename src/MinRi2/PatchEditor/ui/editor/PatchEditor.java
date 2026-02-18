@@ -26,18 +26,31 @@ public class PatchEditor extends BaseDialog{
     private EditorPatch editPatch;
 
     /**
+     * <p>
      * ObjectTree、EditorTree、PatchTree
      * 分别用来描述 Mindustry的内容数据、编辑器的ui数据、内容包的json数据
+     * </p>
      * <p>
-     * EditorTree有 ObjectTree 静态部分和 PatchTree 动态部分(DynamicEditorNode)
-     * ui通过 EditorNode 暴露的各种helper函数，调用 PatchOperator 来操作 PatchTree（比如：创建PatchNode，删除PatchNode等等）
+     * EditorTree根据 ObjectTree 静态创建，根据 PatchTree 动态创建(DynamicEditorNode)
+     * EditorNode根据 PatchNode 描述ui的状态（是否有patch，是否是追加，类型是否改变等等）
+     * 并且暴露的各种通过 PatchOperator操作 PatchNode 的函数（比如：创建PatchNode，删除PatchNode等等）
+     * </p>
+     * PatchTree根据用户的 json 解析产生
+     * PatchNode只存储json数据，比如 json类型(object, array)，或者值
      * <p>
-     * PatchOperator 只存储一些修改 PatchTree 必要的数据，比如 json类型(object, array)，或者 设置json的值
+     * 用户操作的逻辑链路:
+     * 1. 导入json --解析--> PatchTree （解析：转为json树、根据ObjectTree脱糖）
+     * 2. PatchTree + ObjectTree --构建--> EditorTree
+     * 3. EditorNode -对应-> Modifier -> ModifierBuilder -> 构建ui
+     * 4. 用户ui操作 -> Modifier -> 调用 EditorNode 的操作函数 -> Operator 传给 manager 应用并记录操作 -> 重新构建受影响的 EditorNode
+     * 5. Modifier根据修改后 PatchNode 的状态，更新ui
+     * </p>
      * <p>
-     * 需要值修改的 ObjectNode 类型多，而且不同类型有不同的ui构建方式，以及修改PatchNode的方式，于是有 EditorNode 和 PatchNode 的中间层 DataModifier和ModifierBuilder
+     * 由于需要单值修改的 ObjectNode 很多，而且不同类型有不同的ui构建方式、修改PatchNode的方式，于是有 EditorNode 和 PatchNode 的中间层 DataModifier和ModifierBuilder
      * <p>
-     * DataModifier 会有自己的 Builder （比如：String类型会映射到 StringModifier，决定 PatchNode 的类型为值类型，即 key: value，有StringBuilder构建ui为输入条）
+     * DataModifier 有自己的 Builder （比如：String类型会映射到 StringModifier，决定 PatchNode 的类型为值类型，即 key: value，有StringBuilder构建ui为输入条）
      * Builder 负责处理数据合法性，同时 DataModifier 还作为 Builer 的 consumer，提供修改的合法检查，提供初始值和是否修改
+     * </p>
      * */
     private EditorNode editorTree;
     private ObjectNode objectTree;
@@ -47,7 +60,7 @@ public class PatchEditor extends BaseDialog{
         super("@patch-editor");
 
         manager = new NodeManager();
-        card = new NodeCard();
+        card = new NodeCard(manager);
 
         // notify here?
         manager.onChanged((operator, node) -> {

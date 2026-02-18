@@ -18,7 +18,8 @@ import java.util.*;
 public abstract class DataModifier<T> implements ModifyConsumer<T>{
     protected ModifierBuilder<T> builder;
     protected ValueType valueType;
-    protected EditorNode data;
+    protected EditorNode dataTree;
+    private String dataPath;
     private Boolc onModified;
 
     public ValueType valueType(){
@@ -35,15 +36,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
 
     @Override
     public T getDefaultValue(){
-        return cast(data.getObject());
-    }
-
-    /**
-     * @param value 修改后的值
-     * @return 数据修改后是否与默认值相同
-     */
-    protected boolean isModified(T value){
-        return !Objects.equals(getDefaultValue(), value);
+        return cast(dataTree.navigate(dataPath).getObject());
     }
 
     /**
@@ -55,35 +48,36 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
 
     public abstract T cast(Object object);
 
-    public void setData(EditorNode data){
-        this.data = data;
+    public void setData(EditorNode dataTree, String path){
+        this.dataTree = dataTree;
+        this.dataPath = path;
     }
 
     @Override
     public boolean isModified(){
-        return !Objects.equals(getValue(), getDefaultValue());
+        return !Objects.equals(getDefaultValue(), getValue());
     }
 
     @Override
     public Class<?> getDataType(){
-        return data.getTypeOut();
+        return dataTree.navigate(dataPath).getTypeOut();
     }
 
     @Override
     public Class<?> getTypeMeta(){
-        return data.getTypeIn();
+        return dataTree.navigate(dataPath).getTypeIn();
     }
 
     @Override
     public T getValue(){
-        return cast(data.getDisplayValue());
+        return cast(dataTree.navigate(dataPath).getDisplayValue());
     }
 
     @Override
     public final void onModify(T value){
-        boolean modified = isModified(value);
+        boolean modified = !Objects.equals(getDefaultValue(), value);
         if(modified){
-            data.setValue(PatchJsonIO.getKeyName(value), valueType);
+            dataTree.navigate(dataPath).setValue(PatchJsonIO.getKeyName(value), valueType);
 
             if(onModified != null){
                 onModified.get(true);
@@ -95,8 +89,9 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
 
     @Override
     public void resetModify(){
+        EditorNode data = dataTree.navigate(dataPath);
         if(data.isAppended()){
-            data.setValue(toJsonValue(data.getObject()), valueType);
+            data.setValue(PatchJsonIO.getKeyName(data.getObject()), valueType);
         }else{
             data.clearJson();
         }
@@ -109,10 +104,6 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     @Override
     public final boolean checkValue(T value){
         return checkTypeValid(value, getDataType());
-    }
-
-    public String toJsonValue(Object object){
-        return PatchJsonIO.getKeyName(object);
     }
 
     public static class ContentTypeModifier extends DataModifier<Content>{
