@@ -113,7 +113,6 @@ public abstract class PatchOperator{
         @Override
         public void apply(PatchNode root) {
             PatchNode node = root.navigateChild(path, true);
-            node.type = ValueType.array;
 
             String prefix = plusSyntax ? PatchJsonIO.appendPrefix : "";
             PatchNode appended = node.getOrCreate(findKey(prefix, node));
