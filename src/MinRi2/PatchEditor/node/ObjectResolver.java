@@ -142,7 +142,7 @@ public class ObjectResolver{
 
             FieldMetadata fieldMeta = entry.value;
             if(!fieldResolvable(fieldMeta.field)) continue;
-            if(fieldMeta.elementType != null && !typeResolvable(fieldMeta.elementType)) continue;
+            if(fieldMeta.elementType != null && !typeEditable(fieldMeta.elementType)) continue;
 
             FieldMetadata copiedMeta = new FieldMetadata(fieldMeta.field);
             Object childObj = object == null ? null : Reflect.get(object, fieldMeta.field);
