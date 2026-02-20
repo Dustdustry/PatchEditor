@@ -1,4 +1,4 @@
-name: Patch0
+name: TestPatch
 unit: {
   toxopid: {
     abilities: [
@@ -51,5 +51,10 @@ block: {
       merui
       cleroi
     ]
+  }
+  silicon-smelter.consumes: {
+    items: [copper/100, lead/20]
+    liquids: [water/0.1]
+    power: 12
   }
 }

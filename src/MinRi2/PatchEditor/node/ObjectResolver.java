@@ -186,7 +186,7 @@ public class ObjectResolver{
             consumesNode.addChild("liquid", null, ConsumeLiquid.class).addSign(ModifierSign.MODIFY);
             consumesNode.addChild("liquids", null, ConsumeLiquids.class).addSign(ModifierSign.MODIFY);
             consumesNode.addChild("coolant", null, ConsumeCoolant.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("power", null, ConsumePower.class).addSign(ModifierSign.MODIFY); // TODO: desugar number
+            consumesNode.addChild("power", null, ConsumePower.class).addSign(ModifierSign.MODIFY);
             consumesNode.addChild("powerBuffered", null, float.class).addSign(ModifierSign.MODIFY);
         }
     }

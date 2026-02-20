@@ -3,7 +3,6 @@ package MinRi2.PatchEditor.node;
 import MinRi2.PatchEditor.node.patch.*;
 import arc.*;
 import arc.graphics.g2d.*;
-import arc.graphics.g2d.TextureAtlas.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
@@ -400,7 +399,7 @@ public class PatchJsonIO{
         if(objectNode != null){
             desugarJson(value, objectNode.type);
 
-            // desugarJson may change the value type so cache isValue
+            // desugarJson may change the value type so cache it
             if(isValue) return;
 
             if(ClassHelper.isArrayLike(objectNode.type)){
@@ -440,40 +439,43 @@ public class PatchJsonIO{
             value.setType(ValueType.object);
             value.addChild("liquid", new JsonValue(split[0]));
             value.addChild("amount", new JsonValue(split[1]));
-        }
-
-        if(type == ConsumeItems.class && (value.isString() || value.isArray())){
-            JsonValue desugared = new JsonValue(ValueType.object);
-            desugared.setName(value.name);
-            replaceValue(value, desugared);
-
+        }else if(type == ConsumeItems.class){
             if(value.isString()){
                 // items: copper/2 -> items: {items: [copper/2]}
+                String item = value.asString();
+                value.setType(ValueType.object);
                 JsonValue itemsValue = new JsonValue(ValueType.array);
-                itemsValue.addChild("", value);
-                desugared.addChild("items", itemsValue);
+                value.addChild("items", itemsValue);
+                itemsValue.addChild("", new JsonValue(item));
             }else if(value.isArray()){
                 // items: [copper/2] -> items: {items: [copper/2]}
-                desugared.addChild("items", value);
+                value.setType(ValueType.object);
+                JsonValue itemsValue = new JsonValue(ValueType.array);
+                moveChild(value, itemsValue);
+                value.addChild("items", itemsValue);
             }
-            return;
         }else if(type == ConsumeLiquids.class){
-            // liquids: [water/0.1] -> liquids: {liquids: [water/0.1]}
-            JsonValue desugared = new JsonValue(ValueType.object);
-            desugared.setName(value.name);
-            replaceValue(value, desugared);
-
-            desugared.addChild("liquids", value);
-            return;
-        }
-
-        if(value.isArray()){
+            if(value.isArray()){
+                // liquids: [water/0.1] -> liquids: {liquids: [water/0.1]}
+                value.setType(ValueType.object);
+                JsonValue liquidsValue = new JsonValue(ValueType.array);
+                moveChild(value, liquidsValue);
+                value.addChild("liquids", liquidsValue);
+            }
+        }else if(type == ConsumePower.class){
+            if(value.isNumber()){
+                // power: 10 -> power: {usage: 10}
+                float num = value.asFloat();
+                value.setType(ValueType.object);
+                value.addChild("usage", new JsonValue(num));
+            }
+        }else if(value.isArray()){
+            /* object: [{}] -> object: { type: MultiXXX, objects: [{}]}*/
             if(type == Effect.class){
                 /* to MultiEffect */
                 value.setType(ValueType.object);
                 JsonValue elementValue = new JsonValue(ValueType.array);
-                elementValue.addChild("", value.child);
-                value.child = null;
+                moveChild(value, elementValue);
 
                 value.addChild("type", new JsonValue(getClassTypeName(MultiEffect.class)));
                 value.addChild("effects", elementValue);
@@ -481,8 +483,7 @@ public class PatchJsonIO{
                 /* to MultiBulletType */
                 value.setType(ValueType.object);
                 JsonValue elementValue = new JsonValue(ValueType.array);
-                elementValue.addChild("", value.child);
-                value.child = null;
+                moveChild(value, elementValue);
 
                 value.addChild("type", new JsonValue(getClassTypeName(MultiBulletType.class)));
                 value.addChild("bullets", elementValue);
@@ -490,8 +491,7 @@ public class PatchJsonIO{
                 /* to DrawMulti */
                 value.setType(ValueType.object);
                 JsonValue elementValue = new JsonValue(ValueType.array);
-                elementValue.addChild("", value.child);
-                value.child = null;
+                moveChild(value, elementValue);
 
                 value.addChild("type", new JsonValue(getClassTypeName(DrawMulti.class)));
                 value.addChild("drawers", elementValue);
@@ -499,12 +499,12 @@ public class PatchJsonIO{
         }
     }
 
-    public static JsonValue simplifyPatch(JsonValue value){
+    public static void simplifyPatch(JsonValue value){
         if(value.parent == null){
             for(JsonValue childValue : value){
                 simplifyPatch(childValue);
             }
-            return value;
+            return;
         }
 
         int singleCount = 1;
@@ -534,17 +534,16 @@ public class PatchJsonIO{
             // duck like
             if(value.has("item") && value.has("amount")){
                 value.set(value.get("item").asString() + "/" + value.get("amount").asString());
-                return value;
+                return;
             }else if(value.has("liquid") && value.has("amount")){
                 value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
-                return value;
+                return;
             }
         }
 
         for(JsonValue childValue : value){
             simplifyPatch(childValue);
         }
-        return value;
     }
 
     private static boolean dotSimplifiable(JsonValue singleEnd){
@@ -580,7 +579,7 @@ public class PatchJsonIO{
         return json;
     }
 
-    public static void removeJsonValue(JsonValue value){
+    public static JsonValue removeJsonValue(JsonValue value){
         JsonValue parent = value.parent, prev = value.prev, next = value.next;
 
         if(prev != null) prev.next = next;
@@ -588,6 +587,22 @@ public class PatchJsonIO{
 
         if(next != null) next.prev = prev;
         value.parent = value.prev = value.next = null;
+        return value;
+    }
+
+    public static JsonValue moveChild(JsonValue source, JsonValue target){
+        JsonValue child = source.child;
+        if(child == null) return null;
+
+        source.child = null;
+        target.child = child;
+        JsonValue next = child;
+        while(next != null){
+            next.parent = target;
+            next = next.next;
+        }
+
+        return child;
     }
 
     public static void replaceValue(JsonValue replaced, JsonValue value){
