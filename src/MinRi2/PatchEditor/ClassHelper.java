@@ -1,4 +1,4 @@
-package MinRi2.PatchEditor.node;
+package MinRi2.PatchEditor;
 
 import arc.struct.*;
 

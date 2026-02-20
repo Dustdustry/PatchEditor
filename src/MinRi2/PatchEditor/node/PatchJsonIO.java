@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.node;
 
+import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.patch.*;
 import arc.*;
 import arc.graphics.g2d.*;
@@ -232,7 +233,7 @@ public class PatchJsonIO{
             }
 
             if(value.child == null){
-                removeJsonValue(value);
+                JsonHelper.remove(value);
                 return;
             }
         }
@@ -326,42 +327,60 @@ public class PatchJsonIO{
 
     /** jsonTree to patchJsonTree. */
     public static JsonValue processJson(ObjectNode objectNode, JsonValue value){
-        Seq<JsonValue> toAdd = null;
+        if(value.isValue()) return value;
 
-        Iterator<JsonValue> iterator = value.iterator();
-        while(iterator.hasNext()){
-            JsonValue childValue = iterator.next();
+        for(JsonValue child : value){
+            ObjectNode childNode = child.name != null ? objectNode.getOrResolve(child.name) : null;
+            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType);
+            if(childNode != null) processJson(childNode, child);
+        }
+
+        Seq<JsonValue> result = new Seq<>();
+        for(JsonValue childValue : value){
             ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
             if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType);
-            if(childNode == null) continue;
 
-            processJson(childNode, childValue);
+            if(childNode == null){
+                result.add(childValue);
+                continue;
+            }
 
-            // Plus syntax for array and index for multi-dimension array must be used with dot syntax.
             if(childNode.isMultiArrayLike()){
-                iterator.remove();
-                if(toAdd == null) toAdd = new Seq<>();
-                toAdd.addAll(childValue);
-                for(JsonValue indexValue : toAdd){
-                    removeJsonValue(indexValue);
+                for(JsonValue indexValue : childValue){
+                    JsonHelper.remove(indexValue);
                     indexValue.setName(childValue.name + "." + indexValue.name);
+                    result.add(indexValue);
                 }
             }else if(childNode.isArrayLike() && childValue.has(ModifierSign.PLUS.sign)){
                 JsonValue plusValue = childValue.remove(ModifierSign.PLUS.sign);
-                if(childValue.child == null){
-                    iterator.remove();
+                if(childValue.child != null){
+                    result.add(childValue);
                 }
-
-                if(toAdd == null) toAdd = new Seq<>();
-                toAdd.add(plusValue);
                 plusValue.setName(childValue.name + "." + plusValue.name);
+                result.add(plusValue);
+            }else if(childNode.type == Consume.class && childNode.name.equals("remove")){
+                // remove: {item: -, liquid: -} -> remove: [item, liquid]
+                childValue.setType(ValueType.array);
+                for(JsonValue removed : childValue){
+                    removed.set(removed.name());
+                }
+                result.insert(0, childValue);
+            }else{
+                result.add(childValue);
             }
         }
 
-        if(toAdd != null){
-            for(JsonValue jsonValue : toAdd){
-                value.addChild(jsonValue);
-            }
+        // mount again
+        value.child = result.size > 0 ? result.get(0) : null;
+        value.size = result.size;
+        JsonValue prev = null;
+        for(JsonValue jsonValue : result){
+            jsonValue.parent = value;
+            jsonValue.prev = prev;
+            jsonValue.next = null;
+            if(prev != null) prev.next = jsonValue;
+
+            prev = jsonValue;
         }
 
         return value;
@@ -379,7 +398,7 @@ public class PatchJsonIO{
             int i = 0;
             JsonValue currentParent = new JsonValue(ValueType.object);
             currentParent.setName(names[i++]);
-            replaceValue(value, currentParent); // don't affect the order
+            JsonHelper.replace(value, currentParent); // don't affect the order
 
             while(i < names.length - 1){
                 currentParent.addChild(names[i++], currentParent = new JsonValue(ValueType.object));
@@ -439,7 +458,25 @@ public class PatchJsonIO{
             value.setType(ValueType.object);
             value.addChild("liquid", new JsonValue(split[0]));
             value.addChild("amount", new JsonValue(split[1]));
-        }else if(type == ConsumeItems.class){
+        }else if(type == Consume.class){
+            if(value.name.equals("remove")){
+                if(value.isString()){
+                    // remove: item -> remove: [item]
+                    String removed = value.asString();
+                    value.setType(ValueType.array);
+                    value.addChild("", new JsonValue(removed));
+                }else if(value.isArray()){
+                    // remove: [item, liquid] -> remove: {item: -, liquid: -}
+                    value.setType(ValueType.object);
+                    for(JsonValue child : value){
+                        if(child.isString()){
+                            child.setName(child.asString());
+                            child.set(ModifierSign.REMOVE.sign);
+                        }
+                    }
+                }
+            }
+        }if(type == ConsumeItems.class){
             if(value.isString()){
                 // items: copper/2 -> items: {items: [copper/2]}
                 String item = value.asString();
@@ -451,7 +488,7 @@ public class PatchJsonIO{
                 // items: [copper/2] -> items: {items: [copper/2]}
                 value.setType(ValueType.object);
                 JsonValue itemsValue = new JsonValue(ValueType.array);
-                moveChild(value, itemsValue);
+                JsonHelper.moveChild(value, itemsValue);
                 value.addChild("items", itemsValue);
             }
         }else if(type == ConsumeLiquids.class){
@@ -459,7 +496,7 @@ public class PatchJsonIO{
                 // liquids: [water/0.1] -> liquids: {liquids: [water/0.1]}
                 value.setType(ValueType.object);
                 JsonValue liquidsValue = new JsonValue(ValueType.array);
-                moveChild(value, liquidsValue);
+                JsonHelper.moveChild(value, liquidsValue);
                 value.addChild("liquids", liquidsValue);
             }
         }else if(type == ConsumePower.class){
@@ -475,7 +512,7 @@ public class PatchJsonIO{
                 /* to MultiEffect */
                 value.setType(ValueType.object);
                 JsonValue elementValue = new JsonValue(ValueType.array);
-                moveChild(value, elementValue);
+                JsonHelper.moveChild(value, elementValue);
 
                 value.addChild("type", new JsonValue(getClassTypeName(MultiEffect.class)));
                 value.addChild("effects", elementValue);
@@ -483,7 +520,7 @@ public class PatchJsonIO{
                 /* to MultiBulletType */
                 value.setType(ValueType.object);
                 JsonValue elementValue = new JsonValue(ValueType.array);
-                moveChild(value, elementValue);
+                JsonHelper.moveChild(value, elementValue);
 
                 value.addChild("type", new JsonValue(getClassTypeName(MultiBulletType.class)));
                 value.addChild("bullets", elementValue);
@@ -491,7 +528,7 @@ public class PatchJsonIO{
                 /* to DrawMulti */
                 value.setType(ValueType.object);
                 JsonValue elementValue = new JsonValue(ValueType.array);
-                moveChild(value, elementValue);
+                JsonHelper.moveChild(value, elementValue);
 
                 value.addChild("type", new JsonValue(getClassTypeName(DrawMulti.class)));
                 value.addChild("drawers", elementValue);
@@ -526,7 +563,7 @@ public class PatchJsonIO{
             }
 
             singleEnd.setName(name.toString());
-            replaceValue(value, singleEnd);
+            JsonHelper.replace(value, singleEnd);
             value = singleEnd;
         }
 
@@ -577,48 +614,5 @@ public class PatchJsonIO{
             migrateTweaker(childValue);
         }
         return json;
-    }
-
-    public static JsonValue removeJsonValue(JsonValue value){
-        JsonValue parent = value.parent, prev = value.prev, next = value.next;
-
-        if(prev != null) prev.next = next;
-        else if(parent != null) parent.child = next;
-
-        if(next != null) next.prev = prev;
-        value.parent = value.prev = value.next = null;
-        return value;
-    }
-
-    public static JsonValue moveChild(JsonValue source, JsonValue target){
-        JsonValue child = source.child;
-        if(child == null) return null;
-
-        source.child = null;
-        target.child = child;
-        JsonValue next = child;
-        while(next != null){
-            next.parent = target;
-            next = next.next;
-        }
-
-        return child;
-    }
-
-    public static void replaceValue(JsonValue replaced, JsonValue value){
-        if(value.parent != null) removeJsonValue(value);
-
-        JsonValue parent = replaced.parent, prev = replaced.prev, next = replaced.next;
-
-        if(prev != null) prev.next = value;
-        else if(parent != null) parent.child = value;
-
-        if(next != null) next.prev = value;
-
-        value.parent = parent;
-        value.prev = prev;
-        value.next = next;
-
-        replaced.parent = replaced.prev = replaced.next = null;
     }
 }

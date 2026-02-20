@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.node;
 
+import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.EditorList.*;
 import arc.files.*;
 import arc.graphics.*;
@@ -26,6 +27,8 @@ import mindustry.world.meta.*;
 import java.lang.reflect.*;
 
 public class ObjectResolver{
+    private static final Object emptyObject = new Object();
+
     private static final Seq<Class<?>> classBlacklist = Seq.with(
     Class.class, Texture.class, Fi.class, KeyBind.class, UnitEntity.class
     );
@@ -53,6 +56,7 @@ public class ObjectResolver{
 
         Class<?> objectType = node.type;
         Object object = node.object;
+        if(object == emptyObject) return;
         if(object == null && objectType == null) return;
 
         if(object != null){
@@ -97,12 +101,14 @@ public class ObjectResolver{
                 String name = PatchJsonIO.getKeyName(entry.key);
                 ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry), node.elementType, node.elementType, node.keyType);
                 entryNode.addSign(ModifierSign.MODIFY);
+                entryNode.addSign(ModifierSign.REMOVE);
             }
         }else if(object instanceof ObjectFloatMap<?> map){
             for(var entry : map){
                 String name = PatchJsonIO.getKeyName(entry.key);
                 ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry.key, entry.value), node.elementType, node.elementType, node.keyType);
                 entryNode.addSign(ModifierSign.MODIFY);
+                entryNode.addSign(ModifierSign.REMOVE);
             }
         }else if(object instanceof ContentType ctype){
             OrderedMap<String, Content> map = new OrderedMap<>(); // in order
@@ -169,7 +175,7 @@ public class ObjectResolver{
         }
 
         if(object instanceof Block block){
-            ObjectNode consumesNode = node.addChild("consumes", null, Consume.class);
+            ObjectNode consumesNode = node.addChild("consumes", emptyObject, Consume.class);
 
             consumesNode.addSign(ModifierSign.MODIFY);
 
@@ -188,6 +194,22 @@ public class ObjectResolver{
             consumesNode.addChild("coolant", null, ConsumeCoolant.class).addSign(ModifierSign.MODIFY);
             consumesNode.addChild("power", null, ConsumePower.class).addSign(ModifierSign.MODIFY);
             consumesNode.addChild("powerBuffered", null, float.class).addSign(ModifierSign.MODIFY);
+
+            ObjectNode removeNode = consumesNode.addChild("remove", emptyObject, Consume.class);
+            removeNode.addSign(ModifierSign.MODIFY);
+
+            ObjectSet<String> keysRemovable = new ObjectSet<>();
+            for(Consume consumer : block.consumers){
+                String type = ClassHelper.unoymousClass(consumer.getClass()).getSimpleName().replace("Consume", "");
+                keysRemovable.add(Strings.camelToKebab(type));
+            }
+
+            if(!keysRemovable.isEmpty()) keysRemovable.add("all");
+            for(String key : keysRemovable){
+                ObjectNode removeConsumeNode = removeNode.addChild(key, emptyObject);
+                removeConsumeNode.addSign(ModifierSign.MODIFY);
+                removeConsumeNode.addSign(ModifierSign.REMOVE);
+            }
         }
     }
 

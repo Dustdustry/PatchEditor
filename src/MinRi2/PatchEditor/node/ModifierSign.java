@@ -1,17 +1,17 @@
 package MinRi2.PatchEditor.node;
 
 public enum ModifierSign{
-    /** Used for Array, Seq, ObjectSet as field.
+    /**
+     * JsonTree: used as field of ArrayLike.
      * '+' means appending an element in original array or override array.
+     * ObjectTree: mark as appendable for ArrayLike.
      */
     PLUS("+"),
-    /** Used for ObjectMap as the value.
-     * '-' means removing the key of map.
+    /** JsonTree: used as the value.
+     * ObjectTree: mark as removable for keys in consumes or MapLike.
      */
     REMOVE("-"),
-    /** Used for fields
-     * '=' means this field is modifiable or overrideable
-     */
+    /** ObjectTree: mark as modifiable or overrideable for fields. */
     MODIFY("=");
 
     public final String sign;

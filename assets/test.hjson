@@ -38,8 +38,23 @@ block: {
       }
     }
     region: block-atmospheric-concentrator-ui
+    consumes: {
+      remove: [
+        coolant
+      ]
+    }
   }
-  blast-drill.drillMultipliers.copper: "4"
+  blast-drill: {
+    drillMultipliers: {
+      copper: "4"
+    }
+    consumes: {
+      remove: [
+        power
+      ]
+      powerBuffered: 60
+    }
+  }
   additive-reconstructor: {
     upgrades.+: [
       [
@@ -52,9 +67,16 @@ block: {
       cleroi
     ]
   }
-  silicon-smelter.consumes: {
-    items: [copper/100, lead/20]
-    liquids: [water/0.1]
-    power: 12
+  silicon-smelter: {
+    consumes: {
+      items: [
+        copper/100
+        lead/20
+      ]
+      liquids: [
+        water/0.1
+      ]
+      power: 12
+    }
   }
 }

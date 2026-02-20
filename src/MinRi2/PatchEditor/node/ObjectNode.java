@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.node;
 
+import MinRi2.PatchEditor.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.Json.*;

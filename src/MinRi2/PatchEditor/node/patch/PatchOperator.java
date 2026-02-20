@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.node.patch;
 
+import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.modifier.*;
 import arc.struct.ObjectMap.*;

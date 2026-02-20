@@ -1,7 +1,7 @@
 package MinRi2.PatchEditor.ui.editor;
 
+import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.*;
-import MinRi2.PatchEditor.node.EditorNode.*;
 import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.node.patch.PatchOperator.*;
@@ -377,8 +377,8 @@ public class NodeCard extends Table{
         table.defaults().width(32f).pad(4f).growY();
         EditorNode editorNode = getEditorNode();
 
-        // remove: map's key
-        if(ClassHelper.isMap(editorNode.getTypeIn()) && !child.isChangedType() &&  !child.isAppended()){
+        // remove
+        if(child.getObjNode().hasSign(ModifierSign.REMOVE) && !child.isChangedType() &&  !child.isAppended()){
             boolean undoMode = child.isRemoving();
             table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
                 if(undoMode){
