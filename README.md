@@ -27,7 +27,7 @@ Anyway, enjoy making wonderful patch!
 
 - [x] Edit Color
 - [x] Edit Interp
-- [ ] Edit Consumer
+- [x] Edit Consumer
 - [x] Edit Attribute
 - [x] Edit BuildVisibility
 - [x] Edit EnumSet
