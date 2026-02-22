@@ -8,7 +8,6 @@ import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
 import mindustry.*;

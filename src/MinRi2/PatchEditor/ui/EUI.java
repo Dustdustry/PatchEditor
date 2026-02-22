@@ -4,7 +4,6 @@ import MinRi2.PatchEditor.ui.editor.*;
 import MinRi2.PatchEditor.ui.selector.*;
 import arc.*;
 import arc.func.*;
-import arc.input.*;
 import arc.math.*;
 import arc.scene.*;
 import arc.scene.actions.*;

@@ -8,15 +8,10 @@ import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.content.*;
-import mindustry.entities.*;
-import mindustry.entities.effect.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.meta.*;
-
-import java.lang.reflect.*;
 
 public class EditorList{
     private static final ObjectMap<Class<?>, Seq<String>> subTypeMap = new ObjectMap<>();

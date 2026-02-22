@@ -14,9 +14,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ctype.*;
-import mindustry.entities.*;
 import mindustry.gen.*;
-import mindustry.logic.LogicFx.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 

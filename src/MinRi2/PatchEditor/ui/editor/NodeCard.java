@@ -9,8 +9,8 @@ import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.graphics.*;
 import arc.scene.actions.*;
-import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.*;
+import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
@@ -287,7 +287,7 @@ public class NodeCard extends Table{
 
     private static boolean isWarning(EditorNode node){
         if(isRequired(node)) return true;
-        if(node.getObjNode().getParent() != null) return node.getObjNode().getParent().isMultiArrayLike();;
+        if(node.getObjNode().getParent() != null) return node.getObjNode().getParent().isMultiArrayLike();
         return false;
     }
 

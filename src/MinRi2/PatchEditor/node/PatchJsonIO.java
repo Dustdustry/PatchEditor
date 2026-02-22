@@ -26,7 +26,6 @@ import mindustry.world.draw.*;
 import mindustry.world.meta.*;
 
 import java.lang.reflect.*;
-import java.util.*;
 
 public class PatchJsonIO{
     public static final boolean debug = false;

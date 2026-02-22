@@ -1,14 +1,10 @@
 package MinRi2.PatchEditor.ui.selector;
 
-import MinRi2.PatchEditor.ui.*;
-import arc.*;
 import arc.func.*;
-import arc.graphics.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.mod.*;
-import mindustry.ui.dialogs.*;
 
 public class ClassSelector extends SelectorDialog<Class<?>>{
     private final Seq<Class<?>> classes = new Seq<>();

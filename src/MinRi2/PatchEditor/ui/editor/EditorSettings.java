@@ -1,10 +1,7 @@
 package MinRi2.PatchEditor.ui.editor;
 
 import arc.*;
-import arc.scene.ui.*;
 import arc.struct.*;
-import arc.util.*;
-import mindustry.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
@@ -35,7 +32,7 @@ public class EditorSettings extends BaseDialog{
     }
 
     public enum ExportType{
-        hjson, json;
+        hjson, json
     }
 
     public static class SingleEnumSettings extends Setting{

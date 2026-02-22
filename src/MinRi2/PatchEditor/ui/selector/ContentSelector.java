@@ -3,14 +3,11 @@ package MinRi2.PatchEditor.ui.selector;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.*;
 import arc.func.*;
-import arc.graphics.g2d.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ctype.*;
-import mindustry.gen.*;
-import org.w3c.dom.*;
 
 /**
  * @author minri2
