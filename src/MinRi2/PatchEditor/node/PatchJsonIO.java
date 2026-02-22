@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.node;
 import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.patch.*;
 import arc.*;
+import arc.audio.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.struct.*;
@@ -17,6 +18,7 @@ import mindustry.entities.*;
 import mindustry.entities.abilities.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.*;
+import mindustry.gen.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.consumers.*;
@@ -50,7 +52,8 @@ public class PatchJsonIO{
     Effect.class, Fx.class,
     BlockFlag.class, BlockFlag.class,
     BuildVisibility.class, BuildVisibility.class,
-    Interp.class, Interp.class
+    Interp.class, Interp.class,
+    Sound.class, Sounds.class
     );
 
     // internal key name
@@ -66,15 +69,19 @@ public class PatchJsonIO{
 
         Class<?> type = keyFieldsClasses.keys().toSeq().find(c -> c.isAssignableFrom(object.getClass()));
         if(type != null){
-            String buildIn = getKeyEntryMap(type, keyFieldsClasses.get(type)).findKey(object, true);
+            String buildIn = getKeyEntryMap(type).findKey(object, true);
             if(buildIn != null) return buildIn;
         }
 
         return String.valueOf(object);
     }
 
+    public static <T> ObjectMap<String, T> getKeyEntryMap(Class<T> type){
+        return getKeyEntryMap(type, keyFieldsClasses.get(type));
+    }
+
     @SuppressWarnings("unchecked")
-    private static <T> ObjectMap<String, T> getKeyEntryMap(Class<T> type, Class<?> declare){
+    public static <T> ObjectMap<String, T> getKeyEntryMap(Class<T> type, Class<?> declare){
         ObjectMap<String, Object> map = objectNameMap.get(declare);
         if(map != null) return (ObjectMap<String, T>)map;
 

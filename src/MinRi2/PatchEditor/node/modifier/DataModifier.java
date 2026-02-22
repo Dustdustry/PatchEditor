@@ -2,6 +2,7 @@ package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.modifier.ModifierBuilder.*;
+import arc.audio.*;
 import arc.func.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -206,6 +207,13 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     public static class EffectModifier extends StringModifier{
         public EffectModifier(){
             builder = new EffectBuilder(this);
+            valueType = ValueType.stringValue;
+        }
+    }
+
+    public static class SoundModifier extends StringModifier{
+        public SoundModifier(){
+            builder = new SoundBuilder(this);
             valueType = ValueType.stringValue;
         }
     }

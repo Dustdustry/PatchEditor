@@ -51,18 +51,20 @@ public abstract class SelectorDialog<T> extends BaseDialog{
         for(T item : getItems()){
             if(!query.isEmpty() && !matchQuery(item)) continue;
 
-            cont.button(table -> {
+            Button btn = cont.button(table -> {
                 table.table(t -> setupItemTable(t, item)).pad(4f).growX();
 
                 table.image().width(4f).color(Color.darkGray).growY().right();
                 table.row();
                 Cell<?> horizontalLine = table.image().height(4f).color(Color.darkGray).growX();
                 horizontalLine.colspan(table.getColumns());
-            }, EStyles.cardButtoni, () -> {
+            }, EStyles.cardButtoni, () -> {}).pad(8f).growX().get();
+
+            EUI.backButtonClick(btn, () -> {
                 if(consumer.get(item)){
                     hide();
                 }
-            }).pad(8f).growX();
+            });
 
             if(++index % columns == 0){
                 cont.row();

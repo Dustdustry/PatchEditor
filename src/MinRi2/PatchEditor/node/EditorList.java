@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.node;
 
 import arc.*;
+import arc.audio.*;
 import arc.graphics.g2d.TextureAtlas.*;
 import arc.math.*;
 import arc.struct.*;
@@ -9,6 +10,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.entities.*;
+import mindustry.entities.effect.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
 import mindustry.type.*;
@@ -21,6 +23,7 @@ public class EditorList{
 
     private static Seq<Weapon> weaponList;
     private static Seq<AtlasRegion> regionList;
+    private static Seq<Sound> soundList;
 
     private static Seq<String> visibilityList, interpList;
 
@@ -39,6 +42,14 @@ public class EditorList{
             regionList.sort(Structs.comparing(region -> region.name));
         }
         return regionList;
+    }
+
+    public static Seq<Sound> getSoundList(){
+        if(soundList == null){
+            ObjectMap<String, Sound> map = PatchJsonIO.getKeyEntryMap(Sound.class);
+            soundList = map.keys().toSeq().sort().map(map::get);
+        }
+        return soundList;
     }
 
     public static Seq<String> getSubTypeNames(Class<?> clazz){
@@ -62,14 +73,14 @@ public class EditorList{
 
     public static Seq<String> getVisibilityList(){
         if(visibilityList == null){
-            visibilityList = Seq.with(BuildVisibility.class.getFields()).map(Field::getName);
+            visibilityList = PatchJsonIO.getKeyEntryMap(BuildVisibility.class).keys().toSeq();
         }
         return visibilityList;
     }
 
     public static Seq<String> getInterpList(){
         if(interpList == null){
-            interpList = Seq.with(Interp.class.getFields()).map(Field::getName);
+            interpList = PatchJsonIO.getKeyEntryMap(Interp.class).keys().toSeq();
         }
         return interpList;
     }

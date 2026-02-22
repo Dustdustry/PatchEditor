@@ -28,6 +28,7 @@ public class EUI{
     public static WeaponSelector weaponSelector;
     public static TextureRegionSelector textureRegionSelector;
     public static StringItemSelector stringItemSelector;
+    public static SoundSelector soundSelector;
 
     public static void init(){
         EStyles.init();
@@ -38,6 +39,7 @@ public class EUI{
         weaponSelector = new WeaponSelector();
         textureRegionSelector = new TextureRegionSelector();
         stringItemSelector = new StringItemSelector();
+        soundSelector = new SoundSelector();
 
         addUI();
     }

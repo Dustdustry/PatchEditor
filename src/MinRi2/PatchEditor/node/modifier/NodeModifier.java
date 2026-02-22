@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.node.modifier;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.EditorList.*;
 import MinRi2.PatchEditor.node.modifier.DataModifier.*;
+import arc.audio.*;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
@@ -40,6 +41,7 @@ public class NodeModifier{
         new ModifierConfig(ContentTypeModifier::new, MappableContent.class),
         new ModifierConfig(BooleanModifier::new, Boolean.class, boolean.class),
 
+        new ModifierConfig(SoundModifier::new, Sound.class),
         new ModifierConfig(TextureRegionModifier::new, TextureRegion.class),
         new ModifierConfig(StringModifier::new, String.class),
         new ModifierConfig(NumberModifier::new, Number.class,

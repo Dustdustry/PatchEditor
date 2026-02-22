@@ -4,6 +4,7 @@ import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.*;
 import arc.*;
+import arc.audio.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.scene.actions.*;
@@ -288,6 +289,31 @@ public abstract class ModifierBuilder<T>{
             table.button(Icon.book, Styles.clearNonei, () -> {
                 EffectsDialog.withAllEffects().show(entry -> {
                     setValue(entry.name);
+                });
+            }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
+
+            addResetButton(table);
+        }
+    }
+
+    public static class SoundBuilder extends ModifierBuilder<String>{
+
+        public SoundBuilder(ModifyConsumer<String> consumer){
+            super(consumer);
+        }
+
+        @Override
+        protected void build(Table table){
+            table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX()
+            .tooltip(t -> t.background(Styles.black3).label(() -> value).pad(4f));
+
+            table.button(Icon.book, Styles.clearNonei, () -> {
+                EUI.soundSelector.select(s -> {
+                    String keyName = PatchJsonIO.getKeyEntryMap(Sound.class).findKey(s, true);
+                    if(keyName != null){
+                        setValue(keyName);
+                    }
+                    return true;
                 });
             }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
 
