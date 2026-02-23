@@ -37,4 +37,6 @@ Anyway, enjoy making wonderful patch!
 - [x] Select unit's controller, aiController and type
 - [x] Select effect
 - [x] Select block flag
-- [ ] Select sound
+- [x] Select sound
+
+- [x] Export vanilla content to patch.
