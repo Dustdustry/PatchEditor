@@ -234,7 +234,7 @@ public abstract class PatchOperator{
         @Override
         public void apply(PatchNode root){
             PatchNode patchNode = root.navigateChild(path, true);
-            importPatch(patchNode, source);
+            importPatch(patchNode, source, false);
         }
 
         @Override
@@ -242,12 +242,12 @@ public abstract class PatchOperator{
 
         }
 
-        private void importPatch(PatchNode patchNode, PatchNode sourceNode){
+        private void importPatch(PatchNode patchNode, PatchNode sourceNode, boolean importSign){
             patchNode.type = sourceNode.type;
             patchNode.value = sourceNode.value;
-            patchNode.sign = sourceNode.sign;
+            if(importSign) patchNode.sign = sourceNode.sign;
             for(Entry<String, PatchNode> entry : sourceNode.children){
-                importPatch(patchNode.getOrCreate(entry.key), entry.value);
+                importPatch(patchNode.getOrCreate(entry.key), entry.value, true);
             }
         }
     }
