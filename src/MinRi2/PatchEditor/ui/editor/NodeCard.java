@@ -494,7 +494,7 @@ public class NodeCard extends Table{
                 }).size(64f).tooltip(Core.bundle.format("node-card.appendPatchNode", editorPath), true)
                 .disabled(b -> Core.app.getClipboardText() == null);
 
-                nodeTitle.button(Icon.export, Styles.cleari, () -> {
+                nodeTitle.button(Icon.copy, Styles.cleari, () -> {
                     PatchNode patchNode = editorNode.getPatch();
                     Core.app.setClipboardText(patchNode == null ? "" : PatchEditor.toPatch(editorNode.getObjNode(), patchNode));
                     EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
