@@ -24,10 +24,10 @@ public class SoundSelector extends SelectorDialog<Sound>{
     @Override
     protected void setupItemTable(Table table, Sound item){
         String name = PatchJsonIO.getKeyEntryMap(Sound.class).findKey(item, true);
-        table.add(name);
+        table.add(name).pad(4f).expandX().left();
         table.button(Icon.play, Styles.clearNonei, () -> {
             item.play(Core.audio.sfxVolume);
-        }).pad(4f);
+        }).width(56f).pad(4f).growY();
     }
 
     @Override
