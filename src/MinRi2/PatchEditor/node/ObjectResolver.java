@@ -269,7 +269,7 @@ public class ObjectResolver{
         if(type == short.class || type == Short.class) return (short)0;
         if(type == byte.class || type == Byte.class) return (byte)0;
         if(type == char.class || type == Character.class) return '\0';
-        if(type.isArray()) return Reflect.newArray(type.getComponentType(), 0);
+        if(type.isArray()) return Array.newInstance(type.getComponentType(), 0);
 
         type = PatchJsonIO.resolveType(type);
 
