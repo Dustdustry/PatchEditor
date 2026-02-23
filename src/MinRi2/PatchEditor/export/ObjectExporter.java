@@ -112,6 +112,7 @@ public class ObjectExporter{
         }else if(object instanceof DrawBlock){
             exportObject(objectNode, result, config);
         }else if(object instanceof TextureRegion region){
+            if(region == Core.atlas.find("error")) return null;
             String regionName = Core.atlas.getRegionMap().findKey(region, true);
             if(regionName != null){
                 result.set(regionName);
