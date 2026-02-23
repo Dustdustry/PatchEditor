@@ -38,7 +38,9 @@ public class PatchJsonIO{
     private static ObjectMap<String, ContentType> nameToType;
     public static ObjectMap<Class<?>, ContentType> classContentType;
 
-    private static final ObjectMap<Class<?>, ObjectMap<String, Object>> objectNameMap = new ObjectMap<>();
+    private static final ObjectMap<Class<?>, ObjectMap<String, Object>> objectNameMap = ObjectMap.of(
+    TextureRegion.class, Core.atlas.getRegions()
+    );
 
     public static final ObjectMap<Class<?>, Class<?>> defaultClassMap = ObjectMap.of(
         Ability.class, ForceFieldAbility.class
@@ -52,7 +54,8 @@ public class PatchJsonIO{
     BlockFlag.class, BlockFlag.class,
     BuildVisibility.class, BuildVisibility.class,
     Interp.class, Interp.class,
-    Sound.class, Sounds.class
+    Sound.class, Sounds.class,
+    BulletType.class, Bullets.class
     );
 
     // internal key name
@@ -81,6 +84,8 @@ public class PatchJsonIO{
 
     @SuppressWarnings("unchecked")
     public static <T> ObjectMap<String, T> getKeyEntryMap(Class<T> type, Class<?> declare){
+        if(declare == null) return null;
+
         ObjectMap<String, Object> map = objectNameMap.get(declare);
         if(map != null) return (ObjectMap<String, T>)map;
 

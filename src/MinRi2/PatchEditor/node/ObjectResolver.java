@@ -263,10 +263,13 @@ public class ObjectResolver{
     }
 
     public static Object getExample(Class<?> base, Class<?> type){
-        if(type == float.class) return 0f; // add more primitive cases if necessary
-        if(type == int.class || type == short.class) return 0;
+        if(type == float.class || type == Float.class) return 0f;
+        if(type == double.class || type == Double.class) return 0d;
+        if(type == boolean.class || type == Boolean.class) return false;
+        if(type == short.class || type == Short.class) return (short)0;
+        if(type == byte.class || type == Byte.class) return (byte)0;
+        if(type == char.class || type == Character.class) return '\0';
         if(type.isArray()) return Reflect.newArray(type.getComponentType(), 0);
-        // TODO: example map?
 
         type = PatchJsonIO.resolveType(type);
 

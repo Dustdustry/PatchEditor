@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.ui.editor;
 
 import MinRi2.PatchEditor.*;
+import MinRi2.PatchEditor.export.*;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
@@ -493,6 +494,11 @@ public class NodeCard extends Table{
                     Core.app.setClipboardText(patchNode == null ? "" : PatchEditor.toPatch(editorNode.getObjNode(), patchNode));
                     EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
                 }).size(64f).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
+
+                nodeTitle.button(Icon.effect, Styles.cleari, () -> {
+                    String patch = PatchExporter.exportObject(editorNode.getObjNode());
+                    Core.app.setClipboardText(patch);
+                }).size(64f);
             }
 
             nodeTitle.table(cardButtons -> {
