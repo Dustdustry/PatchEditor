@@ -15,6 +15,7 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
@@ -369,7 +370,11 @@ public class NodeCard extends Table{
                     });
                 }
             }else{
-                editorNode.append(editorNode.getObject() != null && !editorNode.isOverriding() && !editorNode.isParentOverriding() && !editorNode.isAppended());
+                boolean overriding = editorNode.isOverriding() || editorNode.isParentOverriding();
+                editorNode.append(editorNode.getObject() != null && !overriding && !editorNode.isAppended());
+                if(overriding){
+                    editorNode.setValueType(ValueType.array);
+                }
             }
         });
     }

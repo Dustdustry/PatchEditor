@@ -227,6 +227,10 @@ public class EditorNode{
         manager.applyOp(new SetOp(getPath(), value, valueType));
     }
 
+    public void setValueType(ValueType type){
+        manager.applyOp(new SetValueTypeOp(getPath(), type));
+    }
+
     public void clearJson(){
         manager.applyOp(new ClearOp(getPath()));
     }

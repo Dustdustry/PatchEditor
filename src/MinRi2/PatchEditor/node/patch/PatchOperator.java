@@ -20,10 +20,6 @@ public abstract class PatchOperator{
         public final String value;
         public final ValueType type;
 
-        public SetOp(String path, String value){
-            this(path, value, null);
-        }
-
         public SetOp(String path, String value, ValueType type){
             super(path);
 
@@ -102,12 +98,12 @@ public abstract class PatchOperator{
     }
 
     public static class AppendOp extends PatchOperator{
-        public final Class<?> type;
+        public final Class<?> elementType;
         public final boolean plusSyntax;
 
-        public AppendOp(String path, Class<?> type, boolean plusSyntax){
+        public AppendOp(String path, Class<?> elementType, boolean plusSyntax){
             super(path);
-            this.type = type;
+            this.elementType = elementType;
             this.plusSyntax = plusSyntax;
         }
 
@@ -118,9 +114,9 @@ public abstract class PatchOperator{
             String prefix = plusSyntax ? PatchJsonIO.appendPrefix : "";
             PatchNode appended = node.getOrCreate(findKey(prefix, node));
             appended.sign = ModifierSign.PLUS;
-            appended.type = ClassHelper.isArrayLike(type) ? ValueType.array : ValueType.object;
+            appended.type = ClassHelper.isArrayLike(elementType) ? ValueType.array : ValueType.object;
 
-            ObjectNode template = ObjectResolver.getTemplate(type);
+            ObjectNode template = ObjectResolver.getTemplate(elementType);
             DataModifier<?> modifier = NodeModifier.getModifier(template);
             if(modifier != null){
                 appended.type = modifier.valueType();
