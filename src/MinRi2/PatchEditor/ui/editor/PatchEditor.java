@@ -138,8 +138,10 @@ public class PatchEditor extends BaseDialog{
         titleTable.table(buttons -> {
             buttons.defaults().size(150f, 64f).pad(8f).growY();
 
-            buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide);
-            if(Vars.mobile) buttons.button("@node-card.expandLast", Icon.downOpen, Styles.grayt, () -> card.getFrontCard().editLastData());
+            // ugly
+            buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide).get().getCells().each(c -> c.pad(8f));
+            if(Vars.mobile) buttons.button("@node-card.expandLast", Icon.downOpen, Styles.grayt, () -> card.getFrontCard().editLastData())
+            .get().getCells().each(c -> c.pad(8f));
         });
 
         titleTable.add(title).style(Styles.outlineLabel).growX();
