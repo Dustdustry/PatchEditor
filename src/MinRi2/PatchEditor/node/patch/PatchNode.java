@@ -41,9 +41,9 @@ public class PatchNode{
     public void remove(){
         if(parent != null){
             parent.children.remove(key);
-            children.clear();
             parent = null;
         }
+        clearChildren();
     }
 
     public void clearChildren(){
