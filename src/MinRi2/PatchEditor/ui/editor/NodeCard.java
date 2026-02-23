@@ -62,7 +62,7 @@ public class NodeCard extends Table{
 
             // change from child node
             EditorNode changedNode = rootEditorNode.navigate(op.path);
-            if(changedNode == null || changedNode.isAppended()
+            if(changedNode == null || (changedNode.isAppended() && !(op instanceof SetOp))
             || op instanceof TouchOp || op instanceof ChangeTypeOp || op instanceof SetSignOp
             || op.path.equals(editorPath) ){
                 needRebuildNodes = true;
@@ -496,7 +496,7 @@ public class NodeCard extends Table{
                 }).size(64f).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
 
                 nodeTitle.button(Icon.effect, Styles.cleari, () -> {
-                    String patch = PatchExporter.exportObject(editorNode.getObjNode());
+                    String patch = PatchExporter.exportObject(editorNode.getMetaNode());
                     Core.app.setClipboardText(patch);
                 }).size(64f);
             }

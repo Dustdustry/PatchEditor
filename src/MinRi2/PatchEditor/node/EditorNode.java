@@ -117,6 +117,10 @@ public class EditorNode{
         return currentObj;
     }
 
+    public ObjectNode getMetaNode(){
+        return objectNode;
+    }
+
     public Object getObject(){
         Object object = getObjNode().object;
         if(object instanceof MapEntry<?,?> entry) return entry.value;

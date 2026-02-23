@@ -32,7 +32,7 @@ public class ObjectExporter{
     private static final ObjectMap<Class<?>, ObjectNode> templateMap = new ObjectMap<>();
     private static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
     private static final ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(
-    Block.class, Seq.with("teamRegion", "teamRegions"),
+    Block.class, Seq.with("teamRegion", "teamRegions", "consumes"),
     UnitType.class, Seq.with("sample")
     );
 
@@ -170,30 +170,9 @@ public class ObjectExporter{
         return result;
     }
 
-    private static boolean shouldExportField(Object actualValue, Object defaultValue, ExportConfig config){
-        if(actualValue == null && defaultValue == null){
-            return false;
-        }
-
-        if(actualValue == null){
-            return config.exportNulls;
-        }
-
-        Class<?> type = ClassHelper.unoymousClass(actualValue.getClass());
-
-        if(type.isPrimitive() || Reflect.isWrapper(type) || type == String.class){
-            return !equals(actualValue, defaultValue, type);
-        }
-
-        if(ClassHelper.isArrayLike(type)){
-            return !equals(actualValue, defaultValue, type);
-        }
-
-        if(ClassHelper.isMap(type)){
-            return !equals(actualValue, defaultValue, type);
-        }
-
-        return !equals(actualValue, defaultValue, type);
+    private static boolean shouldExportField(Object value, Object defaultValue, ExportConfig config){
+        if(value == null) return config.exportNulls;
+        return !equals(value, defaultValue, ClassHelper.unoymousClass(value.getClass()));
     }
 
     private static void exportFields(ObjectNode objectNode, JsonValue value, ExportConfig config){
@@ -259,14 +238,6 @@ public class ObjectExporter{
         if(actualValue == null && defaultValue == null) return true;
         if(actualValue == null || defaultValue == null) return false;
 
-        if(type.isPrimitive() || Reflect.isWrapper(type)){
-            return actualValue.equals(defaultValue);
-        }
-
-        if(type == String.class){
-            return actualValue.equals(defaultValue);
-        }
-
         if(ClassHelper.isArray(type)){
             Object[] actualArr = (Object[])actualValue;
             Object[] defaultArr = (Object[])defaultValue;
@@ -277,19 +248,7 @@ public class ObjectExporter{
             return true;
         }
 
-        if(actualValue instanceof Seq<?> actualSeq && defaultValue instanceof Seq<?> defaultSeq){
-            return actualSeq.size == defaultSeq.size && actualSeq.equals(defaultSeq);
-        }
-
-        if(actualValue instanceof ObjectSet<?> actualSet && defaultValue instanceof ObjectSet<?> defaultSet){
-            return actualSet.size == defaultSet.size;
-        }
-
-        if(actualValue instanceof ObjectMap<?,?> actualMap && defaultValue instanceof ObjectMap<?,?> defaultMap){
-            return actualMap.size == defaultMap.size;
-        }
-
-        return actualValue == defaultValue;
+        return actualValue.equals(defaultValue);
     }
 
     private static Seq<String> findFieldBlacklist(Class<?> type){
@@ -303,6 +262,7 @@ public class ObjectExporter{
         return null;
     }
 
+    // template with instance example
     private static ObjectNode getTemplate(Class<?> type){
         ObjectNode objectNode = templateMap.get(type);
         if(objectNode != null) return objectNode;
@@ -312,6 +272,7 @@ public class ObjectExporter{
         return objectNode;
     }
 
+    // instance example
     private static Object getExample(Class<?> base, Class<?> type){
         if(type == float.class || type == Float.class) return 0f;
         if(type == double.class || type == Double.class) return 0d;
@@ -344,8 +305,5 @@ public class ObjectExporter{
 
     public static class ExportConfig{
         public boolean exportNulls = false;
-        public boolean exportContentReferences = true;
-        public boolean skipLogicalFields = true;
-        public int maxDepth = 10;
     }
 }
