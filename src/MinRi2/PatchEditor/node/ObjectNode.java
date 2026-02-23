@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.node;
 
 import MinRi2.PatchEditor.*;
+import MinRi2.PatchEditor.node.patch.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.Json.*;
@@ -96,6 +97,17 @@ public class ObjectNode{
     public ObjectNode addSign(ModifierSign sign){
         // extend type from parent
         return addSign(sign, type, elementType, keyType);
+    }
+
+    public ObjectNode navigate(String path){
+        if(path == null || path.isEmpty()) return this;
+
+        ObjectNode current = this;
+        for(String name : path.split(NodeManager.pathSplitter)){
+            current = current.getChildren().get(name);
+            if(current == null) return null;
+        }
+        return current;
     }
 
     public ObjectNode addSign(ModifierSign sign, Class<?> type, Class<?> elementType, Class<?> keyType){

@@ -501,9 +501,10 @@ public class NodeCard extends Table{
                 }).size(64f).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
 
                 nodeTitle.button(Icon.effect, Styles.cleari, () -> {
-                    String patch = PatchExporter.exportObject(editorNode.getMetaNode());
+                    String patch = PatchExporter.export(editorNode.getMetaNode());
                     Core.app.setClipboardText(patch);
-                }).size(64f);
+                    EUI.infoToast(Core.bundle.format("node-card.magicExportNode", editorPath));
+                }).size(64f).tooltip(Core.bundle.format("node-card.magicExportNode.tooltip", editorPath), true);
             }
 
             nodeTitle.table(cardButtons -> {

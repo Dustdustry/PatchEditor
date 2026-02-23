@@ -7,11 +7,15 @@ import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
 
 public class PatchExporter{
-    public static String exportObject(ObjectNode objectNode){
-        return exportObject(objectNode, new ExportConfig());
+    public static String export(String path){
+        return export(ObjectNode.createRoot().navigate(path));
     }
 
-    public static String exportObject(ObjectNode objectNode, ExportConfig config){
+    public static String export(ObjectNode objectNode){
+        return export(objectNode, new ExportConfig());
+    }
+
+    public static String export(ObjectNode objectNode, ExportConfig config){
         JsonValue json = ObjectExporter.exportObject(objectNode, config);
         return Jval.read(json.toJson(OutputType.json)).toString(Jformat.hjson);
     }
