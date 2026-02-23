@@ -14,6 +14,7 @@ import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.ai.types.*;
 import mindustry.ctype.*;
+import mindustry.entities.part.DrawPart.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
@@ -30,7 +31,7 @@ public class ObjectResolver{
     private static final Object emptyObject = new Object();
 
     private static final Seq<Class<?>> classBlacklist = Seq.with(
-    Class.class, Texture.class, Fi.class, KeyBind.class, UnitEntity.class
+    Class.class, Texture.class, Fi.class, KeyBind.class, UnitEntity.class, PartParams.class
     );
     private static final ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(
     Drill.class, Seq.with("oreCount", "itemArray"),

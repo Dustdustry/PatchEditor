@@ -28,12 +28,14 @@ import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
 
+import java.lang.reflect.*;
+
 public class ObjectExporter{
     private static final ObjectMap<Class<?>, ObjectNode> templateMap = new ObjectMap<>();
     private static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
     private static final ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(
     Block.class, Seq.with("teamRegion", "teamRegions", "consumes"),
-    UnitType.class, Seq.with("sample")
+    UnitType.class, Seq.with("sample", "aiController", "controller")
     );
 
     public static JsonValue exportJson(ObjectNode objectNode){
@@ -151,9 +153,15 @@ public class ObjectExporter{
             exportObject(objectNode, result, config);
         }else if(object instanceof Enum<?> e){
             result.set(e.name());
-        }else if(object instanceof MappableContent mc){
+        }else if(object instanceof MappableContent mc && objectNode.hasSign(ModifierSign.MODIFY)){
             result.set(mc.name);
-        }else if(object instanceof Attributes || ClassHelper.isContainer(type)){
+        }else if(object instanceof Attributes attributes){
+            for(Attribute attr : Attribute.all){
+                if(attributes.get(attr) != 0f){
+                    result.addChild(attr.name, new JsonValue(attributes.get(attr)));
+                }
+            }
+        }else if(ClassHelper.isContainer(type)){
             result.setType(ClassHelper.isArrayLike(type) ? ValueType.array : ValueType.object);
             for(Entry<String, ObjectNode> entry : objectNode.getChildren()){
                 if(!entry.value.isSign()){
@@ -234,21 +242,21 @@ public class ObjectExporter{
         return objectNameMap.findKey(value, true);
     }
 
-    public static boolean equals(Object actualValue, Object defaultValue, Class<?> type){
-        if(actualValue == null && defaultValue == null) return true;
-        if(actualValue == null || defaultValue == null) return false;
+    public static boolean equals(Object value, Object defaultValue, Class<?> type){
+        if(value == null && defaultValue == null) return true;
+        if(value == null || defaultValue == null) return false;
 
         if(ClassHelper.isArray(type)){
-            Object[] actualArr = (Object[])actualValue;
-            Object[] defaultArr = (Object[])defaultValue;
-            if(actualArr.length != defaultArr.length) return false;
-            for(int i = 0; i < actualArr.length; i++){
-                if(actualArr[i] != defaultArr[i]) return false;
+            int actualLength = Array.getLength(value);
+            int defaultLength = Array.getLength(defaultValue);
+            if(actualLength != defaultLength) return false;
+            for(int i = 0; i < actualLength; i++){
+                if(Array.get(value, i) != Array.get(defaultValue, i)) return false;
             }
             return true;
         }
 
-        return actualValue.equals(defaultValue);
+        return value.equals(defaultValue);
     }
 
     private static Seq<String> findFieldBlacklist(Class<?> type){
