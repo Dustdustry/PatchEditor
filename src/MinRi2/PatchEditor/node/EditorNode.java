@@ -15,12 +15,10 @@ public class EditorNode{
     private String path;
     private boolean needResolve;
 
-    private ObjectNode shadowObjectNode;
+    private ObjectNode currentObj;
     private final ObjectNode objectNode;
 
     private EditorNode parent;
-
-    private ObjectNode currentObj;
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
 
     private final NodeManager manager;
@@ -29,6 +27,9 @@ public class EditorNode{
     public EditorNode(ObjectNode objectNode, NodeManager manager){
         this.objectNode = objectNode;
         this.manager = manager;
+
+        currentObj = objectNode;
+        needResolve = true;
     }
 
     public String name(){
@@ -37,15 +38,11 @@ public class EditorNode{
 
     public ObjectMap<String, EditorNode> buildChildren(){
         PatchNode patchNode = getPatch();
-        ObjectNode objectNode = getObjNode();
-
-        if(currentObj != objectNode){
-            clearChildren();
-            currentObj = objectNode;
-        }
 
         if(needResolve){
             needResolve = false;
+
+            currentObj = resolveType();
             for(ObjectNode node : currentObj.getChildren().values()){
                 if(node.isSign()) continue;
 
@@ -94,30 +91,30 @@ public class EditorNode{
         return children;
     }
 
-    public ObjectNode getObjNode(){
+    private ObjectNode resolveType(){
+        PatchNode patchNode = getPatch();
+        if(patchNode == null) return objectNode;
+
         Class<?> type = getTypeIn();
-        if(!PatchJsonIO.overrideable(type)) return objectNode;
+        PatchNode typePatch = patchNode.getOrNull("type");
+        if(typePatch != null && typePatch.value != null){
+            type = PatchJsonIO.resolveType(typePatch.value);
+            if(type == null) return objectNode;
+        }
 
         if(PatchJsonIO.typeOverrideable(type)){
-            PatchNode patchNode = getPatch();
-            if(patchNode != null){
-                PatchNode typePatch = patchNode.getOrNull("type");
-                if(typePatch != null && typePatch.value != null){
-                    type = PatchJsonIO.resolveType(typePatch.value);
-                    if(type == null) return objectNode; // type invalid
-                }
-            }
-
             if(type != objectNode.type){
-                if(shadowObjectNode == null || shadowObjectNode.type != type){
-                    shadowObjectNode = ObjectResolver.getShadowNode(objectNode, type);
-                }
-                return shadowObjectNode;
+                return ObjectResolver.getShadowNode(objectNode, type);
             }
         }else if(isOverriding() && ClassHelper.isContainer(type)){
             return ObjectResolver.getShadowNode(objectNode, type);
         }
+
         return objectNode;
+    }
+
+    public ObjectNode getObjNode(){
+        return currentObj;
     }
 
     public Object getObject(){
