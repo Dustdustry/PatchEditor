@@ -28,7 +28,7 @@ public abstract class SelectorDialog<T> extends BaseDialog{
     }
 
     protected float layoutWidth(){
-        return Core.scene.getWidth() * (Core.scene.getWidth() > 1000 ? 0.8f : 0.95f);
+        return Core.scene.getWidth() / Scl.scl() * (Core.scene.getWidth() > 1000 ? 0.8f : 0.9f);
     }
 
     protected void rebuild(){
