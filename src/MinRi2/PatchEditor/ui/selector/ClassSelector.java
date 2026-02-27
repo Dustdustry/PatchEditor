@@ -44,7 +44,7 @@ public class ClassSelector extends SelectorDialog<Class<?>>{
         for(var entry : ClassMap.classes){
             Class<?> clazz = entry.value;
             if(superClass != null && !superClass.isAssignableFrom(clazz)) continue;
-            if(selectable != null && !selectable.get(clazz)) return;
+            if(selectable != null && !selectable.get(clazz)) continue;
             classes.add(clazz);
         }
 

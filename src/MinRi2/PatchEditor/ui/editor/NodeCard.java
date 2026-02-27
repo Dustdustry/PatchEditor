@@ -294,7 +294,7 @@ public class NodeCard extends Table{
     }
 
     private static boolean isRequired(EditorNode node){
-        if(node.getPath() != null || node.getObjNode() == null) return false;
+        if(node.getPatch() != null || node.getObjNode() == null) return false;
         Field field = node.getObjNode().field;
         if(field == null || field.getType().isPrimitive()) return false;
         if(MappableContent.class.isAssignableFrom(field.getType())){

@@ -191,9 +191,9 @@ public class PatchJsonIO{
             if(type == float.class || type == Float.class) return Float.parseFloat(patchNode.value);
             if(type == double.class || type == Double.class) return Double.parseDouble(patchNode.value);
             if(type == long.class || type == Long.class) return Long.parseLong(patchNode.value);
-            if(type == int.class || type == Integer.class
-            || type == short.class || type == Short.class
-            || type == byte.class || type == Byte.class) return Integer.parseInt(patchNode.value);
+            if(type == int.class || type == Integer.class) return Integer.parseInt(patchNode.value);
+            if(type == short.class || type == Short.class) return Short.parseShort(patchNode.value);
+            if(type == byte.class || type == Byte.class) return Byte.parseByte(patchNode.value);
 
             JsonValue value = PatchJsonIO.toJson(patchNode);
             if(patchNode.value != null) return json.readValue(type, objectNode.elementType, value);

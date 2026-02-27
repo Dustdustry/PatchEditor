@@ -124,7 +124,6 @@ public class EditorNode{
     public Object getObject(){
         Object object = getObjNode().object;
         if(object instanceof MapEntry<?,?> entry) return entry.value;
-        if(isOverriding()) PatchJsonIO.parseJsonObject(getPatch(), getObjNode(), object);
         return object;
     }
 
