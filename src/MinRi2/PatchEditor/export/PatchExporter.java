@@ -16,7 +16,6 @@ public class PatchExporter{
     }
 
     public static String export(ObjectNode objectNode, ExportConfig config){
-        JsonValue json = ObjectExporter.exportObject(objectNode, config);
-        return Jval.read(json.toJson(OutputType.json)).toString(Jformat.hjson);
+        return PatchJsonIO.toPatch(objectNode, ObjectExporter.exportObject(objectNode, config));
     }
 }
