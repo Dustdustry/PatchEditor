@@ -46,7 +46,7 @@ public class PatchJsonIO{
         Ability.class, ForceFieldAbility.class
     );
     public static final Seq<Class<?>> fixedTypeClasses = Seq.with(
-    UnitType.class, UnlockableContent.class,
+    UnlockableContent.class,
     ItemStack.class, LiquidStack.class, PayloadStack.class
     );
     public static final ObjectMap<Class<?>, Class<?>> keyFieldsClasses = ObjectMap.of(

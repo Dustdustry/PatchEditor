@@ -20,6 +20,7 @@ import mindustry.entities.bullet.*;
 import mindustry.entities.part.*;
 import mindustry.entities.pattern.*;
 import mindustry.game.*;
+import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.type.ammo.*;
 import mindustry.world.*;
@@ -91,6 +92,8 @@ public class ObjectExporter{
             String fieldName = findStaticFieldName(effect, Effect.class);
             if(fieldName != null){
                 result.set(fieldName);
+            }else if(ClassMap.classes.containsValue(effect.getClass(), true)){
+                exportObject(objectNode, result, config);
             }else{
                 return null;
             }
@@ -232,8 +235,10 @@ public class ObjectExporter{
 
         value.setType(ValueType.object);
         Class<?> type = ClassHelper.unoymousClass(object.getClass());
-        String typeName = PatchJsonIO.getClassTypeName(type);
-        value.addChild("type", new JsonValue(typeName));
+        if(PatchJsonIO.typeOverrideable(type)){
+            String typeName = PatchJsonIO.getClassTypeName(type);
+            value.addChild("type", new JsonValue(typeName));
+        }
         exportFields(objectNode, value, config);
     }
 
