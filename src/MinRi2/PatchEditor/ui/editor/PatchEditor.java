@@ -1,16 +1,11 @@
 package MinRi2.PatchEditor.ui.editor;
 
 import MinRi2.PatchEditor.node.*;
-import MinRi2.PatchEditor.node.PatchJsonTransform.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
-import MinRi2.PatchEditor.ui.editor.EditorSettings.*;
 import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
-import arc.util.serialization.*;
-import arc.util.serialization.JsonWriter.*;
-import arc.util.serialization.Jval.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -76,7 +71,7 @@ public class PatchEditor extends BaseDialog{
             rebuild();
         });
         hidden(() -> {
-            editPatch.patch = toPatch(objectTree, manager.getRoot());
+            editPatch.patch = PatchJsonIO.toPatch(objectTree, manager.getRoot());
             // clear the root node reference
             card.setRootEditorNode(null);
         });
@@ -156,30 +151,5 @@ public class PatchEditor extends BaseDialog{
 
         card.rebuild();
         cont.pane(Styles.noBarPane, card).scrollX(false).pad(16f).padTop(8f).grow();
-    }
-
-    public static String toPatch(ObjectNode objectNode, PatchNode patchNode){
-        JsonValue value = PatchJsonIO.toJson(patchNode);
-
-        // sugar
-        SugarJsonConfig sugarConfig = new SugarJsonConfig();
-        sugarConfig.sugarStacks = Core.settings.getBool("patch-editor.sugar.stacks");
-        PatchJsonTransform.sugarPatch(objectNode, value, sugarConfig);
-
-        // process
-        PatchJsonTransform.processJson(objectNode, value);
-
-        // simplify
-        if(Core.settings.getBool("patch-editor.simplifyPath")){
-            PatchJsonTransform.simplifyPath(value);
-        }
-
-        // to string
-        String exportType = Core.settings.getString("patch-editor.exportType");
-        if(ExportType.hjson.is(exportType)){
-            return Jval.read(value.toJson(OutputType.json)).toString(Jformat.hjson);
-        }else{
-            return value.toJson(OutputType.json);
-        }
     }
 }

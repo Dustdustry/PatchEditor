@@ -325,5 +325,10 @@ public class PatchJsonTransform{
 
     public static class SugarJsonConfig{
         public boolean sugarStacks = true;
+
+        public SugarJsonConfig sugarStacks(boolean sugarStacks){
+            this.sugarStacks = sugarStacks;
+            return this;
+        }
     }
 }
