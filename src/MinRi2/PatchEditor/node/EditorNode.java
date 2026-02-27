@@ -211,11 +211,14 @@ public class EditorNode{
         if(path == null || path.isEmpty()) return this;
 
         EditorNode current = this;
-        for(String name : path.split(NodeManager.pathSplitter)){
+        int start = 0;
+        while(true){
+            int dot = path.indexOf(NodeManager.pathComp, start);
+            String name = dot == -1 ? path.substring(start) : path.substring(start, dot);
             current = current.buildChildren().get(name);
-            if(current == null) return null;
+            if(current == null || dot == -1) return current;
+            start = dot + 1;
         }
-        return current;
     }
 
     public void setValue(String value){
