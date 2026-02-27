@@ -259,7 +259,7 @@ public class ObjectExporter{
 
             Class<?> elementType = type.getComponentType();
             for(int i = 0; i < actualLength; i++){
-                if(equals(Array.get(value, i), Array.get(defaultValue, i), elementType)) return false;
+                if(!equals(Array.get(value, i), Array.get(defaultValue, i), elementType)) return false;
             }
             return true;
         }
