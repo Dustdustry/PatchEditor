@@ -6,6 +6,9 @@ import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
+import arc.scene.*;
+import arc.scene.ui.*;
+import arc.scene.ui.layout.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -58,7 +61,7 @@ public class PatchEditor extends BaseDialog{
         card = new NodeCard(manager);
 
         // notify here?
-        manager.onChanged((operator, node) -> {
+        manager.onChanged((operator, node, uiUpdated) -> {
             if(editorTree != null){
                 EditorNode editorNode = editorTree.navigate(operator.path);
                 if(editorNode != null) editorNode.patchChanged();
@@ -71,6 +74,7 @@ public class PatchEditor extends BaseDialog{
             rebuild();
         });
         hidden(() -> {
+            manager.clear();
             editPatch.patch = PatchJsonIO.toPatch(objectTree, manager.getRoot());
             // clear the root node reference
             card.setRootEditorNode(null);
@@ -101,6 +105,23 @@ public class PatchEditor extends BaseDialog{
                    if(front != card) front.extractWorking();
                }
            }
+        });
+
+        update(() -> {
+            if(Core.scene.getDialog() != this) return;
+            if(Core.scene.getKeyboardFocus() != null) return;
+
+            if(Core.input.ctrl()){
+                if(Core.input.keyTap(KeyCode.z)){
+                    if(Core.input.shift()){
+                        manager.redo();
+                    }else{
+                        manager.undo();
+                    }
+                }else if(Core.input.keyTap(KeyCode.y)){
+                    manager.redo();
+                }
+            }
         });
     }
 
@@ -134,10 +155,20 @@ public class PatchEditor extends BaseDialog{
         titleTable.table(buttons -> {
             buttons.defaults().size(150f, 64f).pad(8f).growY();
 
-            // ugly
-            buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide).get().getCells().each(c -> c.pad(8f));
-            if(Vars.mobile) buttons.button("@node-card.expandLast", Icon.downOpen, Styles.grayt, () -> card.getFrontCard().editLastData())
-            .get().getCells().each(c -> c.pad(8f));
+            buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide);
+            buttons.button("@patch-editor.undo", Icon.undo, Styles.grayt, manager::undo)
+            .disabled(b -> !manager.canUndo());
+            buttons.button("@patch-editor.redo", Icon.redo, Styles.grayt, manager::redo)
+            .disabled(b -> !manager.canRedo());
+            if(Vars.mobile) buttons.button("@node-card.expandLast", Icon.downOpen, Styles.grayt, () -> card.getFrontCard().editLastData());
+
+            for(Element child : buttons.getChildren()){
+                if(child instanceof TextButton textButton){
+                    for(Cell<?> cell : textButton.getCells()){
+                        cell.pad(8f);
+                    }
+                }
+            }
         });
 
         titleTable.add(title).style(Styles.outlineLabel).growX();

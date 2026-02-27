@@ -5,7 +5,6 @@ import MinRi2.PatchEditor.export.*;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
-import MinRi2.PatchEditor.node.patch.PatchOperator.*;
 import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.graphics.*;
@@ -55,17 +54,11 @@ public class NodeCard extends Table{
         cardCont.top();
         nodesTable.top().left();
 
-        manager.onChanged((op, node) -> {
+        manager.onChanged((op, node, uiUpdated) -> {
             if(editorPath == null) return;
-            if(!op.path.startsWith(editorPath)) return;
+            if(!op.path.startsWith(editorPath) || uiUpdated) return;
 
-            // change from child node
-            EditorNode changedNode = rootEditorNode.navigate(op.path);
-            if(changedNode == null || (changedNode.isAppended() && !(op instanceof SetOp))
-            || op instanceof TouchOp || op instanceof ChangeTypeOp || op instanceof SetSignOp
-            || op.path.equals(editorPath) ){
-                needRebuildNodes = true;
-            }
+            needRebuildNodes = true;
         });
     }
 
@@ -387,10 +380,8 @@ public class NodeCard extends Table{
             table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
                 if(undoMode){
                     child.clearJson();
-                    needRebuildNodes = true;
                 }else{
-                    child.setValue(ModifierSign.REMOVE.sign);
-                    child.setSign(ModifierSign.REMOVE);
+                    child.setRemoved();
                 }
             }).tooltip(undoMode ? "@node.revertRemove" : "@node.removeKey");
 
@@ -408,10 +399,7 @@ public class NodeCard extends Table{
                 }).tooltip("@node.changeType");
             }
 
-            table.button(Icon.cancel, Styles.clearNonei, () -> {
-                child.clearJson();
-                needRebuildNodes = true;
-            }).grow().tooltip("@node.remove");
+            table.button(Icon.cancel, Styles.clearNonei, child::clearJson).grow().tooltip("@node.remove");
         }else if(!hasModifier && child.isOverriding()){
             // overriding null object, array, map or field
             if(PatchJsonIO.typeOverrideable(child.getTypeIn())){
@@ -423,10 +411,7 @@ public class NodeCard extends Table{
                 }).tooltip("@node.changeType");
             }
 
-            table.button(Icon.undo, Styles.clearNonei, () -> {
-                child.setSign(null);
-                child.clearJson();
-            }).tooltip("@node.revertOverride");
+            table.button(Icon.undo, Styles.clearNonei, child::clearJson).tooltip("@node.revertOverride");
         }else if(!hasModifier && PatchJsonIO.overrideable(child.getTypeIn()) &&
         (child.getObject() == null || child.getObjNode().field != null || editorNode.getObjNode().isMultiArrayLike())){
             // override null object, field or element of multi-dimension array

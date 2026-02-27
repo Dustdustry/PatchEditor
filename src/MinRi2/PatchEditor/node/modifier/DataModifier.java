@@ -77,7 +77,7 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     public final void onModify(T value){
         boolean modified = !Objects.equals(getDefaultValue(), value);
         if(modified){
-            dataTree.navigate(dataPath).setValue(PatchJsonIO.getKeyName(value), valueType);
+            dataTree.navigate(dataPath).setValue(PatchJsonIO.getKeyName(value), valueType, true);
 
             if(onModified != null){
                 onModified.get(true);
@@ -91,9 +91,9 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     public void resetModify(){
         EditorNode data = dataTree.navigate(dataPath);
         if(data.isAppended()){
-            data.setValue(PatchJsonIO.getKeyName(data.getObject()), valueType);
+            data.setValue(PatchJsonIO.getKeyName(data.getObject()), valueType, true);
         }else{
-            data.clearJson();
+            data.clearJson(true);
         }
 
         if(onModified != null){

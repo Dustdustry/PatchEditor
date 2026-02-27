@@ -221,12 +221,8 @@ public class EditorNode{
         }
     }
 
-    public void setValue(String value){
-        setValue(value, null);
-    }
-
-    public void setValue(String value, ValueType valueType){
-        manager.applyOp(new SetOp(getPath(), value, valueType));
+    public void setValue(String value, ValueType valueType, boolean uiUpdated){
+        manager.applyOp(new SetOp(getPath(), value, valueType), uiUpdated);
     }
 
     public void setValueType(ValueType type){
@@ -234,7 +230,11 @@ public class EditorNode{
     }
 
     public void clearJson(){
-        manager.applyOp(new ClearOp(getPath()));
+        clearJson(false);
+    }
+
+    public void clearJson(boolean uiUpdated){
+        manager.applyOp(new ClearOp(getPath()), uiUpdated);
     }
 
     public void append(boolean plusSyntax){
@@ -251,11 +251,22 @@ public class EditorNode{
     }
 
     public void setSign(ModifierSign sign){
-        manager.applyOp(new SetSignOp(getPath(), sign));
         if(sign == ModifierSign.MODIFY && ClassHelper.isArrayLike(getTypeIn())){
-            manager.applyOp(new SetValueTypeOp(getPath(), ValueType.array));
-            manager.applyOp(new ClearChildrenOp(getPath()));
+            manager.applyOp(new BatchOp(getPath(),
+            new SetSignOp(getPath(), sign),
+            new SetValueTypeOp(getPath(), ValueType.array),
+            new ClearChildrenOp(getPath())
+            ));
+        }else{
+            manager.applyOp(new SetSignOp(getPath(), sign));
         }
+    }
+
+    public void setRemoved(){
+        manager.applyOp(new BatchOp(getPath(),
+        new SetSignOp(getPath(), ModifierSign.REMOVE),
+        new SetOp(getPath(), ModifierSign.REMOVE.sign, null)
+        ));
     }
 
     public void importPatch(String patch){

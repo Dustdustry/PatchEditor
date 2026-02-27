@@ -9,12 +9,63 @@ import arc.util.serialization.JsonValue.*;
 public abstract class PatchOperator{
     public final String path;
 
+    protected boolean existed;
+    protected PatchNode snapshot;
+
     public PatchOperator(String path){
         this.path = path;
     }
 
     public abstract void apply(PatchNode root);
-    public abstract void undo(PatchNode root);
+
+    // TODO: necessary status?
+    public void undo(PatchNode root){
+        if(existed){
+            PatchNode node = root.navigateChild(path, true);
+            if(snapshot != null) setTreeFrom(node, snapshot);
+        }else{
+            removeClean(root, path);
+        }
+    }
+
+    protected void captureSnapshot(PatchNode root){
+        PatchNode node = root.navigateChild(path, false);
+        existed = node != null;
+        snapshot = existed ? cloneTree(node) : null;
+    }
+
+    protected static PatchNode cloneTree(PatchNode src){
+        PatchNode copy = new PatchNode(src.key);
+        setTreeFrom(copy, src);
+        return copy;
+    }
+
+    protected static void setTreeFrom(PatchNode target, PatchNode src){
+        target.value = src.value;
+        target.type = src.type;
+        target.sign = src.sign;
+
+        target.clearChildren();
+        for(PatchNode child : src.children.values()){
+            PatchNode childCopy = target.getOrCreate(child.key);
+            setTreeFrom(childCopy, child);
+        }
+    }
+
+    protected static void removeClean(PatchNode root, String path){
+        PatchNode node = root.navigateChild(path, false);
+        if(node == null) return;
+
+        PatchNode parent = node.getParent();
+        node.remove();
+
+        PatchNode current = parent;
+        while(current != null && current.children.isEmpty() && current.sign == null){
+            parent = current.getParent();
+            current.remove();
+            current = parent;
+        }
+    }
 
     public static class SetOp extends PatchOperator{
         public final String value;
@@ -29,14 +80,10 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root){
+            captureSnapshot(root);
             PatchNode node = root.navigateChild(path, true);
             node.value = value;
             if(type != null) node.type = type;
-        }
-
-        @Override
-        public void undo(PatchNode root){
-
         }
     }
 
@@ -48,23 +95,11 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root){
+            captureSnapshot(root);
             PatchNode node = root.navigateChild(path, false);
             if(node == null) return;
 
-            PatchNode parent = node.getParent();
-            node.remove();
-
-            PatchNode current = parent;
-            while(current != null && current.children.isEmpty() && current.sign == null){
-                parent = current.getParent();
-                current.remove();
-                current = parent;
-            }
-        }
-
-        @Override
-        public void undo(PatchNode root){
-
+            removeClean(root, path);
         }
     }
 
@@ -82,6 +117,7 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root){
+            captureSnapshot(root);
             PatchNode node = root.navigateChild(path, false);
             if(node == null) return;
             if(remainSign != null){
@@ -89,11 +125,6 @@ public abstract class PatchOperator{
             }else{
                 node.clearChildren();
             }
-        }
-
-        @Override
-        public void undo(PatchNode root){
-
         }
     }
 
@@ -109,6 +140,7 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root) {
+            captureSnapshot(root);
             PatchNode node = root.navigateChild(path, true);
 
             String prefix = plusSyntax ? PatchJsonIO.appendPrefix : "";
@@ -122,10 +154,6 @@ public abstract class PatchOperator{
                 appended.type = modifier.valueType();
                 appended.value = PatchJsonIO.getKeyName(template.object);
             }
-        }
-
-        @Override
-        public void undo(PatchNode root) {
         }
 
         private String findKey(String prefix, PatchNode node){
@@ -149,14 +177,10 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root){
+            captureSnapshot(root);
             PatchNode node = root.navigateChild(path, true).getOrCreate(key);
             node.value = value;
             node.sign = sign;
-        }
-
-        @Override
-        public void undo(PatchNode root){
-
         }
     }
 
@@ -170,17 +194,13 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root){
+            captureSnapshot(root);
             PatchNode node = root.navigateChild(path, true);
             if(node == null) return;
 
             // type changing base on overriding
             if(node.sign != ModifierSign.PLUS) node.sign = ModifierSign.MODIFY;
             node.getOrCreate("type").value = PatchJsonIO.getClassTypeName(type);
-        }
-
-        @Override
-        public void undo(PatchNode root){
-
         }
     }
 
@@ -194,12 +214,8 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root){
+            captureSnapshot(root);
             root.navigateChild(path, true).sign = sign;
-        }
-
-        @Override
-        public void undo(PatchNode root){
-
         }
     }
 
@@ -213,12 +229,8 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root){
+            captureSnapshot(root);
             root.navigateChild(path, true).type = type;
-        }
-
-        @Override
-        public void undo(PatchNode root){
-
         }
     }
 
@@ -233,13 +245,9 @@ public abstract class PatchOperator{
 
         @Override
         public void apply(PatchNode root){
+            captureSnapshot(root);
             PatchNode patchNode = root.navigateChild(path, true);
             importPatch(patchNode, source, false);
-        }
-
-        @Override
-        public void undo(PatchNode root){
-
         }
 
         private void importPatch(PatchNode patchNode, PatchNode sourceNode, boolean importSign){
@@ -248,6 +256,24 @@ public abstract class PatchOperator{
             if(importSign) patchNode.sign = sourceNode.sign;
             for(Entry<String, PatchNode> entry : sourceNode.children){
                 importPatch(patchNode.getOrCreate(entry.key), entry.value, true);
+            }
+        }
+    }
+
+    public static class BatchOp extends PatchOperator{
+        public final PatchOperator[] ops;
+
+        public BatchOp(String path, PatchOperator... ops){
+            super(path);
+            this.ops = ops;
+        }
+
+        @Override
+        public void apply(PatchNode root){
+            captureSnapshot(root);
+            for(PatchOperator op : ops){
+                if(op == null) continue;
+                op.apply(root);
             }
         }
     }
