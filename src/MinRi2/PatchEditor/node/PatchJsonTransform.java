@@ -7,7 +7,6 @@ import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.Jval.*;
-import mindustry.content.*;
 import mindustry.entities.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.*;
@@ -254,19 +253,35 @@ public class PatchJsonTransform{
             value = singleEnd;
         }
 
+        for(JsonValue childValue : value){
+            simplifyPatch(childValue);
+        }
+    }
+
+    public static void sugarPatch(ObjectNode objectNode, JsonValue value, SugarJsonConfig config){
+        if(objectNode == null || config == null) return;
+
         if(value.isObject()){
-            // duck like
-            if(value.has("item") && value.has("amount")){
-                value.set(value.get("item").asString() + "/" + value.get("amount").asString());
-                return;
-            }else if(value.has("liquid") && value.has("amount")){
-                value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
-                return;
+            Class<?> type = objectNode.type;
+            if(config.sugarStacks && (type == ItemStack.class || type == PayloadStack.class)){
+                if(value.has("item") && value.has("amount")){
+                    value.set(value.get("item").asString() + "/" + value.get("amount").asString());
+                    return;
+                }
+            }else if(config.sugarStacks && type == LiquidStack.class){
+                if(value.has("liquid") && value.has("amount")){
+                    value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
+                    return;
+                }
             }
         }
 
+        if(value.isValue()) return;
+
         for(JsonValue childValue : value){
-            simplifyPatch(childValue);
+            ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
+            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType);
+            sugarPatch(childNode, childValue, config);
         }
     }
 
@@ -301,5 +316,9 @@ public class PatchJsonTransform{
             migrateTweaker(childValue);
         }
         return json;
+    }
+
+    public static class SugarJsonConfig{
+        public boolean sugarStacks = true;
     }
 }

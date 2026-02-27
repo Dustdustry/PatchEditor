@@ -25,6 +25,7 @@ public class EditorSettings extends BaseDialog{
         cont.pane(Styles.noBarPane, table);
 
         table.checkPref("patch-editor.simplifyPatch", true);
+        table.checkPref("patch-editor.sugar.stacks", true);
         settings.add(new SingleEnumSettings("patch-editor.exportType", ExportType.values(), ExportType.hjson));
 
         table.rebuild();

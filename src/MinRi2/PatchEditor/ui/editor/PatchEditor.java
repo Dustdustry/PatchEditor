@@ -158,12 +158,22 @@ public class PatchEditor extends BaseDialog{
     }
 
     public static String toPatch(ObjectNode objectNode, PatchNode patchNode){
-        JsonValue value = PatchJsonIO.toPatchJson(objectNode, patchNode);
+        JsonValue value = PatchJsonIO.toJson(patchNode);
 
+        // sugar
+        SugarJsonConfig sugarConfig = new SugarJsonConfig();
+        sugarConfig.sugarStacks = Core.settings.getBool("patch-editor.sugar.stacks");
+        PatchJsonTransform.sugarPatch(objectNode, value, sugarConfig);
+
+        // process
+        PatchJsonTransform.processJson(objectNode, value);
+
+        // simplify
         if(Core.settings.getBool("patch-editor.simplifyPatch")){
             PatchJsonTransform.simplifyPatch(value);
         }
 
+        // to string
         String exportType = Core.settings.getString("patch-editor.exportType");
         if(ExportType.hjson.name().equals(exportType)){
             return Jval.read(value.toJson(OutputType.json)).toString(Jformat.hjson);

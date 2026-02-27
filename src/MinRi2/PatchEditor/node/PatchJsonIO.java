@@ -323,9 +323,4 @@ public class PatchJsonIO{
 
         return value;
     }
-
-    /** patchTree to patchJsonTree. */
-    public static JsonValue toPatchJson(ObjectNode objectNode, PatchNode patchNode){
-        return PatchJsonTransform.processJson(objectNode, toJson(patchNode));
-    }
 }
