@@ -194,7 +194,7 @@ public class NodeCard extends Table{
         editorNode.sync();
 
         int columns = Math.max(1, (int)(nodesTable.getWidth() / Scl.scl() / buttonWidth));
-        var map = mappedChildren(editorNode.getTypeOut(), editorNode.buildChildren().values());
+        var map = mappedChildren(editorNode);
         if(!map.containsKey(Object.class)) map.put(Object.class, new Seq<>());
         for(var entry : map){
             Seq<EditorNode> children = entry.value;
@@ -500,16 +500,17 @@ public class NodeCard extends Table{
         }).color(titleColor);
     }
 
-    private static OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren(Class<?> type, Iterable<EditorNode> children){
+    private static OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren(EditorNode node){
         OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren = new OrderedMap<>();
 
+        Class<?> type = node.getTypeOut();
         while(type != null){
             mappedChildren.put(type, new Seq<>());
             type = type.getSuperclass();
         }
 
         ObjectIntMap<EditorNode> modifierIndexer = new ObjectIntMap<>();
-        for(EditorNode child : children){
+        for(EditorNode child : node.buildChildren().values()){
             if(child.getObjNode() == null || child.getObjNode().field == null){
                 mappedChildren.get(Object.class).add(child); // Object means unknown declaring class
                 continue;

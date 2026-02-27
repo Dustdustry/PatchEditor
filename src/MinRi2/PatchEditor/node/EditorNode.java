@@ -13,7 +13,7 @@ import arc.util.serialization.JsonValue.*;
  */
 public class EditorNode{
     private String path;
-    private boolean needResolve;
+    private boolean needResolve = true;
 
     private ObjectNode currentObj;
     private final ObjectNode objectNode;
@@ -29,7 +29,6 @@ public class EditorNode{
         this.manager = manager;
 
         currentObj = objectNode;
-        needResolve = true;
     }
 
     public String name(){
@@ -41,8 +40,6 @@ public class EditorNode{
 
         if(needResolve){
             needResolve = false;
-
-            currentObj = resolveType();
             for(ObjectNode node : currentObj.getChildren().values()){
                 if(node.isSign()) continue;
 
@@ -282,14 +279,23 @@ public class EditorNode{
     }
 
     public void sync(){
+        typeCheck();
         if(needResolve || dynamicDirty){
             buildChildren();
         }
     }
 
+    public void typeCheck(){
+        ObjectNode resolved = resolveType();
+        if(currentObj != resolved){
+            needResolve = true;
+            currentObj = resolved;
+        }
+    }
+
     public void patchChanged(){
         dynamicDirty = true;
-
+        typeCheck();
         if(parent != null) parent.patchChanged();
     }
 
