@@ -170,8 +170,8 @@ public class PatchEditor extends BaseDialog{
         PatchJsonTransform.processJson(objectNode, value);
 
         // simplify
-        if(Core.settings.getBool("patch-editor.simplifyPatch")){
-            PatchJsonTransform.simplifyPatch(value);
+        if(Core.settings.getBool("patch-editor.simplifyPath")){
+            PatchJsonTransform.simplifyPath(value);
         }
 
         // to string

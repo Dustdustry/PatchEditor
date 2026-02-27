@@ -14,9 +14,19 @@ public class EditorSettings extends BaseDialog{
     public EditorSettings(){
         super("@patch-editor.settings");
 
+        fallback();
+
         shown(() -> {
             if(!cont.hasChildren()) setup();
         });
+    }
+
+    private void fallback(){
+        if(settings.has("patch-editor.simplifyPatch")){
+            boolean simplifyPatch = settings.getBool("patch-editor.simplifyPatch");
+            settings.put("patch-editor.simplifyPath", simplifyPatch);
+            settings.remove("patch-editor.simplifyPatch");
+        }
     }
 
     private void setup(){
@@ -24,7 +34,7 @@ public class EditorSettings extends BaseDialog{
         Seq<Setting> settings = table.getSettings();
         cont.pane(Styles.noBarPane, table);
 
-        table.checkPref("patch-editor.simplifyPatch", true);
+        table.checkPref("patch-editor.simplifyPath", true);
         table.checkPref("patch-editor.sugar.stacks", true);
         settings.add(new SingleEnumSettings("patch-editor.exportType", ExportType.values(), ExportType.hjson));
 

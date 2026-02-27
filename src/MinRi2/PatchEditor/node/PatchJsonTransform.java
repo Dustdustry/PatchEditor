@@ -222,10 +222,11 @@ public class PatchJsonTransform{
         }
     }
 
-    public static void simplifyPatch(JsonValue value){
+    // fold path with dot syntax
+    public static void simplifyPath(JsonValue value){
         if(value.parent == null){
             for(JsonValue childValue : value){
-                simplifyPatch(childValue);
+                simplifyPath(childValue);
             }
             return;
         }
@@ -254,7 +255,7 @@ public class PatchJsonTransform{
         }
 
         for(JsonValue childValue : value){
-            simplifyPatch(childValue);
+            simplifyPath(childValue);
         }
     }
 
