@@ -161,7 +161,7 @@ public class PatchEditor extends BaseDialog{
         JsonValue value = PatchJsonIO.toPatchJson(objectNode, patchNode);
 
         if(Core.settings.getBool("patch-editor.simplifyPatch")){
-            PatchJsonIO.simplifyPatch(value);
+            PatchJsonTransform.simplifyPatch(value);
         }
 
         String exportType = Core.settings.getString("patch-editor.exportType");
