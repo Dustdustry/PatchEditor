@@ -136,14 +136,18 @@ public class PatchJsonTransform{
             if(!value.isString() || !value.asString().contains("/")) return;
             String[] split = value.asString().split("/");
             value.setType(ValueType.object);
+            JsonValue amountValue = new JsonValue(split[1]);
+            amountValue.setType(ValueType.doubleValue);
             value.addChild("item", new JsonValue(split[0]));
-            value.addChild("amount", new JsonValue(split[1]));
+            value.addChild("amount", amountValue);
         }else if(type == LiquidStack.class || type == ConsumeLiquid.class){
             if(!value.isString() || !value.asString().contains("/")) return;
             String[] split = value.asString().split("/");
             value.setType(ValueType.object);
+            JsonValue amountValue = new JsonValue(split[1]);
+            amountValue.setType(ValueType.doubleValue);
             value.addChild("liquid", new JsonValue(split[0]));
-            value.addChild("amount", new JsonValue(split[1]));
+            value.addChild("amount", amountValue);
         }else if(type == Consume.class){
             if(value.name.equals("remove")){
                 if(value.isString()){
