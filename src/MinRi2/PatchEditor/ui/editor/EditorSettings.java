@@ -33,7 +33,11 @@ public class EditorSettings extends BaseDialog{
     }
 
     public enum ExportType{
-        hjson, json
+        hjson, json;
+
+        public boolean is(String name){
+            return name().equals(name);
+        }
     }
 
     public static class SingleEnumSettings extends Setting{

@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.ui.editor;
 
 import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.PatchJsonTransform.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.EditorSettings.*;
@@ -175,7 +176,7 @@ public class PatchEditor extends BaseDialog{
 
         // to string
         String exportType = Core.settings.getString("patch-editor.exportType");
-        if(ExportType.hjson.name().equals(exportType)){
+        if(ExportType.hjson.is(exportType)){
             return Jval.read(value.toJson(OutputType.json)).toString(Jformat.hjson);
         }else{
             return value.toJson(OutputType.json);
