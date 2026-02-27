@@ -16,11 +16,12 @@ import mindustry.world.meta.*;
 public class EditorList{
     private static final ObjectMap<Class<?>, Seq<String>> subTypeMap = new ObjectMap<>();
 
+    // Read only. Do not hold the reference.
     private static Seq<Weapon> weaponList;
     private static Seq<AtlasRegion> regionList;
     private static Seq<Sound> soundList;
 
-    private static Seq<String> visibilityList, interpList;
+    private static Seq<String> visibilityList, interpList, attributeList;
 
     public static Seq<Weapon> getWeapons(){
         if(weaponList == null){
@@ -78,6 +79,14 @@ public class EditorList{
             interpList = PatchJsonIO.getKeyEntryMap(Interp.class).keys().toSeq();
         }
         return interpList;
+    }
+
+    public static Seq<String> getAttributeList(){
+        if(attributeList == null){
+            attributeList = Attribute.map.keys().toSeq();
+        }
+
+        return attributeList;
     }
 
     public enum UnitConstructorType{
