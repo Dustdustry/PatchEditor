@@ -32,8 +32,6 @@ public class NodeCard extends Table{
     public static float buttonWidth = 330f;
     public static float buttonHeight = buttonWidth / 3f;
 
-    private static OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren;
-
     private final Table cardCont, nodesTable; // workingTable / childrenNodesTable
     public boolean editing;
     public NodeCard parent, childCard;
@@ -518,14 +516,7 @@ public class NodeCard extends Table{
     }
 
     private static OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren(Class<?> type, Iterable<EditorNode> children){
-        if(mappedChildren == null){
-            mappedChildren = new OrderedMap<>();
-        }else{
-            for(var entry : mappedChildren){
-                entry.value.clear();
-            }
-            mappedChildren.clear();
-        }
+        OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren = new OrderedMap<>();
 
         while(type != null){
             mappedChildren.put(type, new Seq<>());

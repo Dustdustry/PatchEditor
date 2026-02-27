@@ -251,8 +251,10 @@ public class ObjectExporter{
             int actualLength = Array.getLength(value);
             int defaultLength = Array.getLength(defaultValue);
             if(actualLength != defaultLength) return false;
+
+            Class<?> elementType = type.getComponentType();
             for(int i = 0; i < actualLength; i++){
-                if(Array.get(value, i) != Array.get(defaultValue, i)) return false;
+                if(equals(Array.get(value, i), Array.get(defaultValue, i), elementType)) return false;
             }
             return true;
         }
