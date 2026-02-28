@@ -187,9 +187,9 @@ public class ObjectExporter{
     }
 
     private static void exportFields(ObjectNode objectNode, JsonValue value, ExportConfig config){
-        Class<?> actualType = ClassHelper.unoymousClass(objectNode.object.getClass());
-        ObjectNode template = ObjectResolver.getTemplate(actualType);
-        Seq<String> blackList = findFieldBlacklist(actualType);
+        Class<?> type = ClassHelper.unoymousClass(objectNode.object.getClass());
+        ObjectNode template = ObjectResolver.getTemplate(type);
+        Seq<String> blackList = findFieldBlacklist(type);
 
         for(Entry<String, ObjectNode> entry : objectNode.getChildren()){
             ObjectNode childNode = entry.value;
@@ -222,12 +222,6 @@ public class ObjectExporter{
         }
     }
 
-    public static JsonValue exportObject(ObjectNode objectNode, ExportConfig config){
-        JsonValue value = new JsonValue(ValueType.object);
-        exportObject(objectNode, value, config);
-        return value;
-    }
-
     public static void exportObject(ObjectNode objectNode, JsonValue value, ExportConfig config){
         Object object = objectNode.object;
         if(object instanceof MapEntry<?,?> entry) object = entry.value;
@@ -238,6 +232,7 @@ public class ObjectExporter{
             String typeName = PatchJsonIO.getClassTypeName(type);
             value.addChild("type", new JsonValue(typeName));
         }
+
         exportFields(objectNode, value, config);
     }
 
