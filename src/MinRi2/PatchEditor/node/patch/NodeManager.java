@@ -14,10 +14,10 @@ public class NodeManager{
 
     public void reset(){
         root = new PatchNode("");
-        clear();
+        clearStacks();
     }
 
-    public void clear(){
+    public void clearStacks(){
         undoStack.clear();
         redoStack.clear();
     }

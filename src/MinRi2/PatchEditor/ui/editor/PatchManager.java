@@ -38,6 +38,9 @@ public class PatchManager extends BaseDialog{
             editorPatches.set(state.patcher.patches.map(EditorPatch::new));
             Vars.state.patcher.unapply();
 
+            // patcher will change the object so clear all the tree
+            editor.resetEditor();
+
             setup();
             rebuildCont();
         });
@@ -49,6 +52,8 @@ public class PatchManager extends BaseDialog{
                 Vars.ui.showException(e);
             }
             editorPatches.set(state.patcher.patches.map(EditorPatch::new));
+
+            editor.resetEditor();
         });
 
         editor.hidden(this::rebuildPatchTable);
