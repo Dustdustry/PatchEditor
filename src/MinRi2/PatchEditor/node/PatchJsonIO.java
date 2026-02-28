@@ -6,6 +6,7 @@ import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.editor.EditorSettings.*;
 import arc.*;
 import arc.audio.*;
+import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.struct.*;
@@ -18,9 +19,11 @@ import arc.util.serialization.Jval.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
+import mindustry.entities.Units.*;
 import mindustry.entities.abilities.*;
 import mindustry.entities.bullet.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.meta.*;
@@ -46,16 +49,20 @@ public class PatchJsonIO{
         Ability.class, ForceFieldAbility.class
     );
     public static final Seq<Class<?>> fixedTypeClasses = Seq.with(
-    UnlockableContent.class, ContentType.class,
+    UnitType.class, ContentType.class,
     ItemStack.class, LiquidStack.class, PayloadStack.class
     );
     public static final ObjectMap<Class<?>, Class<?>> keyFieldsClasses = ObjectMap.of(
     Effect.class, Fx.class,
+    BulletType.class, Bullets.class,
     BlockFlag.class, BlockFlag.class,
     BuildVisibility.class, BuildVisibility.class,
-    Interp.class, Interp.class,
     Sound.class, Sounds.class,
-    BulletType.class, Bullets.class
+
+    Sortf.class, Sortf.class,
+    Interp.class, Interp.class,
+    Blending.class, Blending.class,
+    CacheLayer.class, CacheLayer.class
     );
 
     // internal key name
