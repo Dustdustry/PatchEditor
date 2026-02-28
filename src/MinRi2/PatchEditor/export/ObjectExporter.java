@@ -189,7 +189,7 @@ public class ObjectExporter{
 
     private static void exportFields(ObjectNode objectNode, JsonValue value, ExportConfig config){
         Class<?> actualType = ClassHelper.unoymousClass(objectNode.object.getClass());
-        ObjectNode template = getTemplate(actualType);
+        ObjectNode template = ObjectResolver.getTemplate(actualType);
         Seq<String> blackList = findFieldBlacklist(actualType);
 
         for(Entry<String, ObjectNode> entry : objectNode.getChildren()){
@@ -276,47 +276,6 @@ public class ObjectExporter{
         }
 
         return null;
-    }
-
-    // template with instance example
-    private static ObjectNode getTemplate(Class<?> type){
-        ObjectNode objectNode = templateMap.get(type);
-        if(objectNode != null) return objectNode;
-
-        objectNode = new ObjectNode("", getExample(PatchJsonIO.resolveType(type), type), type);
-        templateMap.put(type, objectNode);
-        return objectNode;
-    }
-
-    // instance example
-    private static Object getExample(Class<?> base, Class<?> type){
-        if(type == float.class || type == Float.class) return 0f;
-        if(type == double.class || type == Double.class) return 0d;
-        if(type == boolean.class || type == Boolean.class) return false;
-        if(type == short.class || type == Short.class) return (short)0;
-        if(type == byte.class || type == Byte.class) return (byte)0;
-        if(type == char.class || type == Character.class) return '\0';
-        if(type.isArray()) return Reflect.newArray(type.getComponentType(), 0);
-
-        type = PatchJsonIO.resolveType(type);
-
-        Object example = exampleMap.get(type);
-        if(example != null) return example;
-
-        base = PatchJsonIO.getTypeParser(base);
-        JsonValue value = new JsonValue(ValueType.object);
-        value.addChild("type", new JsonValue(PatchJsonIO.getClassTypeName(type)));
-
-        try{
-            Json parserJson = PatchJsonIO.getParser().getJson();
-            // Invoke internalRead to skip null fields checking.
-            example = Reflect.invoke(parserJson, "internalRead", new Object[]{base, null, value, null}, Class.class, Class.class, JsonValue.class, Class.class);
-        }catch(Exception ignored){
-            return null;
-        }
-
-        exampleMap.put(type, example);
-        return example;
     }
 
     public static class ExportConfig{

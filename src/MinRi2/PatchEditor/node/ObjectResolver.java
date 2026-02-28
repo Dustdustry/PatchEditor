@@ -8,9 +8,7 @@ import arc.input.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
-import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.ai.types.*;
 import mindustry.ctype.*;
@@ -40,7 +38,6 @@ public class ObjectResolver{
 
     // For dynamic editor node
     private static ObjectMap<Class<?>, ObjectNode> templateNode;
-    private static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
 
     public static void resolve(ObjectNode node){
         if(node.isRoot()){
@@ -64,7 +61,7 @@ public class ObjectResolver{
             if(object instanceof MapEntry<?, ?> entry) object = entry.value;
             objectType = object.getClass();
         }else{
-            object = getExample(objectType, objectType);
+            object = ObjectExample.getExample(objectType, objectType);
         }
 
         // type resolve
@@ -170,7 +167,9 @@ public class ObjectResolver{
         // specific fields
         if(object instanceof UnitType type){
             // classTypeName will be resolved to prov
-            node.addChild("type", EditorList.getUnitTypeName(type.constructor.get().getClass()), UnitConstructorType.class).addSign(ModifierSign.MODIFY);
+            if(type.constructor != null){
+                node.addChild("type", EditorList.getUnitTypeName(type.constructor.get().getClass()), UnitConstructorType.class).addSign(ModifierSign.MODIFY);
+            }
             node.addChild("aiController", PatchJsonIO.getClassTypeName(type.aiController.get().getClass()), AIController.class).addSign(ModifierSign.MODIFY);
             node.addChild("controller", PatchJsonIO.getClassTypeName(CommandAI.class), AIController.class).addSign(ModifierSign.MODIFY);
         }
@@ -226,7 +225,7 @@ public class ObjectResolver{
     }
 
     public static ObjectNode getShadowNode(ObjectNode node, Class<?> newType){
-        ObjectNode shadowNode = new ObjectNode(node.name, getExample(newType, newType), node.field, node.type, node.elementType, node.keyType);
+        ObjectNode shadowNode = new ObjectNode(node.name, ObjectExample.getExample(newType, newType), node.field, node.type, node.elementType, node.keyType);
         if(node.hasSign(ModifierSign.MODIFY)){
             shadowNode.addSign(ModifierSign.MODIFY);
         }
@@ -239,7 +238,7 @@ public class ObjectResolver{
         ObjectNode objectNode = templateNode.get(type);
         if(objectNode != null) return objectNode;
 
-        objectNode = new ObjectNode("", getExample(PatchJsonIO.resolveType(type), type), type);
+        objectNode = new ObjectNode("", ObjectExample.getExample(PatchJsonIO.resolveType(type), type), type);
         // TODO: template is always modifiable?
         objectNode.addSign(ModifierSign.MODIFY);
         templateNode.put(type, objectNode);
@@ -261,44 +260,5 @@ public class ObjectResolver{
         return (!field.getType().isPrimitive() || !Modifier.isFinal(modifiers))
         && typeEditable(field.getType())
         && !(field.isAnnotationPresent(NoPatch.class) || field.getDeclaringClass().isAnnotationPresent(NoPatch.class));
-    }
-
-    public static Object getExample(Class<?> base, Class<?> type){
-        if(type == float.class || type == Float.class) return 0f;
-        if(type == double.class || type == Double.class) return 0d;
-        if(type == boolean.class || type == Boolean.class) return false;
-        if(type == short.class || type == Short.class) return (short)0;
-        if(type == byte.class || type == Byte.class) return (byte)0;
-        if(type == char.class || type == Character.class) return '\0';
-        if(type.isArray()) return Array.newInstance(type.getComponentType(), 0);
-
-        type = PatchJsonIO.resolveType(type);
-
-        Object example = exampleMap.get(type);
-        if(example != null) return example;
-
-        if(MappableContent.class.isAssignableFrom(type)){
-            ContentType contentType = PatchJsonIO.classContentType(type);
-            if(contentType != null){
-                example = Vars.content.getBy(contentType).first();
-            }
-        }
-
-        if(example == null){
-            base = PatchJsonIO.getTypeParser(base);
-            JsonValue value = new JsonValue(ValueType.object);
-            value.addChild("type", new JsonValue(PatchJsonIO.getClassTypeName(type)));
-
-            try{
-                Json parserJson = PatchJsonIO.getParser().getJson();
-                // Invoke internalRead to skip null fields checking.
-                example = Reflect.invoke(parserJson, "internalRead", new Object[]{base, null, value, null}, Class.class, Class.class, JsonValue.class, Class.class);
-            }catch(Exception ignored){
-                return null;
-            }
-        }
-
-        exampleMap.put(type, example);
-        return example;
     }
 }
