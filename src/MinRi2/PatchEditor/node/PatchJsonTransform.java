@@ -148,7 +148,7 @@ public class PatchJsonTransform{
             amountValue.setType(ValueType.doubleValue);
             value.addChild("liquid", new JsonValue(split[0]));
             value.addChild("amount", amountValue);
-        }else if(type == Consume.class){
+        }else if(type == Consume.class && value.name != null){
             if(value.name.equals("remove")){
                 if(value.isString()){
                     // remove: item -> remove: [item]
