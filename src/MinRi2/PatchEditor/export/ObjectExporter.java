@@ -32,11 +32,10 @@ import mindustry.world.meta.*;
 import java.lang.reflect.*;
 
 public class ObjectExporter{
-    private static final ObjectMap<Class<?>, ObjectNode> templateMap = new ObjectMap<>();
-    private static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
     private static final ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(
     Block.class, Seq.with("teamRegion", "teamRegions", "consumes"),
-    UnitType.class, Seq.with("sample", "aiController", "controller")
+    UnitType.class, Seq.with("sample", "aiController", "controller", "cachedRequirements"),
+    BulletType.class, Seq.with("cachedDps")
     );
 
     public static JsonValue exportJson(ObjectNode objectNode){
