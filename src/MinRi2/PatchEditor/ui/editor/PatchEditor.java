@@ -76,8 +76,6 @@ public class PatchEditor extends BaseDialog{
         hidden(() -> {
             manager.clearStacks();
             editPatch.patch = PatchJsonIO.toPatch(objectTree, manager.getRoot());
-            // clear the root node reference
-            card.setRootEditorNode(null);
         });
 
         update(() -> {
@@ -129,9 +127,11 @@ public class PatchEditor extends BaseDialog{
         manager.reset();
         objectTree = ObjectNode.createRoot();
         editorTree = new EditorNode(objectTree, manager);
+        card.setRootEditorNode(editorTree);
     }
 
     public void edit(EditorPatch patch){
+        manager.reset();
         try{
             PatchJsonIO.parseJson(objectTree, manager.getRoot(), patch.patch);
         }catch(Exception e){
@@ -139,7 +139,6 @@ public class PatchEditor extends BaseDialog{
             return;
         }
 
-        card.setRootEditorNode(editorTree);
         card.setEditPath("");
 
         editPatch = patch;
