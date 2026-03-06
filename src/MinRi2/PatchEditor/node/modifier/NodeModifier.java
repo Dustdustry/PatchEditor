@@ -87,7 +87,6 @@ public class NodeModifier{
             modifierTypes.addAll(types);
         }
 
-
         public ModifierConfig(Prov<DataModifier<?>> prov, Class<?>... types){
             this.prov = prov;
             modifierTypes.addAll(types);
