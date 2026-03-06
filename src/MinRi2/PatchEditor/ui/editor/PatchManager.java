@@ -89,7 +89,7 @@ public class PatchManager extends BaseDialog{
         table.row();
 
         rebuildPatchTable();
-        table.pane(patchTable).scrollY(false).pad(8f).grow();
+        table.pane(Styles.noBarPane, patchTable).scrollX(false).pad(8f).grow();
 
         table.row();
 
