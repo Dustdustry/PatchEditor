@@ -460,35 +460,39 @@ public class NodeCard extends Table{
                 horizontalLine.colspan(nameTable.getColumns());
             }).color(Pal.darkestGray).size(buttonWidth, buttonHeight);
 
-            // Clear data
-            nodeTitle.button(Icon.refresh, Styles.cleari, () -> {
-                Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", editorNode.getPath()), editorNode::clearJson);
-            }).size(64f).tooltip("@node-card.clear-data", true);
+            nodeTitle.table(buttons -> {
+                buttons.defaults().size(64f).pad(8f);
 
-            if(editorNode != rootEditorNode){
-                nodeTitle.button(Icon.download, Styles.cleari, () -> {
-                    try{
-                        editorNode.importPatch(Core.app.getClipboardText());
-                    }catch(RuntimeException e){
-                        Vars.ui.showException("@node-card.appendPatchNode.failed", e);
-                        return;
-                    }
-                    EUI.infoToast(Core.bundle.format("node-card.appendPatchNode", editorPath));
-                }).size(64f).tooltip(Core.bundle.format("node-card.appendPatchNode", editorPath), true)
-                .disabled(b -> Core.app.getClipboardText() == null);
+                // Clear data
+                buttons.button(Icon.refresh, Styles.cleari, () -> {
+                    Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", editorNode.getPath()), editorNode::clearJson);
+                }).tooltip("@node-card.clear-data", true);
 
-                nodeTitle.button(Icon.copy, Styles.cleari, () -> {
-                    PatchNode patchNode = editorNode.getPatch();
-                    Core.app.setClipboardText(patchNode == null ? "" : PatchJsonIO.toPatch(editorNode.getObjNode(), patchNode));
-                    EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
-                }).size(64f).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
+                if(editorNode != rootEditorNode){
+                    buttons.button(Icon.download, Styles.cleari, () -> {
+                        try{
+                            editorNode.importPatch(Core.app.getClipboardText());
+                        }catch(RuntimeException e){
+                            Vars.ui.showException("@node-card.appendPatchNode.failed", e);
+                            return;
+                        }
+                        EUI.infoToast(Core.bundle.format("node-card.appendPatchNode", editorPath));
+                    }).padLeft(16f).tooltip(Core.bundle.format("node-card.appendPatchNode", editorPath), true)
+                    .disabled(b -> Core.app.getClipboardText() == null);
 
-                nodeTitle.button(Icon.effect, Styles.cleari, () -> {
-                    String patch = PatchExporter.export(editorNode.getMetaNode());
-                    Core.app.setClipboardText(patch);
-                    EUI.infoToast(Core.bundle.format("node-card.magicExportNode", editorPath));
-                }).size(64f).tooltip(Core.bundle.format("node-card.magicExportNode.tooltip", editorPath), true);
-            }
+                    buttons.button(Icon.copy, Styles.cleari, () -> {
+                        PatchNode patchNode = editorNode.getPatch();
+                        Core.app.setClipboardText(patchNode == null ? "" : PatchJsonIO.toPatch(editorNode.getObjNode(), patchNode));
+                        EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
+                    }).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
+
+                    buttons.button(Icon.effect, Styles.cleari, () -> {
+                        String patch = PatchExporter.export(editorNode.getMetaNode());
+                        Core.app.setClipboardText(patch);
+                        EUI.infoToast(Core.bundle.format("node-card.magicExportNode", editorPath));
+                    }).padLeft(16f).tooltip(Core.bundle.format("node-card.magicExportNode.tooltip", editorPath), true);
+                }
+            });
 
             nodeTitle.table(cardButtons -> {
                 cardButtons.defaults().size(64f).pad(8f);
