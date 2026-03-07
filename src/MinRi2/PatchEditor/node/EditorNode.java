@@ -88,28 +88,6 @@ public class EditorNode{
         return children;
     }
 
-    private ObjectNode resolveType(){
-        PatchNode patchNode = getPatch();
-        if(patchNode == null) return objectNode;
-
-        Class<?> type = getTypeIn();
-        PatchNode typePatch = patchNode.getOrNull("type");
-        if(typePatch != null && typePatch.value != null){
-            type = PatchJsonIO.resolveType(typePatch.value);
-            if(type == null) return objectNode;
-        }
-
-        if(PatchJsonIO.typeOverrideable(type)){
-            if(type != objectNode.type){
-                return ObjectResolver.getShadowNode(objectNode, type);
-            }
-        }else if(isOverriding() && ClassHelper.isContainer(type)){
-            return ObjectResolver.getShadowNode(objectNode, type);
-        }
-
-        return objectNode;
-    }
-
     public ObjectNode getObjNode(){
         return currentObj;
     }
@@ -280,23 +258,43 @@ public class EditorNode{
     }
 
     public void sync(){
-        typeCheck();
+        checkObjNode();
         if(needResolve || dynamicDirty){
             buildChildren();
         }
     }
 
-    public void typeCheck(){
-        ObjectNode resolved = resolveType();
-        if(currentObj.type != resolved.type){
-            needResolve = true;
+    public void checkObjNode(){
+        ObjectNode resolved = objectNode;
+
+        Class<?> type = getTypeIn();
+        if(isOverriding() && ClassHelper.isContainer(type)){
+            resolved = ObjectResolver.getShadowNode(objectNode, type);
+        }else{
+            PatchNode patchNode = getPatch();
+            if(patchNode != null){
+                PatchNode typePatch = patchNode.getOrNull("type");
+                if(typePatch != null && typePatch.value != null){
+                    type = PatchJsonIO.resolveType(typePatch.value);
+                }
+
+                if(type != null && PatchJsonIO.typeOverrideable(type)){
+                    if(type != currentObj.type){
+                        resolved = ObjectResolver.getShadowNode(objectNode, type);
+                    }
+                }
+            }
+        }
+
+        if(currentObj != resolved){
             currentObj = resolved;
+            clearChildren();
         }
     }
 
     public void patchChanged(){
         dynamicDirty = true;
-        typeCheck();
+        checkObjNode();
         if(parent != null) parent.patchChanged();
     }
 
