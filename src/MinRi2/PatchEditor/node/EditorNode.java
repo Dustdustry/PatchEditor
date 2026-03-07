@@ -269,6 +269,7 @@ public class EditorNode{
     public void importPatch(String patch){
         PatchNode sourceNode = new PatchNode(name());
         PatchJsonIO.parseJson(getObjNode(), sourceNode, patch);
+        PatchJsonTransform.clearRedundantPatch(getObjNode(), sourceNode);
         manager.applyOp(new ImportOp(getPath(), sourceNode));
     }
 

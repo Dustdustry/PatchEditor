@@ -59,12 +59,7 @@ public abstract class PatchOperator{
         PatchNode parent = node.getParent();
         node.remove();
 
-        PatchNode current = parent;
-        while(current != null && current.children.isEmpty() && current.sign == null){
-            parent = current.getParent();
-            current.remove();
-            current = parent;
-        }
+        PatchJsonTransform.cleanEmptyParents(parent);
     }
 
     public static class SetOp extends PatchOperator{

@@ -226,6 +226,52 @@ public class PatchJsonTransform{
         }
     }
 
+    public static void clearRedundantPatch(ObjectNode objectNode, PatchNode patchNode){
+        if(patchNode == null) return;
+
+        Seq<PatchNode> toRemove = new Seq<>();
+        for(PatchNode childPatch : patchNode.children.values()){
+            ObjectNode childObj = null;
+            if(objectNode != null){
+                childObj = objectNode.getOrResolve(childPatch.key);
+                if(childObj == null && objectNode.elementType != null){
+                    childObj = ObjectResolver.getTemplate(objectNode.elementType);
+                }
+            }
+
+            clearRedundantPatch(childObj, childPatch);
+
+            if(isRedundantPatch(childObj, childPatch)){
+                toRemove.add(childPatch);
+            }
+        }
+
+        for(PatchNode childPatch : toRemove){
+            PatchNode parent = childPatch.getParent();
+            childPatch.remove();
+            cleanEmptyParents(parent);
+        }
+    }
+
+    private static boolean isRedundantPatch(ObjectNode objectNode, PatchNode patchNode){
+        if(objectNode == null || patchNode.sign != null || patchNode.value == null) return false;
+
+        Object original = objectNode.object;
+        if(original instanceof MapEntry<?,?> entry) original = entry.value;
+
+        Object parsed = PatchJsonIO.parseJsonObject(patchNode, objectNode, original);
+        return PatchCompare.equalsValue(parsed, original, objectNode.type);
+    }
+
+    public static void cleanEmptyParents(PatchNode patchNode){
+        PatchNode current = patchNode;
+        while(current != null && current.children.isEmpty() && current.sign == null){
+            PatchNode parent = current.getParent();
+            current.remove();
+            current = parent;
+        }
+    }
+
     // fold path with dot syntax
     public static void simplifyPath(JsonValue value){
         if(value.parent == null){

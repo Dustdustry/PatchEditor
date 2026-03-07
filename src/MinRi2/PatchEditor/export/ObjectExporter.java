@@ -183,7 +183,7 @@ public class ObjectExporter{
 
     private static boolean shouldExportField(Object value, Object defaultValue, ExportConfig config){
         if(value == null) return config.exportNulls;
-        return !equals(value, defaultValue, ClassHelper.unoymousClass(value.getClass()));
+        return !PatchCompare.equalsValue(value, defaultValue, ClassHelper.unoymousClass(value.getClass()));
     }
 
     private static void exportFields(ObjectNode objectNode, JsonValue value, ExportConfig config){
@@ -240,25 +240,6 @@ public class ObjectExporter{
         ObjectMap<String, T> objectNameMap = PatchJsonIO.getKeyEntryMap(sourceClass);
         if(objectNameMap == null) return null;
         return objectNameMap.findKey(value, true);
-    }
-
-    public static boolean equals(Object value, Object defaultValue, Class<?> type){
-        if(value == null && defaultValue == null) return true;
-        if(value == null || defaultValue == null) return false;
-
-        if(ClassHelper.isArray(type)){
-            int actualLength = Array.getLength(value);
-            int defaultLength = Array.getLength(defaultValue);
-            if(actualLength != defaultLength) return false;
-
-            Class<?> elementType = type.getComponentType();
-            for(int i = 0; i < actualLength; i++){
-                if(!equals(Array.get(value, i), Array.get(defaultValue, i), elementType)) return false;
-            }
-            return true;
-        }
-
-        return value.equals(defaultValue);
     }
 
     private static Seq<String> findFieldBlacklist(Class<?> type){
