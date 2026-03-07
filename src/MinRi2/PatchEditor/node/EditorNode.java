@@ -288,7 +288,7 @@ public class EditorNode{
 
     public void typeCheck(){
         ObjectNode resolved = resolveType();
-        if(currentObj != resolved){
+        if(currentObj.type != resolved.type){
             needResolve = true;
             currentObj = resolved;
         }
