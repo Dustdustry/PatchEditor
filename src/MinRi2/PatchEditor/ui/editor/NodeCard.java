@@ -280,7 +280,7 @@ public class NodeCard extends Table{
 
     private static boolean isWarning(EditorNode node){
         if(isRequired(node)) return true;
-        if(node.getObjNode().getParent() != null) return node.getObjNode().getParent().isMultiArrayLike();
+        if(node.getObjNode().getParent() != null) return node.getObjNode().isDescendantArray();
         return false;
     }
 
@@ -436,7 +436,7 @@ public class NodeCard extends Table{
             table.image(Icon.infoCircle).height(32f).tooltip("@node.mayRequired");
         }
 
-        if(editorNode.getObjNode().isMultiArrayLike() && !child.isOverriding() && !child.isAppended()){
+        if(child.getObjNode().isDescendantArray() && !child.isOverriding() && !child.isAppended()){
             table.image(Icon.infoCircle).height(32f).tooltip("@node.multiArray.warn", true);
         }
     }

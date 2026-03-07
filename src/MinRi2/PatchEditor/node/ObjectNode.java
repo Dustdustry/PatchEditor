@@ -94,6 +94,16 @@ public class ObjectNode{
         return ClassHelper.isArrayLike(type) && ClassHelper.isArrayLike(elementType);
     }
 
+    public boolean isDescendantArray(){
+        if(!isArrayLike()) return false;
+        ObjectNode parent = getParent();
+        while(parent != null){
+            if(parent.isArrayLike()) return true;
+            parent = parent.getParent();
+        }
+        return false;
+    }
+
     public ObjectNode addSign(ModifierSign sign){
         // extend type from parent
         return addSign(sign, type, elementType, keyType);
