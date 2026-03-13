@@ -137,8 +137,11 @@ public class PatchManager extends BaseDialog{
                     buttons.defaults().size(32f).pad(4f);
 
                     buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
-                        editorPatches.remove(patch, true);
-                        rebuildPatchTable();
+                        String displayName = patch.name.isEmpty() ? "<unnamed>" : patch.name;
+                        Vars.ui.showConfirm("@confirm", Core.bundle.format("patch.remove.confirm", displayName), () -> {
+                            editorPatches.remove(patch, true);
+                            rebuildPatchTable();
+                        });
                     }).tooltip("@patch.remove", true);
 
                     buttons.button(Icon.copySmall, Styles.clearNonei, () -> {
