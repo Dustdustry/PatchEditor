@@ -51,13 +51,15 @@ public class NodeDisplay{
 
     public static TextureRegion getDisplayIcon(Object object){
         if(object == null) return Icon.none.getRegion();
-        if(object instanceof ContentType type) return contentSymbolMap.get(type, Icon.effect.getRegion());
-        if(object instanceof UnlockableContent unlockable) return unlockable.uiIcon;
-        if(object instanceof Weapon weapon) return Core.atlas.find(weapon.name, Icon.none.getRegion());
-        if(object instanceof ItemStack stack) return stack.item.uiIcon;
-        if(object instanceof LiquidStack stack) return stack.liquid.uiIcon;
-        if(object instanceof PayloadStack stack) return stack.item.uiIcon;
-        return Icon.effect.getRegion();
+
+        TextureRegion region = null;
+        if(object instanceof ContentType type) region = contentSymbolMap.get(type, Icon.effect.getRegion());
+        else if(object instanceof UnlockableContent unlockable) region = unlockable.uiIcon;
+        else if(object instanceof Weapon weapon) region = Core.atlas.find(weapon.name, Icon.none.getRegion());
+        else if(object instanceof ItemStack stack) region = stack.item.uiIcon;
+        else if(object instanceof LiquidStack stack) region = stack.liquid.uiIcon;
+        else if(object instanceof PayloadStack stack) region = stack.item.uiIcon;
+        return region != null && region.found() ? region : Icon.effect.getRegion();
     }
 
     public static String getDisplayName(Object object){
