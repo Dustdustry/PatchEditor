@@ -121,7 +121,7 @@ public class PatchManager extends BaseDialog{
                 rebuildPatchTable();
 
                 EUI.infoToast("@import-patch.succeed");
-            }).disabled(b -> Core.app.getClipboardText() != null && Core.app.getClipboardText().isEmpty());
+            }).disabled(b -> Core.app.getClipboardText() == null);
         }).pad(8f).padTop(4f).growX();
     }
 
