@@ -22,7 +22,7 @@ public class EditorNode{
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
 
     private final NodeManager manager;
-    private boolean dynamicDirty = true;
+    private boolean patchChanged = true;
 
     public EditorNode(ObjectNode objectNode, NodeManager manager){
         this.objectNode = objectNode;
@@ -49,13 +49,13 @@ public class EditorNode{
             }
         }
 
-        if(dynamicDirty){
-            dynamicDirty = false;
+        if(patchChanged){
+            patchChanged = false;
 
             var iterator = children.entries().iterator();
             while(iterator.hasNext()){
                 EditorNode childNode = iterator.next().value;
-                if(childNode instanceof DynamicEditorNode){
+                if(childNode instanceof DynamicEditorNode || childNode instanceof InvalidEditorNode){
                     childNode.parent = null;
                     childNode.children.clear();
                     iterator.remove();
@@ -64,9 +64,9 @@ public class EditorNode{
 
             // data driven
             if(patchNode != null){
-                for(PatchNode childPatchNode : patchNode.children.values()){
-                    if(childPatchNode.sign == ModifierSign.PLUS){
-                        PatchNode typeNode = childPatchNode.getOrNull("type");
+                for(PatchNode childPatch : patchNode.children.values()){
+                    if(childPatch.sign == ModifierSign.PLUS){
+                        PatchNode typeNode = childPatch.getOrNull("type");
                         String typeJson = typeNode == null ? null : typeNode.value;
 
                         try{
@@ -74,12 +74,14 @@ public class EditorNode{
                             Class<?> type = PatchJsonIO.resolveType(typeJson);
                             if(type == null) type = getObjNode().elementType; // Not changing type. Use meta type.
 
-                            EditorNode child = new DynamicEditorNode(childPatchNode.key, getObjNode().elementType, type, manager);
+                            EditorNode child = new DynamicEditorNode(childPatch.key, getObjNode().elementType, type, manager);
                             child.parent = this;
                             children.put(child.name(), child);
                         }catch(Exception e){
                             Log.err(e);
                         }
+                    }else if(!children.containsKey(childPatch.key)){
+                        children.put(childPatch.key, new InvalidEditorNode(childPatch.key, manager));
                     }
                 }
             }
@@ -254,12 +256,12 @@ public class EditorNode{
     public void clearChildren(){
         children.clear();
         needResolve = true;
-        dynamicDirty = true;
+        patchChanged = true;
     }
 
     public void sync(){
         checkObjNode();
-        if(needResolve || dynamicDirty){
+        if(needResolve || patchChanged){
             buildChildren();
         }
     }
@@ -293,7 +295,7 @@ public class EditorNode{
     }
 
     public void patchChanged(){
-        dynamicDirty = true;
+        patchChanged = true;
         checkObjNode();
         if(parent != null) parent.patchChanged();
     }
@@ -338,6 +340,25 @@ public class EditorNode{
 
         @Override
         public boolean isAppended(){
+            return true;
+        }
+    }
+
+    public static class InvalidEditorNode extends EditorNode{
+        public final String key;
+
+        public InvalidEditorNode(String key, NodeManager manager){
+            super(ObjectResolver.getTemplate(Object.class), manager);
+            this.key = key;
+        }
+
+        @Override
+        public String name(){
+            return key;
+        }
+
+        @Override
+        public boolean hasValue(){
             return true;
         }
     }

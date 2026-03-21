@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.ui.editor;
 import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.export.*;
 import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.EditorNode.*;
 import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
@@ -224,12 +225,16 @@ public class NodeCard extends Table{
                     }
                 }
 
-                DataModifier<?> modifier = NodeModifier.getModifier(child.getObjNode());
-                if(modifier != null){
-                    modifier.setData(rootEditorNode, child.getPath());
-                    addEditTable(cont, child, modifier);
+                if(child instanceof InvalidEditorNode){
+                    addUnknownButton(cont, child);
                 }else{
-                    addChildButton(cont, child);
+                    DataModifier<?> modifier = NodeModifier.getModifier(child.getObjNode());
+                    if(modifier != null){
+                        modifier.setData(rootEditorNode, child.getPath());
+                        addEditTable(cont, child, modifier);
+                    }else{
+                        addChildButton(cont, child);
+                    }
                 }
                 if(++index % columns == 0){
                     cont.row();
@@ -369,6 +374,26 @@ public class NodeCard extends Table{
                 }
             }
         });
+    }
+
+    private void addUnknownButton(Table table, EditorNode node){
+        table.table(Tex.whiteui, t -> {
+            t.table(infoTable -> {
+                infoTable.left();
+                NodeDisplay.display(infoTable, node);
+            }).pad(8f).grow();
+
+            t.table(buttons -> {
+                buttons.defaults().width(32f).pad(4f).growY();
+                buttons.button(Icon.cancel, Styles.clearNonei, node::clearJson).grow().tooltip("@node.remove");
+                buttons.image(Icon.infoCircle).height(32f).tooltip("@node.unknown.warn", true);
+            }).pad(6f).growY();
+
+            t.image().width(4f).color(Color.darkGray).growY().right();
+            t.row();
+            Cell<?> horizontalLine = t.image().height(4f).color(Color.darkGray).growX();
+            horizontalLine.colspan(t.getColumns());
+        }).color(Pal.darkerGray);
     }
 
     private void setupChildNodeButtons(Table table, EditorNode child, boolean hasModifier){
