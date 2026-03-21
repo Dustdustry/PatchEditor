@@ -12,6 +12,7 @@ import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
 import mindustry.*;
+import mindustry.core.GameState.*;
 import mindustry.gen.*;
 import mindustry.mod.DataPatcher.*;
 import mindustry.ui.*;
@@ -31,6 +32,7 @@ public class PatchManager extends BaseDialog{
     public PatchManager(){
         super("");
 
+        shouldPause = true;
         patchContainer = new Table();
         patchTable = new Table();
         resized(this::rebuildCont);
@@ -54,6 +56,15 @@ public class PatchManager extends BaseDialog{
             editorPatches.set(state.patcher.patches.map(EditorPatch::new));
 
             editor.resetEditor();
+
+            if(state.isGame()){
+                try{
+                    Vars.logic.update();
+                }catch(Exception e){
+                    state.set(State.paused);
+                    Vars.ui.showException("@patch-editor.editInGame.error", e);
+                }
+            }
         });
 
         editor.hidden(this::rebuildPatchTable);

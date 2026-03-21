@@ -14,7 +14,9 @@ import arc.scene.utils.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.editor.*;
+import mindustry.gen.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 
 /**
  * @author minri2
@@ -40,10 +42,10 @@ public class EUI{
         stringItemSelector = new StringItemSelector();
         soundSelector = new SoundSelector();
 
-        addUI();
+        mountEditor();
     }
 
-    private static void addUI(){
+    private static void mountEditor(){
         MapInfoDialog infoDialog = Reflect.get(Vars.ui.editor, "infoDialog");
         infoDialog.shown(() -> Core.app.post(() -> {
             ScrollPane pane = (ScrollPane)infoDialog.cont.getChildren().get(0);
@@ -55,12 +57,20 @@ public class EUI{
 
             buttonTable.button(b -> {
                 b.add("[accent][PE]").pad(8f).left();
-                b.add("@patch-editor").expandX();
+                b.add("@patch-manager").expandX();
             }, Styles.cleari, manager::show)
             .colspan(buttonTable.getColumns()).width(Float.NEGATIVE_INFINITY).growX();
 
             buttonTable.row();
         }));
+
+        BaseDialog paused = Vars.ui.paused;
+        paused.shown(() -> {
+            if(!Vars.net.active()){
+                paused.cont.row();
+                paused.cont.button("@patch-manager", Icon.edit, manager::show).padTop(8f).tooltip("@patch-editor.editInGame.info", true);
+            }
+        });
     }
 
     public static TextField deboundTextField(String text, Cons<String> changed){
