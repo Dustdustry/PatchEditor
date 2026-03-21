@@ -155,7 +155,11 @@ public class PatchEditor extends BaseDialog{
         if(cont.hasChildren()) return;
 
         titleTable.clearChildren();
-        titleTable.background(Tex.whiteui).setColor(EPalettes.main);
+        titleTable.left().background(Tex.whiteui).setColor(EPalettes.main);
+
+        titleTable.addChild(title);
+        title.setFillParent(true);
+        title.setStyle(Styles.outlineLabel);
 
         titleTable.table(buttons -> {
             buttons.defaults().size(150f, 64f).pad(8f).growY();
@@ -175,8 +179,6 @@ public class PatchEditor extends BaseDialog{
                 }
             }
         });
-
-        titleTable.add(title).style(Styles.outlineLabel).growX();
 
         cont.top();
         addCloseListener();
