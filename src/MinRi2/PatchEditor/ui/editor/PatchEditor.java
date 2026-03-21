@@ -134,6 +134,9 @@ public class PatchEditor extends BaseDialog{
 
     public void edit(EditorPatch patch){
         manager.reset();
+        editorTree = new EditorNode(objectTree, manager);
+        card.setRootEditorNode(editorTree);
+
         try{
             PatchJsonIO.parseJson(objectTree, manager.getRoot(), patch.patch);
         }catch(Exception e){

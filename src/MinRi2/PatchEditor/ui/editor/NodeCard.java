@@ -151,6 +151,7 @@ public class NodeCard extends Table{
         if(editing){
             childCard.rebuild();
             cardCont.add(childCard).grow();
+            nodesTable.clear();
         }else{
             cardCont.table(this::setupSearchTable).pad(8f).growX();
             cardCont.row();
