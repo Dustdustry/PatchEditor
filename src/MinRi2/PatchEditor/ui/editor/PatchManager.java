@@ -207,7 +207,7 @@ public class PatchManager extends BaseDialog{
         table.button(Icon.upOpenSmall, Styles.clearNoneTogglei, () -> {
             sortByAlphabet = !sortByAlphabet;
             rebuildPatchTable();
-        }).checked(b -> sortByAlphabet).tooltip("@editor.sort").width(Vars.iconSmall).growY();
+        }).checked(b -> sortByAlphabet).tooltip("@patch-manager.sort.alphabet").width(Vars.iconSmall).growY();
 
         table.button(Icon.cancelSmall, Styles.clearNonei, () -> {
             searchText = "";
