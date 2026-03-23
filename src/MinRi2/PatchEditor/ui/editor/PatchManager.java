@@ -4,6 +4,7 @@ import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.graphics.*;
+import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
@@ -28,6 +29,8 @@ public class PatchManager extends BaseDialog{
     private final PatchEditor editor = new PatchEditor();
     private final Table patchContainer, patchTable;
     private final Seq<EditorPatch> editorPatches = new Seq<>();
+    private String searchText = "";
+    private boolean sortByAlphabet;
 
     public PatchManager(){
         super("");
@@ -74,7 +77,6 @@ public class PatchManager extends BaseDialog{
         if(cont.hasChildren()) return;
 
         patchContainer.background(Tex.whiteui).setColor(EPalettes.main);
-        patchTable.background(Styles.grayPanel);
 
         cont.add(patchContainer);
 
@@ -84,6 +86,7 @@ public class PatchManager extends BaseDialog{
     private void rebuildCont(){
         Table table = patchContainer;
         table.clearChildren();
+        rebuildPatchTable();
 
         table.table(Styles.grayPanel, title -> {
             title.left();
@@ -99,8 +102,13 @@ public class PatchManager extends BaseDialog{
 
         table.row();
 
-        rebuildPatchTable();
-        table.pane(Styles.noBarPane, patchTable).scrollX(false).pad(8f).grow();
+        table.table(Styles.grayPanel, main -> {
+            main.collapser(this::setupSearchTable, () -> editorPatches.size >= 8).padLeft(8f).padRight(8f).growX();
+
+            main.row();
+
+            main.pane(Styles.noBarPane, patchTable).scrollX(false).maxHeight(64f * 6).pad(8f).grow();
+        }).pad(8f).grow();
 
         table.row();
 
@@ -139,17 +147,22 @@ public class PatchManager extends BaseDialog{
     private void rebuildPatchTable(){
         patchTable.clearChildren();
 
+        Seq<EditorPatch> showPatches = editorPatches.select(p -> Strings.matches(searchText, p.displayName()));
+
+        if(sortByAlphabet){
+            showPatches.sort(Structs.comparing(p -> p.name));
+        }
+
         int index = 0;
-        for(EditorPatch patch : editorPatches){
+        for(EditorPatch patch : showPatches){
             patchTable.table(Tex.whiteui, t -> {
-                t.add(patch.name.isEmpty() ? "<unnamed>" : patch.name).labelAlign(Align.center).minWidth(32f).pad(4f).growX();
+                t.add(patch.displayName()).labelAlign(Align.center).minWidth(32f).pad(4f).growX();
 
                 t.table(buttons -> {
                     buttons.defaults().size(32f).pad(4f);
 
                     buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
-                        String displayName = patch.name.isEmpty() ? "<unnamed>" : patch.name;
-                        Vars.ui.showConfirm("@confirm", Core.bundle.format("patch.remove.confirm", displayName), () -> {
+                        Vars.ui.showConfirm("@confirm", Core.bundle.format("patch.remove.confirm", patch.displayName()), () -> {
                             editorPatches.remove(patch, true);
                             rebuildPatchTable();
                         });
@@ -177,6 +190,32 @@ public class PatchManager extends BaseDialog{
         }
     }
 
+    private void setupSearchTable(Table table){
+        table.image(Icon.zoomSmall).size(Vars.iconSmall);
+
+        TextField field = table.add(EUI.deboundTextField(searchText, text -> {
+            searchText = text;
+            rebuildPatchTable();
+        })).padLeft(4f).padRight(4f).growX().get();
+
+        if(Core.app.isDesktop()){
+            Core.scene.setKeyboardFocus(field);
+        }
+
+        table.image().color(Color.darkGray).pad(4f).width(2f).growY();
+
+        table.button(Icon.upOpenSmall, Styles.clearNoneTogglei, () -> {
+            sortByAlphabet = !sortByAlphabet;
+            rebuildPatchTable();
+        }).checked(b -> sortByAlphabet).tooltip("@editor.sort").width(Vars.iconSmall).growY();
+
+        table.button(Icon.cancelSmall, Styles.clearNonei, () -> {
+            searchText = "";
+            field.setText(searchText);
+            rebuildPatchTable();
+        }).disabled(b -> searchText.isEmpty()).width(Vars.iconSmall).growY();
+    }
+
     private String findPatchName(){
         String base = "Patch";
 
@@ -202,6 +241,10 @@ public class PatchManager extends BaseDialog{
 
         public EditorPatch(PatchSet patchSet){
             this(patchSet.name, patchSet.patch);
+        }
+
+        public String displayName(){
+            return name == null || name.isEmpty() ? "<unnamed>" : name;
         }
     }
 }
