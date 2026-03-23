@@ -1,0 +1,49 @@
+name: Release Mod
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build-and-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PATH
+        run: |
+          echo "${ANDROID_HOME}/build-tools/34.0.0" >> $GITHUB_PATH
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build with Gradle
+        run: |
+          chmod +x ./gradlew
+          ./gradlew deploy 
+
+      - name: Prepare Release File
+        id: prepare_file
+        run: |
+          TAG_NAME=${{ github.event.release.tag_name }}
+
+          ORIGINAL_PATH=$(find build/libs -name "*.jar" | head -n 1)
+          FILENAME=$(basename "$ORIGINAL_PATH" .jar)
+          
+          NEW_NAME="${FILENAME}-${TAG_NAME}.jar"
+          NEW_PATH="build/libs/${NEW_NAME}"
+          
+          mv "$ORIGINAL_PATH" "$NEW_PATH"
+          
+          echo "jar_path=$NEW_PATH" >> $GITHUB_OUTPUT
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.prepare_file.outputs.jar_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
