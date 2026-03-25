@@ -66,7 +66,7 @@ public class EUI{
 
         BaseDialog paused = Vars.ui.paused;
         paused.shown(() -> {
-            if(!Vars.net.active()){
+            if(!Vars.net.client()){
                 paused.cont.row();
                 paused.cont.button("@patch-manager", Icon.edit, manager::show).padTop(8f).tooltip("@patch-editor.editInGame.info", true);
             }
