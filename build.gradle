@@ -6,8 +6,27 @@ sourceSets.main.java.srcDirs = ["src"]
 
 repositories{
     mavenCentral()
-    mavenLocal()
-    maven{ url 'https://www.jitpack.io' }
+
+    //Downloads the server-release JAR file from Mindustry releases; does not use any real repository. Surprisingly, this is the most reliable option.
+    ivy{
+        url 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/[revision]/dependencies.jar'}
+        metadataSources{ artifact() }
+    }
+
+    //"Latest" option to depend on BE builds.
+    ivy{
+        url 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/master/[revision].jar'}
+        metadataSources{ artifact() }
+    }
+
+    //Do the same with jabel
+    ivy{
+        url 'https://github.com/'
+        patternLayout{artifact '/[organisation]/[module]/releases/download/[revision]/jabel.jar'}
+        metadataSources{ artifact() }
+    }
 }
 
 java{
@@ -16,9 +35,7 @@ java{
 }
 
 ext{
-    //the build number that this mod is made for
-    mindustryVersion = 'v155.4'
-    minModCoreVersion = "774565478f"
+    mindustryVersion = 'v156' //the build number that this mod is made for
     jabelVersion = "93fde537c7"
     //windows sucks
     isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
@@ -31,21 +48,19 @@ ext{
 allprojects{
     tasks.withType(JavaCompile){
         options.compilerArgs.addAll(['--release', '8'])
-        options.encoding('UTF-8')
     }
 }
 
 dependencies{
-    compileOnly "com.github.anuken.arc:arc-core:$mindustryVersion"
-    compileOnly "com.github.anuken.mindustry:core:$mindustryVersion"
-//    compileOnly "com.github.TinyLake.MindustryX:core:v2025.11.X22"
+    def useLatest = false //set to "true" to always depend on the newest version of mindustry
 
-    annotationProcessor "com.github.Anuken:jabel:$jabelVersion"
+    compileOnly useLatest ? "Anuken:MindustryBuilds:latest" : "Anuken:Mindustry:$mindustryVersion"
+    annotationProcessor "Anuken:jabel:v1.0.0"
 }
 
 //force arc version
 configurations.all{
-    resolutionStrategy.eachDependency{ details ->
+    resolutionStrategy.eachDependency { details ->
         if(details.requested.group == 'com.github.Anuken.Arc'){
             details.useVersion "$mindustryVersion"
         }
@@ -58,7 +73,7 @@ task jarAndroid{
     doLast{
         if(!sdkRoot || !new File(sdkRoot).exists()) throw new GradleException("No valid Android SDK found. Ensure that ANDROID_HOME is set to your Android SDK directory.");
 
-        def platformRoot = new File("$sdkRoot/platforms/").listFiles().sort().reverse().find{ f -> new File(f, "android.jar").exists() }
+        def platformRoot = new File("$sdkRoot/platforms/").listFiles().sort().reverse().find{ f -> new File(f, "android.jar").exists()}
 
         if(!platformRoot) throw new GradleException("No android.jar found. Ensure that you have an Android platform installed.")
 
@@ -80,7 +95,7 @@ jar{
         configurations.runtimeClasspath.collect{ it.isDirectory() ? it : zipTree(it) }
     }
 
-    from(rootDir){
+    from(projectDir){
         include "mod.hjson"
         include "icon.png"
     }
