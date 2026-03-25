@@ -68,7 +68,8 @@ public class EUI{
         paused.shown(() -> {
             if(!Vars.net.client()){
                 paused.cont.row();
-                paused.cont.button("@patch-manager", Icon.edit, manager::show).padTop(8f).tooltip("@patch-editor.editInGame.info", true);
+                paused.cont.button("@patch-manager", Icon.edit, manager::show).padTop(8f).tooltip("@patch-editor.editInGame.info", true)
+                .disabled(e -> Vars.net.client());
             }
         });
     }
