@@ -151,10 +151,10 @@ public class PatchJsonTransform{
         }else if(type == Consume.class && value.name != null){
             if(value.name.equals("remove")){
                 if(value.isString()){
-                    // remove: item -> remove: [item]
+                    // remove: item -> remove: {item: -}
                     String removed = value.asString();
-                    value.setType(ValueType.array);
-                    value.addChild("", new JsonValue(removed));
+                    value.setType(ValueType.object);
+                    value.addChild(removed, new JsonValue(ModifierSign.REMOVE.sign));
                 }else if(value.isArray()){
                     // remove: [item, liquid] -> remove: {item: -, liquid: -}
                     value.setType(ValueType.object);
