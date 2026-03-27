@@ -62,10 +62,9 @@ public class PatchEditor extends BaseDialog{
 
         // notify here?
         manager.onChanged((operator, node, uiUpdated) -> {
-            if(editorTree != null){
-                EditorNode editorNode = editorTree.navigate(operator.path);
-                if(editorNode != null) editorNode.patchChanged();
-            }
+            if(editorTree == null) return;
+
+            editorTree.navigateThrough(operator.path, EditorNode::patchChanged);
         });
 
         resized(this::rebuild);

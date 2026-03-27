@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.node;
 import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.node.patch.PatchOperator.*;
+import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.JsonValue.*;
@@ -81,7 +82,9 @@ public class EditorNode{
                             Log.err(e);
                         }
                     }else if(!children.containsKey(childPatch.key)){
-                        children.put(childPatch.key, new InvalidEditorNode(childPatch.key, manager));
+                        EditorNode child = new InvalidEditorNode(childPatch.key, manager);
+                        child.parent = this;
+                        children.put(childPatch.key, child);
                     }
                 }
             }
@@ -198,6 +201,22 @@ public class EditorNode{
         }
     }
 
+    public void navigateThrough(String path, Cons<EditorNode> cons){
+        if(path == null || path.isEmpty()) return;
+
+        EditorNode current = this;
+        int start = 0;
+        while(true){
+            int dot = path.indexOf(NodeManager.pathComp, start);
+            String name = dot == -1 ? path.substring(start) : path.substring(start, dot);
+            current = current.buildChildren().get(name);
+            if(current == null || dot == -1) return;
+            start = dot + 1;
+
+            cons.get(current);
+        }
+    }
+
     public void setValue(String value, ValueType valueType, boolean uiUpdated){
         manager.applyOp(new SetOp(getPath(), value, valueType), uiUpdated);
     }
@@ -297,7 +316,6 @@ public class EditorNode{
     public void patchChanged(){
         patchChanged = true;
         checkObjNode();
-        if(parent != null) parent.patchChanged();
     }
 
     @Override
@@ -325,11 +343,6 @@ public class EditorNode{
 
         @Override
         public String name(){
-            return key;
-        }
-
-        @Override
-        public String getDisplayName(){
             return key;
         }
 
