@@ -445,10 +445,6 @@ public class NodeCard extends Table{
         if(child.isRequired()){
             table.image(Icon.infoCircle).height(32f).tooltip("@node.mayRequired");
         }
-
-        if(child.getObjNode().isDescendantArray() && !child.isOverriding() && !child.isAppended()){
-            table.image(Icon.infoCircle).height(32f).tooltip("@node.multiArray.warn", true);
-        }
     }
 
     private void buildTitle(Table table){
