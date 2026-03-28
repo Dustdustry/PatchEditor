@@ -10,7 +10,14 @@ import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.blocks.environment.*;
 
+import java.util.*;
+
 public class NodeCategorizer{
+    private static final Comparator<EditorNode> baseComparator = Structs.comps(
+        Structs.comparingBool(n -> !n.isRequired()),
+        Structs.comparingBool(n -> !(n.hasValue() && n.getObjNode() != null))
+    );
+
     public static Seq<NodeCategory> categorizedNode(EditorNode node){
         if(node.getObjNode().elementType == Block.class) return categorizedBlock(node);
         return categorizedNormal(node);
@@ -23,6 +30,7 @@ public class NodeCategorizer{
             map.put(category, new NodeCategory(category.name()));
         }
 
+        NodeCategory modified = new NodeCategory("modified");
         NodeCategory environment = new NodeCategory("environment");
         NodeCategory other = new NodeCategory(NodeCategory.otherCategoryName);
         for(EditorNode child : node.buildChildren().values()){
@@ -34,9 +42,20 @@ public class NodeCategorizer{
             }else{
                 map.get(block.category).add(child);
             }
+
+            if(child.hasValue()){
+                modified.add(child);
+            }
         }
 
-        return map.values().toSeq().retainAll(c -> c.nodes.any()).add(environment, other);
+        Seq<NodeCategory> seq = map.values().toSeq().retainAll(c -> c.nodes.any());
+        seq.add(environment, other);
+        for(NodeCategory category : seq){
+            category.nodes.sort(baseComparator);
+        }
+
+        seq.insert(0, modified); // no sort
+        return seq;
     }
 
     public static Seq<NodeCategory> categorizedNormal(EditorNode node){
@@ -64,13 +83,7 @@ public class NodeCategorizer{
         for(var entry : map){
             var category = entry.value;
             if(category.nodes.any()) category.nodes.sort(
-            Structs.comps(
-            Structs.comparingBool(n -> !n.isRequired()),
-            Structs.comps(
-            Structs.comparingBool(n -> !(n.hasValue() && n.getObjNode() != null)),
-            Structs.comparingInt(modifierIndexer::get)
-            )
-            )
+                Structs.comps(baseComparator, Structs.comparingInt(modifierIndexer::get))
             );
         }
 

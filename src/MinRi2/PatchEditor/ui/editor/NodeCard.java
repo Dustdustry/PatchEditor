@@ -203,7 +203,7 @@ public class NodeCard extends Table{
 
             nodesTable.table(t -> {
                 t.image().color(Pal.darkerGray).size(32f, 6f);
-                t.add(category.name).color(EPalettes.type).padLeft(16f).padRight(16f).left();
+                t.add(Strings.capitalize(category.name)).color(EPalettes.type).padLeft(16f).padRight(16f).left();
                 t.image().color(Pal.darkerGray).height(4f).growX();
             }).marginTop(16f).marginBottom(8f).growX();
             nodesTable.row();
