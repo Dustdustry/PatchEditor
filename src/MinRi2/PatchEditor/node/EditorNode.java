@@ -7,6 +7,9 @@ import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.JsonValue.*;
+import mindustry.ctype.*;
+
+import java.lang.reflect.*;
 
 /**
  * @author minri2
@@ -169,6 +172,17 @@ public class EditorNode{
 
     public boolean isEditable(){
         return parent != null && !isRemoving();
+    }
+
+    public boolean isRequired(){
+        if(getPatch() != null || getObjNode() == null) return false;
+        Field field = getObjNode().field;
+        if(field == null || field.getType().isPrimitive()) return false;
+        if(MappableContent.class.isAssignableFrom(field.getType())){
+            return !field.getType().isAnnotationPresent(Nullable.class) && getObject() == null;
+        }
+
+        return false;
     }
 
     public String getPath(){

@@ -7,6 +7,7 @@ import MinRi2.PatchEditor.node.EditorNode.*;
 import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
+import MinRi2.PatchEditor.ui.editor.NodeCategorizer.*;
 import arc.*;
 import arc.graphics.*;
 import arc.scene.actions.*;
@@ -196,16 +197,13 @@ public class NodeCard extends Table{
         editorNode.sync();
 
         int columns = Math.max(1, (int)(nodesTable.getWidth() / Scl.scl() / buttonWidth));
-        var map = mappedChildren(editorNode);
-        if(!map.containsKey(Object.class)) map.put(Object.class, new Seq<>());
-        for(var entry : map){
-            Seq<EditorNode> children = entry.value;
-            Class<?> declareClass = entry.key;
-            if(children.isEmpty() && declareClass != Object.class) continue;
+        Seq<NodeCategory> seq = NodeCategorizer.categorizedNode(editorNode);
+        for(NodeCategory category : seq){
+            if(category.nodes.isEmpty() && !category.isOther) continue;
 
             nodesTable.table(t -> {
                 t.image().color(Pal.darkerGray).size(32f, 6f);
-                t.add(declareClass == Object.class ? "Other" : ClassHelper.getDisplayName(declareClass)).color(EPalettes.type).padLeft(16f).padRight(16f).left();
+                t.add(category.name).color(EPalettes.type).padLeft(16f).padRight(16f).left();
                 t.image().color(Pal.darkerGray).height(4f).growX();
             }).marginTop(16f).marginBottom(8f).growX();
             nodesTable.row();
@@ -215,7 +213,7 @@ public class NodeCard extends Table{
             cont.defaults().size(buttonWidth, buttonWidth / 4).pad(4f).margin(8f).top().left();
 
             int index = 0;
-            for(EditorNode child : children){
+            for(EditorNode child : category.nodes){
                 if(!searchText.isEmpty()){
                     String displayName = NodeDisplay.getDisplayName(child.getDisplayValue());
 
@@ -241,17 +239,14 @@ public class NodeCard extends Table{
                 }
             }
 
-            // nodes in Object are regarded as other
-            if(declareClass == Object.class){
+            if(category.isOther){
                 if(editorNode.getObjNode().hasSign(ModifierSign.PLUS) && editorNode.getObjNode().elementType != null){
                     addPlusButton(cont, editorNode);
                 }
             }
-
-            children.clear();
         }
 
-        map.clear();
+        seq.clear();
     }
 
     private void addEditTable(Table table, EditorNode node, DataModifier<?> modifier){
@@ -285,19 +280,8 @@ public class NodeCard extends Table{
     }
 
     private static boolean isWarning(EditorNode node){
-        if(isRequired(node)) return true;
+        if(node.isRequired()) return true;
         if(node.getObjNode().getParent() != null) return node.getObjNode().isDescendantArray();
-        return false;
-    }
-
-    private static boolean isRequired(EditorNode node){
-        if(node.getPatch() != null || node.getObjNode() == null) return false;
-        Field field = node.getObjNode().field;
-        if(field == null || field.getType().isPrimitive()) return false;
-        if(MappableContent.class.isAssignableFrom(field.getType())){
-            return !field.getType().isAnnotationPresent(Nullable.class) && node.getObject() == null;
-        }
-
         return false;
     }
 
@@ -458,7 +442,7 @@ public class NodeCard extends Table{
             }).tooltip("@node.changeType");
         }
 
-        if(isRequired(child)){
+        if(child.isRequired()){
             table.image(Icon.infoCircle).height(32f).tooltip("@node.mayRequired");
         }
 
@@ -528,43 +512,6 @@ public class NodeCard extends Table{
                 }
             }).expandX().right().growY();
         }).color(titleColor);
-    }
-
-    private static OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren(EditorNode node){
-        OrderedMap<Class<?>, Seq<EditorNode>> mappedChildren = new OrderedMap<>();
-
-        Class<?> type = node.getTypeOut();
-        while(type != null){
-            mappedChildren.put(type, new Seq<>());
-            type = type.getSuperclass();
-        }
-
-        ObjectIntMap<EditorNode> modifierIndexer = new ObjectIntMap<>();
-        for(EditorNode child : node.buildChildren().values()){
-            if(child.getObjNode() == null || child.getObjNode().field == null){
-                mappedChildren.get(Object.class).add(child); // Object means unknown declaring class
-                continue;
-            }
-
-            int index = NodeModifier.getModifierIndex(child.getObjNode());
-            modifierIndexer.put(child, index == -1 ? Integer.MAX_VALUE : index);
-            mappedChildren.get(child.getObjNode().field.getDeclaringClass()).add(child);
-        }
-
-        for(var entry : mappedChildren){
-            var seq = entry.value;
-            if(seq.any()) seq.sort(
-            Structs.comps(
-                Structs.comparingBool(n -> !isRequired(n)),
-                Structs.comps(
-                    Structs.comparingBool(n -> !(n.hasValue() && n.getObjNode() != null)),
-                    Structs.comparingInt(modifierIndexer::get)
-                )
-            )
-            );
-        }
-
-        return mappedChildren;
     }
 
     @Override
