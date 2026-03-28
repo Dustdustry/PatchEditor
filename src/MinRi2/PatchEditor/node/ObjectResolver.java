@@ -75,11 +75,11 @@ public class ObjectResolver{
         }
 
         // object resolve
-        if(object instanceof Object[] arr){
-            int i = 0;
-            for(Object o : arr){
+        if(objectType.isArray()){
+            for(int i = 0; i < Array.getLength(object); i++){
+                Object o = Array.get(object, i);
                 if(o == null) continue;
-                node.addChild("" + i++, o, node.elementType)
+                node.addChild("" + i, o, node.elementType)
                 .addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
         }else if(object instanceof Seq<?> seq){
