@@ -227,24 +227,21 @@ public class PatchJsonTransform{
     }
 
     public static void clearRedundantPatch(ObjectNode objectNode, PatchNode patchNode){
-        if(patchNode == null) return;
+        if(patchNode == null || objectNode == null) return;
 
         PatchNode typeNode = patchNode.getOrNull("type");
         if(typeNode != null && typeNode.value != null){
             Class<?> typOverride = PatchJsonIO.resolveType(typeNode.value);
-            if(objectNode.type.isAssignableFrom(typOverride)){
+            if(typOverride != null && objectNode.type.isAssignableFrom(typOverride)){
                 objectNode = ObjectResolver.getTemplate(typOverride);
             }
         }
 
         Seq<PatchNode> toRemove = new Seq<>();
         for(PatchNode childPatch : patchNode.children.values()){
-            ObjectNode childObj = null;
-            if(objectNode != null){
-                childObj = objectNode.getOrResolve(childPatch.key);
-                if(childObj == null && objectNode.elementType != null){
-                    childObj = ObjectResolver.getTemplate(objectNode.elementType);
-                }
+            ObjectNode childObj = objectNode.getOrResolve(childPatch.key);
+            if(childObj == null && objectNode.elementType != null){
+                childObj = ObjectResolver.getTemplate(objectNode.elementType);
             }
 
             clearRedundantPatch(childObj, childPatch);
