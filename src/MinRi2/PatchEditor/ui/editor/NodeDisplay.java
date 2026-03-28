@@ -1,8 +1,8 @@
 package MinRi2.PatchEditor.ui.editor;
 
-import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.ui.*;
+import MinRi2.PatchEditor.utils.*;
 import arc.*;
 import arc.graphics.g2d.*;
 import arc.scene.ui.*;

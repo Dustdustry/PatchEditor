@@ -1,7 +1,7 @@
 package MinRi2.PatchEditor.export;
 
-import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.utils.*;
 import arc.*;
 import arc.audio.*;
 import arc.graphics.*;
@@ -28,8 +28,6 @@ import mindustry.world.blocks.*;
 import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
-
-import java.lang.reflect.*;
 
 public class ObjectExporter{
     private static final ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(

@@ -1,6 +1,5 @@
 package MinRi2.PatchEditor.ui.editor;
 
-import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.export.*;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.EditorNode.*;
@@ -8,6 +7,7 @@ import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.editor.NodeCategorizer.*;
+import MinRi2.PatchEditor.utils.*;
 import arc.*;
 import arc.graphics.*;
 import arc.scene.actions.*;
@@ -22,8 +22,6 @@ import mindustry.ctype.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
-
-import java.lang.reflect.*;
 
 /**
  * @author minri2
@@ -339,13 +337,8 @@ public class NodeCard extends Table{
                 }
 
                 // ugly
-                if(editorNode.getObject() instanceof ObjectMap objectMap){
-                    EUI.selector.select(type, c -> !objectMap.containsKey(c), c -> {
-                        editorNode.touch(PatchJsonIO.getKeyName(c), null, ModifierSign.PLUS);
-                        return true;
-                    });
-                }else if(editorNode.getObject() instanceof ObjectFloatMap floatMap){
-                    EUI.selector.select(type, c -> !floatMap.containsKey(c), c -> {
+                if(ClassHelper.isMap(editorNode.getTypeIn())){
+                    EUI.selector.select(type, c -> MapLike.contains(editorNode.getObject(), c), c -> {
                         editorNode.touch(PatchJsonIO.getKeyName(c), null, ModifierSign.PLUS);
                         return true;
                     });

@@ -1,4 +1,4 @@
-package MinRi2.PatchEditor;
+package MinRi2.PatchEditor.utils;
 
 import arc.util.serialization.*;
 

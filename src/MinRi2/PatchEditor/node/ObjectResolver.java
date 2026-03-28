@@ -1,7 +1,7 @@
 package MinRi2.PatchEditor.node;
 
-import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.EditorList.*;
+import MinRi2.PatchEditor.utils.*;
 import arc.files.*;
 import arc.graphics.*;
 import arc.input.*;

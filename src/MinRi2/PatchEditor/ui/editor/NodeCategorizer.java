@@ -1,8 +1,8 @@
 package MinRi2.PatchEditor.ui.editor;
 
-import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.modifier.*;
+import MinRi2.PatchEditor.utils.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.type.*;

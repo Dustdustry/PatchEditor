@@ -1,9 +1,9 @@
 package MinRi2.PatchEditor.node;
 
-import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.PatchJsonTransform.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.editor.EditorSettings.*;
+import MinRi2.PatchEditor.utils.*;
 import arc.*;
 import arc.audio.*;
 import arc.graphics.*;
@@ -279,8 +279,7 @@ public class PatchJsonIO{
                 }else{
                     // patchNode('map': {}) -> modify(override) or append key
                     Object key = parser.getJson().readValue(objectNode.keyType, new JsonValue(childValue.name));
-                    if(key != null && (objectNode.object instanceof ObjectMap objectMap && !objectMap.containsKey(key))
-                    || (objectNode.object instanceof ObjectFloatMap floatMap && !floatMap.containsKey(key))){
+                    if(key != null && MapLike.contains(objectNode.object, key)){
                         childNode.sign = ModifierSign.PLUS;
                         if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
                     }

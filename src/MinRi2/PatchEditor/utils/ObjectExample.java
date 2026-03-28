@@ -1,4 +1,4 @@
-package MinRi2.PatchEditor;
+package MinRi2.PatchEditor.utils;
 
 import MinRi2.PatchEditor.node.*;
 import arc.struct.*;
@@ -7,7 +7,6 @@ import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.ctype.*;
-import mindustry.type.*;
 
 import java.lang.reflect.*;
 

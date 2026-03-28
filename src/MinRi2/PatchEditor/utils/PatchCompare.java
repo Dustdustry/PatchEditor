@@ -1,6 +1,4 @@
-package MinRi2.PatchEditor.node;
-
-import MinRi2.PatchEditor.ClassHelper;
+package MinRi2.PatchEditor.utils;
 
 import java.lang.reflect.Array;
 
