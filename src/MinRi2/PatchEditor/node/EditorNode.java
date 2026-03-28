@@ -206,14 +206,13 @@ public class EditorNode{
 
         EditorNode current = this;
         int start = 0;
-        while(true){
+        while(current != null){
+            cons.get(current);
+
             int dot = path.indexOf(NodeManager.pathComp, start);
             String name = dot == -1 ? path.substring(start) : path.substring(start, dot);
             current = current.buildChildren().get(name);
-            if(current == null || dot == -1) return;
             start = dot + 1;
-
-            cons.get(current);
         }
     }
 
