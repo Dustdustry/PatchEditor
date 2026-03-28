@@ -486,7 +486,7 @@ public class NodeCard extends Table{
                     }).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
 
                     buttons.button(Icon.effect, Styles.cleari, () -> {
-                        String patch = PatchExporter.export(editorNode.getMetaNode());
+                        String patch = PatchExporter.export(editorNode.getMetaNode(), EditorSettings.getExportConfig());
                         Core.app.setClipboardText(patch);
                         EUI.infoToast(Core.bundle.format("node-card.magicExportNode", editorPath));
                     }).padLeft(16f).tooltip(Core.bundle.format("node-card.magicExportNode.tooltip", editorPath), true);

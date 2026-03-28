@@ -11,6 +11,7 @@ public class PatchCompare{
             int actualLength = Array.getLength(value);
             int defaultLength = Array.getLength(defaultValue);
             if(actualLength != defaultLength) return false;
+            if(actualLength == 0) return true;
 
             Class<?> elementType = type.getComponentType();
             for(int i = 0; i < actualLength; i++){

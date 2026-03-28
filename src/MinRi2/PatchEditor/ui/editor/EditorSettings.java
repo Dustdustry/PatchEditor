@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.ui.editor;
 
+import MinRi2.PatchEditor.export.ObjectExporter.*;
 import arc.*;
 import arc.struct.*;
 import mindustry.gen.*;
@@ -36,12 +37,19 @@ public class EditorSettings extends BaseDialog{
 
         table.checkPref("patch-editor.simplifyPath", true);
         table.checkPref("patch-editor.sugar.stacks", true);
+        table.checkPref("patch-editor.magicExport.allowDefault", false);
 
         table.sliderPref("patch-editor.undoLimit", 20, 0, 160, 20,s -> Core.bundle.format("setting.patch-editor.undoLimit.text", s));
         settings.add(new SingleEnumSettings("patch-editor.exportType", ExportType.values(), ExportType.hjson));
 
         table.rebuild();
         addCloseButton();
+    }
+
+    public static ExportConfig getExportConfig(){
+        ExportConfig config = new ExportConfig();
+        config.allowDefault = settings.getBool("patch-editor.magicExport.allowDefault");
+        return config;
     }
 
     public enum ExportType{

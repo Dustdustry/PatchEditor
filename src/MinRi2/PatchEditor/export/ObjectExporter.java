@@ -181,6 +181,7 @@ public class ObjectExporter{
 
     private static boolean shouldExportField(Object value, Object defaultValue, ExportConfig config){
         if(value == null) return config.exportNulls;
+        if(config.allowDefault) return true;
         return !PatchCompare.equalsValue(value, defaultValue, ClassHelper.unoymousClass(value.getClass()));
     }
 
@@ -253,5 +254,6 @@ public class ObjectExporter{
 
     public static class ExportConfig{
         public boolean exportNulls = false;
+        public boolean allowDefault = true;
     }
 }
