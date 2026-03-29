@@ -338,7 +338,7 @@ public class NodeCard extends Table{
 
                 // ugly
                 if(ClassHelper.isMap(editorNode.getTypeIn())){
-                    EUI.selector.select(type, c -> MapLike.contains(editorNode.getObject(), c), c -> {
+                    EUI.selector.select(type, c -> !MapLike.contains(editorNode.getObject(), c), c -> {
                         editorNode.touch(PatchJsonIO.getKeyName(c), null, ModifierSign.PLUS);
                         return true;
                     });

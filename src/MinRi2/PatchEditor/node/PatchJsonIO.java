@@ -279,7 +279,7 @@ public class PatchJsonIO{
                 }else{
                     // patchNode('map': {}) -> modify(override) or append key
                     Object key = parser.getJson().readValue(objectNode.keyType, new JsonValue(childValue.name));
-                    if(key != null && MapLike.contains(objectNode.object, key)){
+                    if(key != null && !MapLike.contains(objectNode.object, key)){
                         childNode.sign = ModifierSign.PLUS;
                         if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
                     }
