@@ -14,8 +14,11 @@ import java.util.*;
 
 public class NodeCategorizer{
     private static final Comparator<EditorNode> baseComparator = Structs.comps(
-        Structs.comparingBool(n -> !n.isRequired()),
-        Structs.comparingBool(n -> !(n.hasValue() && n.getObjNode() != null))
+        Structs.comparingBool(n -> !FavoriteFields.isFavorite(n)),
+        Structs.comps(
+            Structs.comparingBool(n -> !n.isRequired()),
+            Structs.comparingBool(n -> !(n.hasValue() && n.getObjNode() != null))
+        )
     );
 
     public static Seq<NodeCategory> categorizedNode(EditorNode node){
@@ -54,7 +57,8 @@ public class NodeCategorizer{
             category.nodes.sort(baseComparator);
         }
 
-        seq.insert(0, modified); // no sort
+        modified.nodes.sort(baseComparator);
+        seq.insert(0, modified);
         return seq;
     }
 

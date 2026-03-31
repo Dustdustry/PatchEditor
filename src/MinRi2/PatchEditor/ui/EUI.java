@@ -33,6 +33,7 @@ public class EUI{
 
     public static void init(){
         EStyles.init();
+        FavoriteFields.init();
 
         manager = new PatchManager();
         selector = new ContentSelector();

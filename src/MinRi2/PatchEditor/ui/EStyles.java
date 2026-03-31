@@ -8,7 +8,7 @@ import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.ui.*;
 
-import static mindustry.ui.Styles.cleari;
+import static mindustry.ui.Styles.*;
 
 /**
  * @author minri2
@@ -16,7 +16,7 @@ import static mindustry.ui.Styles.cleari;
  */
 public class EStyles{
     public static ImageButtonStyle cardButtoni, cardModifiedButtoni, cardWarni, cardRemovedi;
-    public static ImageButtonStyle addButtoni;
+    public static ImageButtonStyle addButtoni, favoriteButton;
     public static ScrollPaneStyle cardGrayPane, cardPane;
 
     public static void init(){
@@ -36,6 +36,14 @@ public class EStyles{
 
         addButtoni = new ImageButtonStyle(cardButtoni){{
             up = colored(EPalettes.add);
+        }};
+
+        favoriteButton = new ImageButtonStyle(Styles.clearNonei){{
+           imageUpColor = EPalettes.gray;
+           imageOverColor = Pal.lightishGray;
+           imageDownColor = imageCheckedColor = Pal.accent;
+
+           over = up = down = none;
         }};
 
         cardRemovedi = new ImageButtonStyle(cardButtoni){{

@@ -20,6 +20,7 @@ import mindustry.ui.dialogs.*;
  */
 public class PatchEditor extends BaseDialog{
     private final NodeCard card;
+    private final FavoritesDialog favoritesDialog;
 
     private EditorPatch editPatch;
 
@@ -59,6 +60,7 @@ public class PatchEditor extends BaseDialog{
 
         manager = new NodeManager();
         card = new NodeCard(manager);
+        favoritesDialog = new FavoritesDialog();
 
         // notify here?
         manager.onChanged((operator, node, uiUpdated) -> {
@@ -66,6 +68,8 @@ public class PatchEditor extends BaseDialog{
 
             editorTree.navigateThrough(operator.path, EditorNode::patchChanged);
         });
+
+        favoritesDialog.hidden(this::rebuild);
 
         resized(this::rebuild);
         shown(() -> {
@@ -164,6 +168,7 @@ public class PatchEditor extends BaseDialog{
             buttons.defaults().size(150f, 64f).pad(8f).growY();
 
             buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide);
+            buttons.button("@patch-editor.favorites", Styles.grayt, favoritesDialog::show);
             buttons.button("@patch-editor.undo", Icon.undo, Styles.grayt, manager::undo)
             .disabled(b -> !manager.canUndo());
             buttons.button("@patch-editor.redo", Icon.redo, Styles.grayt, manager::redo)

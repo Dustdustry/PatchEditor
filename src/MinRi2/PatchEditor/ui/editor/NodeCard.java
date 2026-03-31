@@ -232,6 +232,7 @@ public class NodeCard extends Table{
                         addChildButton(cont, child);
                     }
                 }
+
                 if(++index % columns == 0){
                     cont.row();
                 }
@@ -262,6 +263,7 @@ public class NodeCard extends Table{
 
             t.table(modifier::build).pad(4).grow();
             t.table(btn -> setupChildNodeButtons(btn, node, true)).pad(6f).growY();
+            addFavoriteButton(t, node);
 
             t.image().width(4f).color(Color.darkGray).growY().right();
             t.row();
@@ -302,6 +304,7 @@ public class NodeCard extends Table{
             }).pad(8f).grow();
 
             b.table(buttons -> setupChildNodeButtons(buttons, node, false)).pad(6f).growY();
+            addFavoriteButton(b, node);
 
             b.image().width(4f).color(Color.darkGray).growY().right();
             b.row();
@@ -438,6 +441,23 @@ public class NodeCard extends Table{
         if(child.isRequired()){
             table.image(Icon.infoCircle).height(32f).tooltip("@node.mayRequired");
         }
+    }
+
+    private void addFavoriteButton(Table table, EditorNode node){
+        if(!FavoriteFields.canFavorite(node)) return;
+
+        table.addChild(new Table(t -> {
+            t.right().bottom().marginBottom(8f).marginRight(8f);
+            t.setFillParent(true);
+
+            String tooltip = Vars.mobile ?
+            Core.bundle.get("node.favorite.toggle.mobile", "Double tap to toggle favorite") :
+            Core.bundle.get("node.favorite.toggle");
+
+            t.button(Icon.starSmall, EStyles.favoriteButton, () -> {
+                FavoriteFields.toggle(node);
+            }).size(Vars.iconMed).tooltip(tooltip).checked(FavoriteFields.isFavorite(node));
+        }));
     }
 
     private void buildTitle(Table table){
