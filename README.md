@@ -24,7 +24,7 @@ Anyway, enjoy making wonderful patch!
 
 - [x] Remain unsupported fields
 - [ ] Errors inspector
-- [ ] Star fields
+- [x] Star fields
 
 - [x] Edit Color
 - [x] Edit Interp

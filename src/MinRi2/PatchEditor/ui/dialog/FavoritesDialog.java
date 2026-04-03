@@ -4,6 +4,7 @@ import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.NodeFavorites.*;
 import arc.*;
 import arc.graphics.*;
+import arc.scene.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
@@ -35,15 +36,14 @@ public class FavoritesDialog extends BaseDialog{
         float width =  Math.max(360f, Math.min(760f, Core.graphics.getWidth() / Scl.scl() - 64f));
         cont.table(table -> {
             table.top();
+            table.defaults().pad(8f).growX();
 
-            table.table(Styles.grayPanel, this::setupSearchTable).pad(8f).growX();
-            table.row();
+            table.table(Styles.grayPanel, this::setupSearchTable).row();
 
-            table.pane(Styles.noBarPane, favoritesTable).scrollX(false).pad(8f).grow();
-            table.row();
+            table.pane(Styles.noBarPane, favoritesTable).scrollX(false).grow().row();
 
             table.table(Styles.grayPanel, buttons -> {
-                buttons.defaults().minWidth(160f).height(42f).pad(8f).growX();
+                buttons.defaults().growX().height(42f);
 
                 buttons.button("@favorites.export", Icon.copy, Styles.cleart, this::exportFavorites);
                 buttons.button("@favorites.import", Icon.download, Styles.cleart, this::importFavorites)
@@ -54,7 +54,15 @@ public class FavoritesDialog extends BaseDialog{
                         rebuildFavoritesTable();
                     });
                 }).disabled(b -> NodeFavorites.all().isEmpty());
-            }).pad(8f).growX();
+
+                for(Element child : buttons.getChildren()){
+                    if(child instanceof Button btn){
+                        for(Cell<?> cell : btn.getCells()){
+                            cell.pad(8f);
+                        }
+                    }
+                }
+            });
         }).width(width).growY();
 
         rebuildFavoritesTable();
