@@ -3,6 +3,7 @@ package MinRi2.PatchEditor.ui.editor;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
+import MinRi2.PatchEditor.ui.dialog.*;
 import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;

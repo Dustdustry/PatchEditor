@@ -2,7 +2,7 @@ package MinRi2.PatchEditor.node;
 
 import MinRi2.PatchEditor.node.PatchJsonTransform.*;
 import MinRi2.PatchEditor.node.patch.*;
-import MinRi2.PatchEditor.ui.editor.EditorSettings.*;
+import MinRi2.PatchEditor.ui.dialog.EditorSettings.*;
 import MinRi2.PatchEditor.utils.*;
 import arc.*;
 import arc.audio.*;

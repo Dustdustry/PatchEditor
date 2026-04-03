@@ -1,4 +1,4 @@
-package MinRi2.PatchEditor.ui.editor;
+package MinRi2.PatchEditor.ui;
 
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.modifier.*;

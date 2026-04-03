@@ -1,7 +1,7 @@
-package MinRi2.PatchEditor.ui.editor;
+package MinRi2.PatchEditor.ui.dialog;
 
 import MinRi2.PatchEditor.ui.*;
-import MinRi2.PatchEditor.ui.editor.NodeFavorites.*;
+import MinRi2.PatchEditor.ui.NodeFavorites.*;
 import arc.*;
 import arc.graphics.*;
 import arc.scene.ui.*;

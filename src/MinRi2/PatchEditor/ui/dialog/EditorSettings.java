@@ -1,4 +1,4 @@
-package MinRi2.PatchEditor.ui.editor;
+package MinRi2.PatchEditor.ui.dialog;
 
 import MinRi2.PatchEditor.export.ObjectExporter.*;
 import arc.*;
