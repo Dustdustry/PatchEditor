@@ -41,7 +41,8 @@ public class EStyles{
         favoriteButton = new ImageButtonStyle(Styles.clearNonei){{
            imageUpColor = EPalettes.gray;
            imageOverColor = Pal.lightishGray;
-           imageDownColor = imageCheckedColor = Pal.accent;
+           imageDownColor = EPalettes.gray;
+           imageCheckedColor = Color.gold;
 
            over = up = down = none;
         }};

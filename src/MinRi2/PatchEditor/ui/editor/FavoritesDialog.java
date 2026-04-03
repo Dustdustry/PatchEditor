@@ -1,7 +1,7 @@
 package MinRi2.PatchEditor.ui.editor;
 
 import MinRi2.PatchEditor.ui.*;
-import MinRi2.PatchEditor.ui.editor.FavoriteFields.*;
+import MinRi2.PatchEditor.ui.editor.NodeFavorites.*;
 import arc.*;
 import arc.graphics.*;
 import arc.scene.ui.*;
@@ -22,63 +22,46 @@ public class FavoritesDialog extends BaseDialog{
     public FavoritesDialog(){
         super("@patch-editor.favorites");
 
-        resized(this::rebuildContent);
-        shown(() -> {
-            setup();
-            rebuildContent();
-        });
+        resized(this::rebuild);
+        shown(this::rebuild);
 
         addCloseButton();
     }
 
-    private void setup(){
-        if(cont.hasChildren()) return;
-
+    private void rebuild(){
         cont.top();
-        cont.add(favoritesContainer).width(containerWidth()).growY();
-    }
+        cont.clearChildren();
 
-    private void rebuildContent(){
-        setup();
-        Cell<?> containerCell = cont.getCell(favoritesContainer);
-        if(containerCell != null){
-            containerCell.width(containerWidth()).growY();
-        }
+        float width =  Math.max(360f, Math.min(760f, Core.graphics.getWidth() / Scl.scl() - 64f));
+        cont.table(table -> {
+            table.top();
 
-        Table table = favoritesContainer;
-        table.clearChildren();
-        table.top();
+            table.table(Styles.grayPanel, this::setupSearchTable).pad(8f).growX();
+            table.row();
 
-        table.table(Styles.grayPanel, this::setupSearchTable).pad(8f).growX();
-        table.row();
+            table.pane(Styles.noBarPane, favoritesTable).scrollX(false).pad(8f).grow();
+            table.row();
 
-        table.pane(Styles.noBarPane, favoritesTable).scrollX(false).pad(8f).grow();
-        table.row();
+            table.table(Styles.grayPanel, buttons -> {
+                buttons.defaults().minWidth(160f).height(42f).pad(8f).growX();
 
-        table.table(Styles.grayPanel, buttons -> {
-            buttons.defaults().minWidth(160f).height(42f).pad(8f).growX();
-
-            buttons.button("@favorites.export", Icon.copy, Styles.cleart, this::exportFavorites);
-            buttons.button("@favorites.import", Icon.download, Styles.cleart, this::importFavorites)
-            .disabled(b -> Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty());
-            buttons.button("@favorites.clear", Icon.cancel, Styles.cleart, () -> {
-                Vars.ui.showConfirm("@confirm", "@favorites.clear.confirm", () -> {
-                    FavoriteFields.clear();
-                    rebuildFavoritesTable();
-                });
-            }).disabled(b -> FavoriteFields.all().isEmpty());
-        }).pad(8f).growX();
+                buttons.button("@favorites.export", Icon.copy, Styles.cleart, this::exportFavorites);
+                buttons.button("@favorites.import", Icon.download, Styles.cleart, this::importFavorites)
+                .disabled(b -> Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty());
+                buttons.button("@favorites.clear", Icon.cancel, Styles.cleart, () -> {
+                    Vars.ui.showConfirm("@confirm", "@favorites.clear.confirm", () -> {
+                        NodeFavorites.clear();
+                        rebuildFavoritesTable();
+                    });
+                }).disabled(b -> NodeFavorites.all().isEmpty());
+            }).pad(8f).growX();
+        }).width(width).growY();
 
         rebuildFavoritesTable();
     }
 
-    private float containerWidth(){
-        float available = Core.graphics.getWidth() / Scl.scl() - 64f;
-        return Math.max(360f, Math.min(760f, available));
-    }
-
     private void setupSearchTable(Table table){
-        table.image(Icon.zoomSmall).size(Vars.iconSmall);
+        table.image(Icon.zoomSmall).size(Vars.iconMed);
 
         TextField field = table.add(EUI.deboundTextField(searchText, text -> {
             searchText = text;
@@ -98,9 +81,9 @@ public class FavoritesDialog extends BaseDialog{
 
     private void rebuildFavoritesTable(){
         favoritesTable.clearChildren();
-        favoritesTable.defaults().growX().pad(4f);
+        favoritesTable.defaults().pad(4f);
 
-        Seq<FavoriteField> favorites = FavoriteFields.all().select(favorite ->
+        Seq<FavoriteField> favorites = NodeFavorites.all().select(favorite ->
         Strings.matches(searchText, favorite.displayName()) || Strings.matches(searchText, favorite.id));
 
         if(favorites.isEmpty()){
@@ -119,7 +102,7 @@ public class FavoritesDialog extends BaseDialog{
                         EUI.infoToast("@favorites.copy-id.succeed");
                     }).tooltip("@favorites.copy-id");
                     buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
-                        FavoriteFields.remove(favorite.id);
+                        NodeFavorites.remove(favorite.id);
                         rebuildFavoritesTable();
                     }).tooltip("@favorites.remove");
                 }).pad(4f);
@@ -128,13 +111,13 @@ public class FavoritesDialog extends BaseDialog{
                 row.row();
                 Cell<?> horizontalLine = row.image().height(4f).color(Color.darkGray).growX();
                 horizontalLine.colspan(row.getColumns());
-            }).color(EPalettes.gray);
+            }).color(EPalettes.gray).growX();
             favoritesTable.row();
         }
     }
 
     private void exportFavorites(){
-        Core.app.setClipboardText(FavoriteFields.exportJson());
+        Core.app.setClipboardText(NodeFavorites.exportJson());
         EUI.infoToast("@favorites.export.succeed");
     }
 
@@ -147,7 +130,7 @@ public class FavoritesDialog extends BaseDialog{
 
         int imported;
         try{
-            imported = FavoriteFields.importJson(text, false);
+            imported = NodeFavorites.importJson(text, false);
         }catch(Exception e){
             Vars.ui.showException("@favorites.import.failed", e);
             return;

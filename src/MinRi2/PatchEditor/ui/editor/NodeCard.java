@@ -444,7 +444,7 @@ public class NodeCard extends Table{
     }
 
     private void addFavoriteButton(Table table, EditorNode node){
-        if(!FavoriteFields.canFavorite(node)) return;
+        if(!NodeFavorites.canFavorite(node)) return;
 
         table.addChild(new Table(t -> {
             t.right().bottom().marginBottom(8f).marginRight(8f);
@@ -455,8 +455,8 @@ public class NodeCard extends Table{
             Core.bundle.get("node.favorite.toggle");
 
             t.button(Icon.starSmall, EStyles.favoriteButton, () -> {
-                FavoriteFields.toggle(node);
-            }).size(Vars.iconMed).tooltip(tooltip).checked(FavoriteFields.isFavorite(node));
+                NodeFavorites.toggle(node);
+            }).size(Vars.iconMed).tooltip(tooltip).checked(NodeFavorites.isFavorite(node));
         }));
     }
 
