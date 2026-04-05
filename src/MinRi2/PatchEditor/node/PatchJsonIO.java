@@ -351,7 +351,7 @@ public class PatchJsonIO{
         // to string
         String exportType = Core.settings.getString("patch-editor.exportType");
         if(ExportType.hjson.is(exportType)){
-            return Jval.read(value.toJson(OutputType.json)).toString(Jformat.hjson);
+            return Jval.read(value.prettyPrint(OutputType.json, 1)).toString(Jformat.hjson);
         }else{
             return value.toJson(OutputType.json);
         }
