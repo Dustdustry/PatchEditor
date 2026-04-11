@@ -15,7 +15,6 @@ import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
 public class FavoritesDialog extends BaseDialog{
-    private final Table favoritesContainer = new Table();
     private final Table favoritesTable = new Table();
 
     private String searchText = "";

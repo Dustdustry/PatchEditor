@@ -263,8 +263,12 @@ public class NodeCard extends Table{
             }).pad(8f).fill();
 
             t.table(modifier::build).pad(4).grow();
-            t.table(btn -> setupChildNodeButtons(btn, node, true)).pad(6f).growY();
-            addFavoriteButton(t, node);
+            t.table(buttons -> {
+                buttons.defaults().growX();
+                buttons.table(top -> setupChildNodeButtons(top, node, modifier)).grow();
+                buttons.row();
+                buttons.table(bottom -> setupTinyButton(bottom, node)).pad(0f);
+            }).pad(4f).growY();
 
             t.image().width(4f).color(Color.darkGray).growY().right();
             t.row();
@@ -272,18 +276,20 @@ public class NodeCard extends Table{
             horizontalLine.colspan(t.getColumns());
 
             t.background(Tex.whiteui);
-            t.setColor(modifier.isModified() ? modifiedColor : unmodifiedColor);
-
-            modifier.onModified(modified -> {
-                t.addAction(Actions.color(modified ? modifiedColor : unmodifiedColor, 0.2f));
+            final boolean[] lastPatched = {node.hasValue()};
+            t.setColor(lastPatched[0] ? modifiedColor : unmodifiedColor);
+            t.update(() -> {
+                boolean patched = node.hasValue();
+                if(patched == lastPatched[0]) return;
+                lastPatched[0] = patched;
+                t.clearActions();
+                t.addAction(Actions.color(patched ? modifiedColor : unmodifiedColor, 0.2f));
             });
         });
     }
 
     private static boolean isWarning(EditorNode node){
-        if(node.isRequired()) return true;
-        if(node.getObjNode().getParent() != null) return node.getObjNode().isDescendantArray();
-        return false;
+        return node.isRequired();
     }
 
     private void addChildButton(Table table, EditorNode node){
@@ -304,8 +310,12 @@ public class NodeCard extends Table{
                 NodeDisplay.display(infoTable, node);
             }).pad(8f).grow();
 
-            b.table(buttons -> setupChildNodeButtons(buttons, node, false)).pad(6f).growY();
-            addFavoriteButton(b, node);
+            b.table(buttons -> {
+                buttons.defaults().growX().pad(4f);
+                buttons.table(top -> setupChildNodeButtons(top, node, null)).grow();
+                buttons.row();
+                buttons.table(bottom -> setupTinyButton(bottom, node)).pad(0f);
+            }).pad(4f).growY();
 
             b.image().width(4f).color(Color.darkGray).growY().right();
             b.row();
@@ -377,9 +387,11 @@ public class NodeCard extends Table{
         }).color(Pal.darkerGray);
     }
 
-    private void setupChildNodeButtons(Table table, EditorNode child, boolean hasModifier){
-        table.defaults().width(32f).pad(4f).growY();
+    private void setupChildNodeButtons(Table table, EditorNode child, DataModifier<?> modifier){
+        table.defaults().padLeft(4f).padRight(4f).grow();
         EditorNode editorNode = getEditorNode();
+
+        boolean hasModifier = modifier != null;
 
         // remove
         if(child.getObjNode().hasSign(ModifierSign.REMOVE) && !child.isChangedType() &&  !child.isAppended()){
@@ -439,26 +451,30 @@ public class NodeCard extends Table{
             }).tooltip("@node.changeType");
         }
 
-        if(child.isRequired()){
-            table.image(Icon.infoCircle).height(32f).tooltip("@node.mayRequired");
+        if(hasModifier){
+            table.button(Icon.undo, Styles.clearNonei, () -> {
+                modifier.resetModify();
+                modifier.syncUI();
+            }).tooltip("@node-modifier.undo", true).grow().visible(child.hasValue()).visible(child::hasValue).get();
         }
     }
 
-    private void addFavoriteButton(Table table, EditorNode node){
-        if(!NodeFavorites.canFavorite(node)) return;
+    private void setupTinyButton(Table table, EditorNode node){
+        table.defaults().size(Vars.iconSmall);
 
-        table.addChild(new Table(t -> {
-            t.right().bottom().marginBottom(8f).marginRight(8f);
-            t.setFillParent(true);
+        if(node.isRequired()){
+            table.image(Icon.infoCircleSmall).tooltip("@node.mayRequired").scaling(Scaling.stretch);
+        }
 
+        if(NodeFavorites.canFavorite(node)){
             String tooltip = Vars.mobile ?
             Core.bundle.get("node.favorite.toggle.mobile", "Double tap to toggle favorite") :
             Core.bundle.get("node.favorite.toggle");
 
-            t.button(Icon.starSmall, EStyles.favoriteButton, () -> {
+            table.button(Icon.starSmall, EStyles.favoriteButton, () -> {
                 NodeFavorites.toggle(node);
-            }).size(Vars.iconMed).tooltip(tooltip).checked(NodeFavorites.isFavorite(node));
-        }));
+            }).tooltip(tooltip).checked(NodeFavorites.isFavorite(node));
+        }
     }
 
     private void buildTitle(Table table){

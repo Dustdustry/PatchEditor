@@ -2,7 +2,6 @@ package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.modifier.ModifierBuilder.*;
-import arc.func.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.serialization.JsonValue.*;
@@ -20,7 +19,6 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     protected ValueType valueType;
     private EditorNode dataTree;
     private String dataPath;
-    private Boolc onModified;
 
     public ValueType valueType(){
         return valueType;
@@ -30,8 +28,8 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
         builder.buildTable(table);
     }
 
-    public void onModified(Boolc onModified){
-        this.onModified = onModified;
+    public void syncUI(){
+        builder.sync();
     }
 
     @Override
@@ -88,10 +86,6 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
         boolean modified = !Objects.equals(getDefaultValue(), value);
         if(modified){
             node.setValue(PatchJsonIO.getKeyName(value), valueType, true);
-
-            if(onModified != null){
-                onModified.get(true);
-            }
         }else{
             resetModify();
         }
@@ -105,10 +99,6 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
             node.setValue(PatchJsonIO.getKeyName(node.getObject()), valueType, true);
         }else{
             node.clearJson(true);
-        }
-
-        if(onModified != null){
-            onModified.get(false);
         }
     }
 

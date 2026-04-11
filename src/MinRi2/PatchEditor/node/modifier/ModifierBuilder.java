@@ -20,7 +20,6 @@ import mindustry.ui.dialogs.*;
 // Define ui element fields that need data
 public abstract class ModifierBuilder<T>{
     protected T value;
-    protected @Nullable Button resetButton;
     protected final ModifyConsumer<T> consumer;
 
     public ModifierBuilder(ModifyConsumer<T> consumer){
@@ -43,14 +42,12 @@ public abstract class ModifierBuilder<T>{
         updateUI();
     }
 
-    protected void updateUI(){
-        if(resetButton != null) resetButton.visible = consumer.isModified();
+    public void sync(){
+        value = consumer.getValue();
+        updateUI();
     }
 
-    protected void addResetButton(Table table){
-        resetButton = table.button(Icon.undo, Styles.clearNonei, () -> {
-            setValue(consumer.getDefaultValue());
-        }).visible(consumer.isModified()).width(32f).pad(4f).growY().expandX().right().tooltip("@node-modifier.undo", true).get();
+    protected void updateUI(){
     }
 
     public static class TextBuilder extends ModifierBuilder<String>{
@@ -63,7 +60,7 @@ public abstract class ModifierBuilder<T>{
         @Override
         public void build(Table table){
             field = table.field(value, this::setValue)
-            .valid(consumer::checkValue).pad(4f).width(100f).get();
+            .valid(consumer::checkValue).pad(4f).growX().get();
 
             if(consumer.getTypeMeta() == String.class){
                 table.button(Icon.pencil, Styles.clearNonei, () -> {
@@ -78,8 +75,6 @@ public abstract class ModifierBuilder<T>{
                     dialog.show();
                 }).pad(4f).width(32f).growY();
             }
-
-            addResetButton(table);
         }
 
         @Override
@@ -100,13 +95,11 @@ public abstract class ModifierBuilder<T>{
         @Override
         public void build(Table table){
             table.button(b -> {
-                b.add(image = new BorderImage()).size(32f).pad(8f).expandX().left();
-                b.label(() -> value ? "true" : "false").color(EPalettes.value).expandX();
+                b.add(image = new BorderImage()).size(32f).pad(8f);
+                b.label(() -> value ? "true" : "false").color(EPalettes.value).padLeft(8f).expandX().left();
             }, Styles.clearNonei, () -> {
                 setValue(!value);
             }).grow();
-
-            addResetButton(table);
         }
 
         @Override
@@ -137,8 +130,6 @@ public abstract class ModifierBuilder<T>{
                     return true;
                 });
             }).grow().get();
-
-            addResetButton(table);
         }
 
         @Override
@@ -166,8 +157,6 @@ public abstract class ModifierBuilder<T>{
             }, Styles.clearNonei, () -> {
                 Vars.ui.picker.show(getColorValue(), c -> setValue(c.toString()));
             }).grow();
-
-            addResetButton(table);
         }
 
         @Override
@@ -204,8 +193,6 @@ public abstract class ModifierBuilder<T>{
                     return true;
                 });
             }).grow().tooltip(t -> t.background(Styles.black3).label(() -> value).pad(4f));
-
-            addResetButton(table);
         }
 
         @Override
@@ -233,8 +220,6 @@ public abstract class ModifierBuilder<T>{
                     return true;
                 });
             }).pad(4f).width(48f).growY().tooltip("@selector.weapon.tooltip");
-
-            addResetButton(table);
         }
     }
 
@@ -267,8 +252,6 @@ public abstract class ModifierBuilder<T>{
                     return true;
                 });
             }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
-
-            addResetButton(table);
         }
     }
 
@@ -288,8 +271,6 @@ public abstract class ModifierBuilder<T>{
                     setValue(entry.name);
                 });
             }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
-
-            addResetButton(table);
         }
     }
 
@@ -313,8 +294,6 @@ public abstract class ModifierBuilder<T>{
                     return true;
                 });
             }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
-
-            addResetButton(table);
         }
     }
 }
