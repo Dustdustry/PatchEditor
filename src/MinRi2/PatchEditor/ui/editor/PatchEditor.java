@@ -178,6 +178,7 @@ public class PatchEditor extends BaseDialog{
 
             buttons.add().expandX();
             buttons.button("@patch-editor.favorites", Icon.star, Styles.grayt, favoritesDialog::show);
+            buttons.button("@favorites.note.manage", Icon.book, Styles.grayt, NotesManageDialog::showNotes);
 
             for(Element child : buttons.getChildren()){
                 if(child instanceof TextButton textButton){

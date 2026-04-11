@@ -32,7 +32,7 @@ public class FavoritesDialog extends BaseDialog{
         cont.top();
         cont.clearChildren();
 
-        float width =  Math.max(360f, Math.min(760f, Core.graphics.getWidth() / Scl.scl() - 64f));
+        float width = Math.max(360f, Math.min(820f, Core.graphics.getWidth() / Scl.scl() - 64f));
         cont.table(table -> {
             table.top();
             table.defaults().pad(8f).growX();
@@ -91,7 +91,8 @@ public class FavoritesDialog extends BaseDialog{
         favoritesTable.defaults().pad(4f);
 
         Seq<FavoriteField> favorites = NodeFavorites.all().select(favorite ->
-        Strings.matches(searchText, favorite.displayName()) || Strings.matches(searchText, favorite.id));
+        Strings.matches(searchText, favorite.displayName())
+        || Strings.matches(searchText, favorite.id));
 
         if(favorites.isEmpty()){
             favoritesTable.add("@favorites.empty").pad(16f).color(Color.lightGray);
@@ -100,7 +101,18 @@ public class FavoritesDialog extends BaseDialog{
 
         for(FavoriteField favorite : favorites){
             favoritesTable.table(Tex.whiteui, row -> {
-                row.add(favorite.displayName()).left().growX().pad(8f).tooltip(favorite.id);
+                row.table(info -> {
+                    info.left().defaults().left().growX();
+                    info.add(favorite.displayName()).pad(8f).tooltip(favorite.id);
+
+                    String note = FieldNotes.getEffectiveNote(favorite.id);
+                    if(note != null){
+                        info.row();
+                        info.add(Core.bundle.format("favorites.note.value", note))
+                        .padLeft(8f).padRight(8f).padBottom(8f)
+                        .color(Color.lightGray).wrap().growX();
+                    }
+                }).growX();
 
                 row.table(buttons -> {
                     buttons.defaults().size(32f).pad(4f);
@@ -146,4 +158,5 @@ public class FavoritesDialog extends BaseDialog{
         rebuildFavoritesTable();
         EUI.infoToast(Core.bundle.format("favorites.import.succeed", imported));
     }
+
 }

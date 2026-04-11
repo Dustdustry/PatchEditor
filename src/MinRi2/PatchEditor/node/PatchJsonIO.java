@@ -107,6 +107,22 @@ public class PatchJsonIO{
         return key != null ? key : clazz.getName();
     }
 
+    public static String getTypeName(Class<?> clazz){
+        if(clazz == null) return null;
+        return getClassTypeName(clazz);
+    }
+
+    public static String getTypeName(String typeName){
+        if(typeName == null || typeName.isEmpty()) return typeName;
+        if(ClassMap.classes.containsKey(typeName)) return typeName;
+
+        try{
+            return getClassTypeName(Class.forName(typeName));
+        }catch(Exception ignored){
+            return typeName;
+        }
+    }
+
     public static ContentParser getParser(){
         if(parser == null) parser = Reflect.get(DataPatcher.class, "parser");
         return parser;

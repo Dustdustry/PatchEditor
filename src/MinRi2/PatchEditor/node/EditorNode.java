@@ -190,6 +190,11 @@ public class EditorNode{
         return false;
     }
 
+    public @Nullable String getFieldID(){
+        if(objectNode == null || objectNode.field == null) return null;
+        return PatchJsonIO.getTypeName(objectNode.field.getDeclaringClass()) + "#" + objectNode.field.getName();
+    }
+
     public String getPath(){
         if(path == null){
             path = parent == null ? ""

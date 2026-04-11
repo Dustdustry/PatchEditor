@@ -38,6 +38,7 @@ public class EditorSettings extends BaseDialog{
         table.checkPref("patch-editor.simplifyPath", true);
         table.checkPref("patch-editor.sugar.stacks", true);
         table.checkPref("patch-editor.magicExport.allowDefault", false);
+        table.checkPref("patch-editor.editNotes", false);
 
         table.sliderPref("patch-editor.undoLimit", 20, 0, 160, 20,s -> Core.bundle.format("setting.patch-editor.undoLimit.text", s));
         settings.add(new SingleEnumSettings("patch-editor.exportType", ExportType.values(), ExportType.hjson));

@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.ui;
 
+import MinRi2.PatchEditor.ui.dialog.*;
 import MinRi2.PatchEditor.ui.editor.*;
 import MinRi2.PatchEditor.ui.selector.*;
 import arc.*;
@@ -34,6 +35,7 @@ public class EUI{
     public static void init(){
         EStyles.init();
         NodeFavorites.init();
+        FieldNotes.init();
 
         manager = new PatchManager();
         selector = new ContentSelector();

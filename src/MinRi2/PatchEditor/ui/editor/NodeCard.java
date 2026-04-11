@@ -7,13 +7,17 @@ import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.NodeCategorizer.*;
+import MinRi2.PatchEditor.ui.NodeFavorites.*;
 import MinRi2.PatchEditor.ui.dialog.*;
 import MinRi2.PatchEditor.utils.*;
 import arc.*;
 import arc.graphics.*;
+import arc.scene.*;
 import arc.scene.actions.*;
+import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.ImageButton.*;
+import arc.scene.ui.Tooltip.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
@@ -285,6 +289,20 @@ public class NodeCard extends Table{
                 t.clearActions();
                 t.addAction(Actions.color(patched ? modifiedColor : unmodifiedColor, 0.2f));
             });
+
+            String note = FieldNotes.getEffectiveNote(node.getFieldID());
+            if(note != null){
+                Tooltip tooltip = Tooltips.getInstance().create(note);
+                tooltip.allowMobile = true;
+
+                Element holder = new Element(){{
+                    fillParent = true;
+                    touchable = Touchable.enabled;
+                    addListener(tooltip);
+                }};
+                t.addChild(holder);
+                holder.toBack();
+            }
         });
     }
 
@@ -313,8 +331,6 @@ public class NodeCard extends Table{
             b.table(buttons -> {
                 buttons.defaults().growX().pad(4f);
                 buttons.table(top -> setupChildNodeButtons(top, node, null)).grow();
-                buttons.row();
-                buttons.table(bottom -> setupTinyButton(bottom, node)).pad(0f);
             }).pad(4f).growY();
 
             b.image().width(4f).color(Color.darkGray).growY().right();
@@ -463,7 +479,18 @@ public class NodeCard extends Table{
         table.defaults().size(Vars.iconSmall);
 
         if(node.isRequired()){
-            table.image(Icon.infoCircleSmall).tooltip("@node.mayRequired").scaling(Scaling.stretch);
+            table.image(Icon.infoCircleSmall).tooltip("@node.mayRequired", true).scaling(Scaling.stretch);
+        }
+
+        if(Core.settings.getBool("patch-editor.editNotes") && FieldNotes.canNote(node)){
+            table.button(Icon.editSmall, EStyles.noteButton, () -> {
+                FieldNoteDialog.show(node);
+            }).color(EPalettes.gray).checked(b -> FieldNotes.getEffectiveNote(node.getFieldID()) != null);
+        }else{
+            String note = FieldNotes.getEffectiveNote(node.getFieldID());
+            if(note != null){
+                table.image(Icon.bookOpenSmall).color(EPalettes.value).size(Vars.iconSmall * 0.85f);
+            }
         }
 
         if(NodeFavorites.canFavorite(node)){

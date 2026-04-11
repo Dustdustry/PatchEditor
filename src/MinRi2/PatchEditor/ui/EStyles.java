@@ -16,7 +16,7 @@ import static mindustry.ui.Styles.*;
  */
 public class EStyles{
     public static ImageButtonStyle cardButtoni, cardModifiedButtoni, cardWarni, cardRemovedi;
-    public static ImageButtonStyle addButtoni, favoriteButton;
+    public static ImageButtonStyle addButtoni, favoriteButton, noteButton;
     public static ScrollPaneStyle cardGrayPane, cardPane;
 
     public static void init(){
@@ -45,6 +45,13 @@ public class EStyles{
            imageCheckedColor = Color.gold;
 
            over = up = down = none;
+        }};
+
+        noteButton = new ImageButtonStyle(favoriteButton){{
+            imageUpColor = EPalettes.gray;
+            imageOverColor = Pal.accent;
+            imageDownColor = Pal.darkerGray;
+            imageCheckedColor = EPalettes.value;
         }};
 
         cardRemovedi = new ImageButtonStyle(cardButtoni){{
