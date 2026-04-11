@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.ui;
 
+import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.node.*;
 import arc.files.*;
 import arc.struct.*;
@@ -12,7 +13,7 @@ import mindustry.io.*;
  * user notes > built-in notes.
  */
 public class FieldNotes{
-    public static final String builtInNotesPath = "field-notes.defaults.json";
+    public static final String builtInNotesPath = "notes/default.json";
     public static final String userNotesFileName = "field-notes.user.json";
     public static final String githubNotesUrl = "https://github.com/minri2/PatchEditor/tree/main/notes";
 
@@ -49,7 +50,7 @@ public class FieldNotes{
         return node.getFieldID() != null;
     }
 
-    public static String getEffectiveNote(String fieldId){
+    public static String getNote(String fieldId){
         if(fieldId == null || fieldId.isEmpty()) return null;
         String user = userNotes.get(fieldId);
         return user != null ? user : builtInNotes.get(fieldId);

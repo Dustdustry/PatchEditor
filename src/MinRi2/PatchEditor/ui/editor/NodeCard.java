@@ -7,7 +7,6 @@ import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.NodeCategorizer.*;
-import MinRi2.PatchEditor.ui.NodeFavorites.*;
 import MinRi2.PatchEditor.ui.dialog.*;
 import MinRi2.PatchEditor.utils.*;
 import arc.*;
@@ -290,7 +289,7 @@ public class NodeCard extends Table{
                 t.addAction(Actions.color(patched ? modifiedColor : unmodifiedColor, 0.2f));
             });
 
-            String note = FieldNotes.getEffectiveNote(node.getFieldID());
+            String note = FieldNotes.getNote(node.getFieldID());
             if(note != null){
                 Tooltip tooltip = Tooltips.getInstance().create(note);
                 tooltip.allowMobile = true;
@@ -485,9 +484,9 @@ public class NodeCard extends Table{
         if(Core.settings.getBool("patch-editor.editNotes") && FieldNotes.canNote(node)){
             table.button(Icon.editSmall, EStyles.noteButton, () -> {
                 FieldNoteDialog.show(node);
-            }).color(EPalettes.gray).checked(b -> FieldNotes.getEffectiveNote(node.getFieldID()) != null);
+            }).color(EPalettes.gray).checked(b -> FieldNotes.getNote(node.getFieldID()) != null);
         }else{
-            String note = FieldNotes.getEffectiveNote(node.getFieldID());
+            String note = FieldNotes.getNote(node.getFieldID());
             if(note != null){
                 table.image(Icon.bookOpenSmall).color(EPalettes.value).size(Vars.iconSmall * 0.85f);
             }

@@ -1,11 +1,10 @@
 {
   "meta": {
     "version": 1,
-    "source": "builtin",
     "updatedAt": "2026-04-11T00:00:00Z"
   },
   "notes": {
-    "mindustry.world.Block": {
+    "Block": {
       "health": "Core durability field. Higher values make blocks harder to break.",
       "size": "Block footprint in tiles. Changing this may affect placement and collision."
     }

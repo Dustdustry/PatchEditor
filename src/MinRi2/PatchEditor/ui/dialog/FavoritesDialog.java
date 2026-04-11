@@ -105,7 +105,7 @@ public class FavoritesDialog extends BaseDialog{
                     info.left().defaults().left().growX();
                     info.add(favorite.displayName()).pad(8f).tooltip(favorite.id);
 
-                    String note = FieldNotes.getEffectiveNote(favorite.id);
+                    String note = FieldNotes.getNote(favorite.id);
                     if(note != null){
                         info.row();
                         info.add(Core.bundle.format("favorites.note.value", note))
