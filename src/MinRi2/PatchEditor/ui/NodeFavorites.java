@@ -65,6 +65,10 @@ public class NodeFavorites{
         return map.values().toSeq();
     }
 
+    public static boolean canFavorite(EditorNode node){
+        return getID(node) != null;
+    }
+
     public static int importJson(String text, boolean replace){
         OrderedMap<String, FavoriteField> imported = parseJson(text);
 
@@ -103,15 +107,11 @@ public class NodeFavorites{
         }
     }
 
-    public static boolean canFavorite(EditorNode node){
-        return getID(node) != null;
-    }
-
     public static String getID(EditorNode node){
         if(node == null) return null;
         ObjectNode objNode = node.getObjNode();
         if(objNode == null || objNode.field == null) return null;
-        return  objNode.field.getDeclaringClass().getName() + "#" + objNode.field.getName();
+        return objNode.field.getDeclaringClass().getName() + "#" + objNode.field.getName();
     }
 
     private static FavoriteField resolve(EditorNode node){
@@ -165,13 +165,10 @@ public class NodeFavorites{
             this.field = field;
         }
 
-        public String ownerSimple(){
-            int split = ownerType.lastIndexOf('.');
-            return split == -1 ? ownerType : ownerType.substring(split + 1);
-        }
-
         public String displayName(){
-            return ownerSimple() + "." + field;
+            int split = ownerType.lastIndexOf('.');
+            String owner = (split == -1 ? ownerType : ownerType.substring(split + 1));
+            return owner + "." + field;
         }
 
         public boolean valid(){

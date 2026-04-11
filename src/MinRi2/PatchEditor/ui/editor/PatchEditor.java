@@ -169,12 +169,14 @@ public class PatchEditor extends BaseDialog{
             buttons.defaults().size(150f, 64f).pad(8f).growY();
 
             buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide);
-            buttons.button("@patch-editor.favorites", Icon.star, Styles.grayt, favoritesDialog::show);
             buttons.button("@patch-editor.undo", Icon.undo, Styles.grayt, manager::undo)
             .disabled(b -> !manager.canUndo());
             buttons.button("@patch-editor.redo", Icon.redo, Styles.grayt, manager::redo)
             .disabled(b -> !manager.canRedo());
             if(Vars.mobile) buttons.button("@node-card.expandLast", Icon.downOpen, Styles.grayt, () -> card.getFrontCard().editLastData());
+
+            buttons.add().expandX();
+            buttons.button("@patch-editor.favorites", Icon.star, Styles.grayt, favoritesDialog::show);
 
             for(Element child : buttons.getChildren()){
                 if(child instanceof TextButton textButton){
@@ -183,7 +185,7 @@ public class PatchEditor extends BaseDialog{
                     }
                 }
             }
-        });
+        }).growX();
 
         cont.top();
         addCloseListener();
