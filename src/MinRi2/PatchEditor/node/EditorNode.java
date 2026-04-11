@@ -27,6 +27,7 @@ public class EditorNode{
 
     private final NodeManager manager;
     private boolean patchChanged = true;
+    private boolean initValueState, hadValue;
 
     public EditorNode(ObjectNode objectNode, NodeManager manager){
         this.objectNode = objectNode;
@@ -123,7 +124,11 @@ public class EditorNode{
     }
 
     public boolean hasValue(){
-        return getPatch() != null;
+        if(!initValueState){
+            initValueState = true;
+            hadValue = getPatch() != null;
+        }
+        return hadValue;
     }
 
     public Class<?> getTypeIn(){
@@ -329,6 +334,7 @@ public class EditorNode{
 
     public void patchChanged(){
         patchChanged = true;
+        hadValue = getPatch() != null;
         checkObjNode();
     }
 
