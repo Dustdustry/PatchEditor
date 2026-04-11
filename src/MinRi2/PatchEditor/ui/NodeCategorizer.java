@@ -29,10 +29,6 @@ public class NodeCategorizer{
     private static Seq<NodeCategory> categorizedBlock(EditorNode node){
         OrderedMap<Category, NodeCategory> map = new OrderedMap<>();
 
-        for(Category category : Category.all){
-            map.put(category, new NodeCategory(category.name()));
-        }
-
         NodeCategory modified = new NodeCategory("modified");
         NodeCategory environment = new NodeCategory("environment");
         NodeCategory other = new NodeCategory(NodeCategory.otherCategoryName);
@@ -42,8 +38,13 @@ public class NodeCategorizer{
                 other.add(child);
             }else if(isEnvironmentBlock(block)){
                 environment.add(child);
-            }else{
+            }else if(block.category != null){
+                if(!map.containsKey(block.category)){
+                    map.put(block.category, new NodeCategory(block.category.name()));
+                }
                 map.get(block.category).add(child);
+            }else{
+                other.add(child);
             }
 
             if(child.hasValue()){
