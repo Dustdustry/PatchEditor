@@ -131,6 +131,7 @@ public class PatchEditor extends BaseDialog{
 
     public void resetEditor(){
         manager.reset();
+        ObjectResolver.clearTemplate();
         objectTree = ObjectNode.createRoot();
         editorTree = new EditorNode(objectTree, manager);
         card.setRootEditorNode(editorTree);

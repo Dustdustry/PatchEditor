@@ -245,6 +245,10 @@ public class ObjectResolver{
         return objectNode;
     }
 
+    public static void clearTemplate(){
+        if(templateNode != null) templateNode.clear();
+    }
+
     public static boolean typeResolvable(Class<?> clazz){
         return clazz != null && !(clazz.isPrimitive() || Reflect.isWrapper(clazz))
         && !ClassHelper.isAbstractClass(clazz) && typeEditable(clazz);

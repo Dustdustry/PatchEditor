@@ -76,7 +76,7 @@ public class NodeManager{
     }
 
     private void trimUndoStack(){
-        int limit = Core.settings.getInt("patch-editor.undoLimit", 100);
+        int limit = Core.settings.getInt("patch-editor.undoLimit", 20);
         if(limit <= 0){
             undoStack.clear();
         }else if(undoStack.size > limit){
