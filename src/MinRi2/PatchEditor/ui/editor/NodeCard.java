@@ -8,6 +8,7 @@ import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.NodeCategorizer.*;
 import MinRi2.PatchEditor.ui.dialog.*;
+import MinRi2.PatchEditor.ui.modifier.*;
 import MinRi2.PatchEditor.utils.*;
 import arc.*;
 import arc.graphics.*;
@@ -61,8 +62,7 @@ public class NodeCard extends Table{
 
         manager.onChanged((op, node, uiUpdated) -> {
             if(editorPath == null) return;
-            if(!op.path.startsWith(editorPath) || uiUpdated) return;
-
+            if(!isRelatedPath(op.path, editorPath) || uiUpdated) return;
             needRebuildNodes = true;
         });
     }
@@ -294,6 +294,16 @@ public class NodeCard extends Table{
         });
     }
 
+    private static boolean isRelatedPath(String a, String b){
+        if(a == null || b == null) return false;
+        return isSameOrChildPath(a, b) || isSameOrChildPath(b, a);
+    }
+
+    private static boolean isSameOrChildPath(String path, String ancestor){
+        if(ancestor.isEmpty()) return true;
+        return path.equals(ancestor) || path.startsWith(ancestor + NodeManager.pathComp);
+    }
+
     private static boolean isWarning(EditorNode node){
         return node.isRequired();
     }
@@ -320,7 +330,7 @@ public class NodeCard extends Table{
 
             b.table(buttons -> {
                 buttons.defaults().growX().pad(4f);
-                buttons.table(top -> setupChildNodeButtons(top, node, null)).grow();
+                buttons.table(top -> setupChildNodeButtons(top, node, null, null)).grow();
                 buttons.row();
                 buttons.table(bottom -> setupTinyButton(bottom, node)).pad(0f);
             }).pad(4f).growY();

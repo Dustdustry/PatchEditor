@@ -144,6 +144,7 @@ public class PatchEditor extends BaseDialog{
 
         try{
             PatchJsonIO.parseJson(objectTree, manager.getRoot(), patch.patch);
+            manager.indexPaths();
         }catch(Exception e){
             Vars.ui.showException(e);
             return;
