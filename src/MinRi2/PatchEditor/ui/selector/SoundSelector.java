@@ -23,12 +23,7 @@ public class SoundSelector extends SelectorDialog<Sound>{
     public SoundSelector(){
         super("@selector.sound");
 
-        shown(() -> {
-            wasPaused = state.isPaused();
-        });
-
         hidden(() -> {
-            if(wasPaused && !state.isPaused()) state.set(State.paused);
             for(int handle : playingSounds.items){
                 if(SoloudAssessor.idValid(handle)){
                     SoloudAssessor.idStopMethod(handle);
@@ -39,13 +34,6 @@ public class SoundSelector extends SelectorDialog<Sound>{
     }
 
     @Override
-    public void act(float delta){
-        super.act(delta);
-
-        Core.audio.soundBus.fadeFilterParam(0, Filters.paramWet, 0f, 0.4f);
-    }
-
-    @Override
     protected void setupItemTable(Table table, Sound item){
         String name = PatchJsonIO.getKeyEntryMap(Sound.class).findKey(item, true);
         table.add(name).pad(4f).expandX().left();
@@ -53,11 +41,10 @@ public class SoundSelector extends SelectorDialog<Sound>{
             b.image(Icon.play).pad(4f);
             b.add(Strings.autoFixed(item.getLength(), 2) + "s").width(64f);
         }, Styles.clearNonei, () -> {
-            if(state.isPaused()){
-                state.set(State.playing);
-                EUI.infoToast("@selector.sound.playHint");
-            }
+            AudioBus lastBus = item.bus;
+            item.setBus(Vars.control.sound.uiBus);
             playingSounds.add(item.play(Core.audio.sfxVolume));
+            item.setBus(lastBus);
         }).padRight(4f).growY();
     }
 
