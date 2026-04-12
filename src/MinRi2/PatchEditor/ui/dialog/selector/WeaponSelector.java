@@ -1,4 +1,4 @@
-package MinRi2.PatchEditor.ui.selector;
+package MinRi2.PatchEditor.ui.dialog.selector;
 
 import MinRi2.PatchEditor.node.*;
 import arc.scene.ui.layout.*;

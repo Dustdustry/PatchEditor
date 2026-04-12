@@ -1,8 +1,7 @@
 package MinRi2.PatchEditor.ui;
 
-import MinRi2.PatchEditor.ui.dialog.*;
 import MinRi2.PatchEditor.ui.editor.*;
-import MinRi2.PatchEditor.ui.selector.*;
+import MinRi2.PatchEditor.ui.dialog.selector.*;
 import arc.*;
 import arc.func.*;
 import arc.math.*;

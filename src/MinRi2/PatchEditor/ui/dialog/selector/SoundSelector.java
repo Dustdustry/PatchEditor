@@ -1,21 +1,16 @@
-package MinRi2.PatchEditor.ui.selector;
+package MinRi2.PatchEditor.ui.dialog.selector;
 
 import MinRi2.PatchEditor.node.*;
-import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.audio.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.core.GameState.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 
-import java.lang.invoke.*;
 import java.lang.reflect.*;
-
-import static mindustry.Vars.state;
 
 public class SoundSelector extends SelectorDialog<Sound>{
     private final IntSeq playingSounds = new IntSeq();
