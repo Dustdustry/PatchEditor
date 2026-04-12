@@ -557,12 +557,12 @@ public class NodeCard extends Table{
 
                     buttons.button(Icon.copy, Styles.cleari, () -> {
                         PatchNode patchNode = editorNode.getPatch();
-                        Core.app.setClipboardText(patchNode == null ? "" : PatchJsonIO.toPatch(editorNode.getObjNode(), patchNode));
+                        Core.app.setClipboardText(patchNode == null ? "" : PatchJsonIO.toPatch(editorNode.getObjNode(), patchNode, EditorSettings.getPatchExportOptions()));
                         EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
                     }).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
 
                     buttons.button(Icon.effect, Styles.cleari, () -> {
-                        String patch = PatchExporter.export(editorNode.getMetaNode(), EditorSettings.getExportConfig());
+                        String patch = PatchExporter.export(editorNode.getMetaNode(), EditorSettings.getExportConfig(), EditorSettings.getPatchExportOptions());
                         Core.app.setClipboardText(patch);
                         EUI.infoToast(Core.bundle.format("node-card.magicExportNode", editorPath));
                     }).padLeft(16f).tooltip(Core.bundle.format("node-card.magicExportNode.tooltip", editorPath), true);

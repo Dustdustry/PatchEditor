@@ -14,10 +14,14 @@ public class PatchExporter{
     }
 
     public static String export(ObjectNode objectNode){
-        return export(objectNode, new ExportConfig());
+        return export(objectNode, new ExportConfig(), PatchExportOptions.defaults());
     }
 
     public static String export(ObjectNode objectNode, ExportConfig config){
+        return export(objectNode, config, PatchExportOptions.defaults());
+    }
+
+    public static String export(ObjectNode objectNode, ExportConfig config, PatchExportOptions options){
         JsonValue value = new JsonValue(ValueType.object);
         if(objectNode.getParent() != null && objectNode.getParent().isRoot()){
             for(Entry<String, ObjectNode> entry : objectNode.getChildren()){
@@ -29,6 +33,6 @@ public class PatchExporter{
         }else{
             ObjectExporter.exportObject(objectNode, value, config);
         }
-        return PatchJsonIO.toPatch(objectNode, value);
+        return PatchJsonIO.toPatch(objectNode, value, options);
     }
 }

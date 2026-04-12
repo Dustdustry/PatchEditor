@@ -1,8 +1,9 @@
 package MinRi2.PatchEditor.node;
 
+import MinRi2.PatchEditor.node.PatchExportOptions.*;
 import MinRi2.PatchEditor.node.PatchJsonTransform.*;
 import MinRi2.PatchEditor.node.patch.*;
-import MinRi2.PatchEditor.ui.dialog.EditorSettings.*;
+
 import MinRi2.PatchEditor.utils.*;
 import arc.*;
 import arc.audio.*;
@@ -349,10 +350,10 @@ public class PatchJsonIO{
         return value;
     }
 
-    public static String toPatch(ObjectNode objectNode, JsonValue value){
+    public static String toPatch(ObjectNode objectNode, JsonValue value, PatchExportOptions options){
         // sugar
         SugarJsonConfig sugarJsonConfig = new SugarJsonConfig()
-        .sugarStacks(Core.settings.getBool("patch-editor.sugar.stacks"));
+        .sugarStacks(options.sugarStacks);
 
         PatchJsonTransform.sugarPatch(objectNode, value, sugarJsonConfig);
 
@@ -360,20 +361,19 @@ public class PatchJsonIO{
         PatchJsonTransform.processJson(objectNode, value);
 
         // simplify
-        if(Core.settings.getBool("patch-editor.simplifyPath")){
+        if(options.simplifyPath){
             PatchJsonTransform.simplifyPath(value);
         }
 
         // to string
-        String exportType = Core.settings.getString("patch-editor.exportType");
-        if(ExportType.hjson.is(exportType)){
+        if(options.format == Format.hjson){
             return Jval.read(value.prettyPrint(OutputType.json, 1)).toString(Jformat.hjson);
         }else{
             return value.toJson(OutputType.json);
         }
     }
 
-    public static String toPatch(ObjectNode objectNode, PatchNode patchNode){
-        return toPatch(objectNode, toJson(patchNode));
+    public static String toPatch(ObjectNode objectNode, PatchNode patchNode, PatchExportOptions options){
+        return toPatch(objectNode, toJson(patchNode), options);
     }
 }

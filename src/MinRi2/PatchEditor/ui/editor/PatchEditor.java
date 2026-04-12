@@ -80,7 +80,7 @@ public class PatchEditor extends BaseDialog{
         hidden(() -> {
             manager.clearStacks();
             PatchNode namePatch = manager.getRoot().getOrNull("name");
-            editPatch.patch = PatchJsonIO.toPatch(objectTree, manager.getRoot());
+            editPatch.patch = PatchJsonIO.toPatch(objectTree, manager.getRoot(), EditorSettings.getPatchExportOptions());
             editPatch.name = namePatch != null && namePatch.value != null ? namePatch.value : "";
         });
 

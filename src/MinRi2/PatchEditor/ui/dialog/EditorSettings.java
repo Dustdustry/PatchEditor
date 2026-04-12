@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.ui.dialog;
 
 import MinRi2.PatchEditor.export.ObjectExporter.*;
+import MinRi2.PatchEditor.node.*;
 import arc.*;
 import arc.struct.*;
 import mindustry.gen.*;
@@ -51,6 +52,16 @@ public class EditorSettings extends BaseDialog{
         ExportConfig config = new ExportConfig();
         config.allowDefault = settings.getBool("patch-editor.magicExport.allowDefault");
         return config;
+    }
+
+    public static PatchExportOptions getPatchExportOptions(){
+        String exportType = settings.getString("patch-editor.exportType");
+        PatchExportOptions.Format format = ExportType.hjson.is(exportType) ? PatchExportOptions.Format.hjson : PatchExportOptions.Format.json;
+        return new PatchExportOptions(
+        settings.getBool("patch-editor.sugar.stacks"),
+        settings.getBool("patch-editor.simplifyPath"),
+        format
+        );
     }
 
     public enum ExportType{
