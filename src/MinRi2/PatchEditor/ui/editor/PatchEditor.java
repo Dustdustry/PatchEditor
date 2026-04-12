@@ -168,7 +168,7 @@ public class PatchEditor extends BaseDialog{
         title.setStyle(Styles.outlineLabel);
 
         titleTable.table(buttons -> {
-            buttons.defaults().size(150f, 64f).pad(8f).growY();
+            buttons.defaults().size(150f, 48f).pad(8f).growY();
 
             buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide);
             buttons.button("@patch-editor.undo", Icon.undo, Styles.grayt, manager::undo)

@@ -32,7 +32,7 @@ import mindustry.ui.*;
  * Create by 2024/2/16
  */
 public class NodeCard extends Table{
-    public static final float NOTE_WIDTH = 480f;
+    public static final float noteWidth = 480f;
     public static float buttonWidth = 330f;
     public static float buttonHeight = buttonWidth / 3f;
 
@@ -511,7 +511,7 @@ public class NodeCard extends Table{
         if(note != null){
             Tooltip tooltip = new Tooltip(t -> {
                 t.margin(12f).background(Styles.black8);
-                t.labelWrap(note).width(NOTE_WIDTH).style(Styles.outlineLabel);
+                t.labelWrap(note).width(noteWidth).style(Styles.outlineLabel);
             });
             tooltip.allowMobile = true;
 
