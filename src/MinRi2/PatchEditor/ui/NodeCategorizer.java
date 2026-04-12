@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor.ui;
 
 import MinRi2.PatchEditor.node.*;
+import MinRi2.PatchEditor.node.EditorNode.*;
 import MinRi2.PatchEditor.node.modifier.*;
 import MinRi2.PatchEditor.utils.*;
 import arc.struct.*;
@@ -47,7 +48,7 @@ public class NodeCategorizer{
                 other.add(child);
             }
 
-            if(child.hasValue()){
+            if(child.hasValue() && !(child instanceof InvalidEditorNode)){
                 modified.add(child);
             }
         }
@@ -76,13 +77,24 @@ public class NodeCategorizer{
         ObjectIntMap<EditorNode> modifierIndexer = new ObjectIntMap<>();
         for(EditorNode child : node.buildChildren().values()){
             if(child.getObjNode() == null || child.getObjNode().field == null){
-                map.get(Object.class).add(child); // Object means unknown declaring class
+                NodeCategory other = map.get(Object.class);
+                if(other == null){
+                    other = new NodeCategory(NodeCategory.otherCategoryName);
+                    map.put(Object.class, other);
+                }
+                other.add(child); // Object means unknown declaring class
                 continue;
             }
 
             int index = NodeModifier.getModifierIndex(child.getObjNode());
             modifierIndexer.put(child, index == -1 ? Integer.MAX_VALUE : index);
-            map.get(child.getObjNode().field.getDeclaringClass()).add(child);
+            Class<?> declaring = child.getObjNode().field.getDeclaringClass();
+            NodeCategory category = map.get(declaring);
+            if(category == null){
+                category = new NodeCategory(ClassHelper.getDisplayName(declaring));
+                map.put(declaring, category);
+            }
+            category.add(child);
         }
 
         for(var entry : map){
