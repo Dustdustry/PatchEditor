@@ -69,10 +69,8 @@ public class NodeManager{
         if(!undoStack.any()) return;
 
         PatchOperator op = undoStack.pop();
-        withPathsIndexing(op.path, () -> {
-            op.undo(root);
-            redoStack.add(op);
-        });
+        withPathsIndexing(op.path, () -> op.undo(root));
+        redoStack.add(op);
 
         PatchNode node = getPatch(op.path, false);
         triggerListeners(op, node, false);
@@ -82,11 +80,9 @@ public class NodeManager{
         if(!redoStack.any()) return;
 
         PatchOperator op = redoStack.pop();
-        withPathsIndexing(op.path, () -> {
-            op.apply(root);
-            undoStack.add(op);
-            trimUndoStack();
-        });
+        withPathsIndexing(op.path, () -> op.apply(root));
+        undoStack.add(op);
+        trimUndoStack();
 
         PatchNode node = getPatch(op.path, false);
         triggerListeners(op, node, false);
@@ -102,7 +98,7 @@ public class NodeManager{
     private void withPathsIndexing(String path, Runnable action){
         String normalizedPath = path == null ? "" : path;
 
-        ObjectSet<String> before = new ObjectSet<>();
+        ObjectSet<String> before = collectChildPaths(normalizedPath);
         action.run();
         ObjectSet<String> after = collectChildPaths(normalizedPath);
 

@@ -330,7 +330,7 @@ public class NodeCard extends Table{
 
             b.table(buttons -> {
                 buttons.defaults().growX().pad(4f);
-                buttons.table(top -> setupChildNodeButtons(top, node, null, null)).grow();
+                buttons.table(top -> setupChildNodeButtons(top, node, null)).grow();
                 buttons.row();
                 buttons.table(bottom -> setupTinyButton(bottom, node)).pad(0f);
             }).pad(4f).growY();

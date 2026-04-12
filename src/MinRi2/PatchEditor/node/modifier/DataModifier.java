@@ -1,7 +1,8 @@
 package MinRi2.PatchEditor.node.modifier;
 
 import MinRi2.PatchEditor.node.*;
-import MinRi2.PatchEditor.node.modifier.ModifierBuilder.*;
+import MinRi2.PatchEditor.ui.modifier.*;
+import MinRi2.PatchEditor.ui.modifier.ModifierBuilder.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.serialization.JsonValue.*;
