@@ -139,6 +139,8 @@ public class PatchJsonIO{
     }
 
     public static ContentType classContentType(Class<?> type){
+        if(type == null) return null;
+
         if(classContentType == null){
             classContentType = new ObjectMap<>();
             for(ContentType contentType : ContentType.all){

@@ -46,7 +46,7 @@ public abstract class SelectorDialog<T> extends BaseDialog{
     protected void setupCont(Table cont){
         float width = layoutWidth();
 
-        int index = 0, columns = (int)(width / 360f);
+        int index = 0, columns = Math.max(1, (int)(width / 360f));
         for(T item : getItems()){
             if(!query.isEmpty() && !matchQuery(item)) continue;
 
