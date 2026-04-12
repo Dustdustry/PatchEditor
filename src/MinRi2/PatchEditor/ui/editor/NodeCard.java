@@ -485,8 +485,9 @@ public class NodeCard extends Table{
 
         if(Core.settings.getBool("patch-editor.editNotes") && FieldNotes.canNote(node)){
             table.button(Icon.editSmall, EStyles.noteButton, () -> {
-                FieldNoteDialog.show(node);
-            }).color(EPalettes.gray).checked(b -> FieldNotes.getNote(node.getFieldID()) != null);
+                EUI.fieldNote.show(node.getFieldID());
+            }).color(EPalettes.gray).checked(b -> FieldNotes.getNote(node.getFieldID()) != null)
+            .tooltip("@patch-editor.note.edit");
         }else{
             String note = FieldNotes.getNote(node.getFieldID());
             if(note != null){
@@ -496,13 +497,9 @@ public class NodeCard extends Table{
         }
 
         if(NodeFavorites.canFavorite(node)){
-            String tooltip = Vars.mobile ?
-            Core.bundle.get("node.favorite.toggle.mobile", "Double tap to toggle favorite") :
-            Core.bundle.get("node.favorite.toggle");
-
             table.button(Icon.starSmall, EStyles.favoriteButton, () -> {
                 NodeFavorites.toggle(node);
-            }).tooltip(tooltip).checked(NodeFavorites.isFavorite(node));
+            }).tooltip(Core.bundle.get("node.favorite.toggle")).checked(NodeFavorites.isFavorite(node));
         }
     }
 

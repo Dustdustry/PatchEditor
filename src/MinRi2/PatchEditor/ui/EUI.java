@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.ui;
 
+import MinRi2.PatchEditor.ui.dialog.*;
 import MinRi2.PatchEditor.ui.editor.*;
 import MinRi2.PatchEditor.ui.dialog.selector.*;
 import arc.*;
@@ -31,6 +32,9 @@ public class EUI{
     public static StringItemSelector stringItemSelector;
     public static SoundSelector soundSelector;
 
+    public static FavoritesDialog favorites;
+    public static FieldNoteDialog fieldNote;
+
     public static void init(){
         EStyles.init();
 
@@ -41,6 +45,9 @@ public class EUI{
         textureRegionSelector = new TextureRegionSelector();
         stringItemSelector = new StringItemSelector();
         soundSelector = new SoundSelector();
+
+        favorites = new FavoritesDialog();
+        fieldNote = new FieldNoteDialog();
 
         mountEditor();
     }

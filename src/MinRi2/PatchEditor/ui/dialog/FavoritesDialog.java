@@ -5,6 +5,7 @@ import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.NodeFavorites.*;
 import arc.*;
 import arc.graphics.*;
+import arc.math.*;
 import arc.scene.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
@@ -33,7 +34,7 @@ public class FavoritesDialog extends BaseDialog{
         cont.top();
         cont.clearChildren();
 
-        float width = Math.max(360f, Math.min(820f, Core.graphics.getWidth() / Scl.scl() - 64f));
+        float width = Math.min(Math.max(600f, Core.graphics.getWidth() * 0.7f), 1000f);
         cont.table(table -> {
             table.top();
             table.defaults().pad(8f).growX();
@@ -109,14 +110,15 @@ public class FavoritesDialog extends BaseDialog{
                     String note = FieldNotes.getNote(favorite.id);
                     if(note != null){
                         info.row();
-                        info.add(Core.bundle.format("favorites.note.value", note))
-                        .padLeft(8f).padRight(8f).padBottom(8f)
-                        .color(Color.lightGray).wrap().growX();
+                        info.add(Core.bundle.format("favorites.note.value", note)).padLeft(8f).padRight(8f).padBottom(8f).color(Color.lightGray).wrap().growX();
                     }
                 }).growX();
 
                 row.table(buttons -> {
-                    buttons.defaults().size(32f).pad(4f);
+                    buttons.defaults().size(Vars.iconSmall).pad(4f);
+                    buttons.button(Icon.editSmall, Styles.clearNonei, () -> {
+                        EUI.fieldNote.show(favorite.id);
+                    }).tooltip("@patch-editor.note.edit");
                     buttons.button(Icon.copySmall, Styles.clearNonei, () -> {
                         Core.app.setClipboardText(favorite.id);
                         EUI.infoToast("@favorites.copy-id.succeed");
@@ -159,5 +161,4 @@ public class FavoritesDialog extends BaseDialog{
         rebuildFavoritesTable();
         EUI.infoToast(Core.bundle.format("favorites.import.succeed", imported));
     }
-
 }

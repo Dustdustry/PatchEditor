@@ -3,6 +3,7 @@ package MinRi2.PatchEditor;
 import MinRi2.PatchEditor.node.*;
 import arc.files.*;
 import arc.struct.*;
+import arc.struct.ObjectMap.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.io.*;
@@ -55,43 +56,23 @@ public class FieldNotes{
         return user != null ? user : builtInNotes.get(fieldId);
     }
 
-    public static String getUserNote(String fieldId){
-        if(fieldId == null || fieldId.isEmpty()) return null;
-        return userNotes.get(fieldId);
-    }
-
     public static String getBuiltInNote(String fieldId){
         if(fieldId == null || fieldId.isEmpty()) return null;
         return builtInNotes.get(fieldId);
     }
 
-    public static boolean isDefaultNote(String fieldId){
-        return getUserNote(fieldId) == null;
-    }
-
-    public static boolean setUserNote(String fieldId, String note){
-        if(fieldId == null || fieldId.isEmpty()) return false;
-
-        String normalized = normalize(note);
-        if(normalized == null){
-            return removeUserNote(fieldId);
-        }
-
-        String current = userNotes.get(fieldId);
-        if(normalized.equals(current)) return false;
-
-        userNotes.put(fieldId, normalized);
+    public static void setUserNote(String fieldId, String note){
+        if(fieldId == null || fieldId.isEmpty()) return;
+        userNotes.put(fieldId, note);
         saveUserNotes();
-        return true;
     }
 
-    public static boolean removeUserNote(String fieldId){
-        if(fieldId == null || fieldId.isEmpty()) return false;
-        if(!userNotes.containsKey(fieldId)) return false;
+    public static void removeUserNote(String fieldId){
+        if(fieldId == null || fieldId.isEmpty()) return;
+        if(!userNotes.containsKey(fieldId)) return;
 
         userNotes.remove(fieldId);
         saveUserNotes();
-        return true;
     }
 
     public static boolean clearUserNotes(){
@@ -102,41 +83,25 @@ public class FieldNotes{
     }
 
     public static String exportUserNotesJson(){
-        return buildNotesJson(userNotes, "user");
+        return notesToJson(userNotes);
     }
 
     public static int importUserNotes(String text, boolean replace){
         OrderedMap<String, String> imported = parseNotesJson(text);
 
-        boolean changed = false;
-        int applied = 0;
-        if(replace){
-            changed = !userNotes.isEmpty();
-            userNotes.clear();
+        if(replace) userNotes.clear();
+        for(Entry<String, String> entry : imported){
+            userNotes.put(entry.key, entry.value);
         }
 
-        for(String id : imported.keys()){
-            String note = imported.get(id);
-            if(note == null) continue;
-
-            applied++;
-            String current = userNotes.get(id);
-            if(!note.equals(current)){
-                changed = true;
-            }
-            userNotes.put(id, note);
-        }
-
-        if(changed){
-            saveUserNotes();
-        }
-        return applied;
+        saveUserNotes();
+        return 0;
     }
 
     private static void saveUserNotes(){
         try{
             if(userNotesFi != null){
-                userNotesFi.writeString(buildNotesJson(userNotes, "user"), false);
+                userNotesFi.writeString(notesToJson(userNotes), false);
             }
         }catch(Exception e){
             Log.err("Failed to save user notes", e);
@@ -148,65 +113,41 @@ public class FieldNotes{
         if(text == null || text.trim().isEmpty()) return result;
 
         NotesData data = JsonIO.json.fromJson(NotesData.class, text);
-        if(data == null || data.notes == null) return result;
+        if(data == null) return result;
 
-        for(String type : data.notes.keys()){
-            if(type == null || type.isEmpty()) continue;
+        for(Entry<String, OrderedMap<String, String>> entry : data.notes){
+            String typeName = entry.key;
+            OrderedMap<String, String> notes = entry.value;
 
-            OrderedMap<String, String> fields = data.notes.get(type);
-            if(fields == null) continue;
-
-            String normalizedType = PatchJsonIO.getTypeName(type);
-            for(String field : fields.keys()){
-                String normalizedField = normalizeField(field);
-                String note = normalize(fields.get(field));
-                if(normalizedField == null || note == null) continue;
-
-                result.put(normalizedType + "#" + normalizedField, note);
+            for(Entry<String, String> noteEntry : notes){
+                String field = noteEntry.key;
+                String note = noteEntry.value;
+                result.put(typeName + "#" + field, note);
             }
         }
 
         return result;
     }
 
-    private static String buildNotesJson(OrderedMap<String, String> notesMap, String source){
+    private static String notesToJson(OrderedMap<String, String> notesMap){
         NotesData data = new NotesData();
         data.meta.version = 1;
-        data.meta.source = source;
         data.meta.updatedAt = String.valueOf(System.currentTimeMillis());
 
-        for(String id : notesMap.keys()){
-            String note = notesMap.get(id);
-            if(note == null) continue;
+        for(Entry<String, String> entry : notesMap){
+            String id = entry.key;
+            String note = entry.value;
 
             int split = id.lastIndexOf('#');
-            if(split <= 0 || split + 1 >= id.length()) continue;
+            if(split == -1) continue;
 
-            String type = PatchJsonIO.getTypeName(id.substring(0, split));
-            String field = normalizeField(id.substring(split + 1));
-            if(field == null || type == null || type.isEmpty()) continue;
-
-            OrderedMap<String, String> fields = data.notes.get(type);
-            if(fields == null){
-                fields = new OrderedMap<>();
-                data.notes.put(type, fields);
-            }
+            String type = id.substring(0, split);
+            String field = id.substring(split + 1);
+            OrderedMap<String, String> fields = data.notes.get(type, OrderedMap::new);
             fields.put(field, note);
         }
 
         return JsonIO.json.toJson(data);
-    }
-
-    private static String normalize(String note){
-        if(note == null) return null;
-        String normalized = note.trim();
-        return normalized.isEmpty() ? null : normalized;
-    }
-
-    private static String normalizeField(String field){
-        if(field == null) return null;
-        String normalized = field.trim();
-        return normalized.isEmpty() ? null : normalized;
     }
 
     public static class NotesData{
@@ -216,7 +157,6 @@ public class FieldNotes{
 
     public static class NotesMeta{
         public int version;
-        public String source;
         public String updatedAt;
     }
 }
