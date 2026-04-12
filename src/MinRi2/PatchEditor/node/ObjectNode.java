@@ -59,8 +59,9 @@ public class ObjectNode{
         return parent;
     }
 
+    // Signs are assigned by parent.
     public boolean hasSign(ModifierSign sign){
-        return getOrResolve(sign.sign) != null;
+        return sign != null && children.containsKey(sign.sign);
     }
 
     public ObjectNode getOrResolve(String name){
