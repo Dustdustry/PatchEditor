@@ -33,6 +33,8 @@ public class PatchManager extends BaseDialog{
     private String searchText = "";
     private boolean sortByAlphabet;
 
+    private static boolean initFavorite;
+
     public PatchManager(){
         super("");
 
@@ -40,6 +42,14 @@ public class PatchManager extends BaseDialog{
         patchContainer = new Table();
         patchTable = new Table();
         resized(this::rebuildCont);
+
+        shown(() -> {
+            if(!initFavorite){
+                initFavorite = true;
+                NodeFavorites.init();
+                FieldNotes.init();
+            }
+        });
         shown(() -> {
             editorPatches.set(state.patcher.patches.map(EditorPatch::new));
             Vars.state.patcher.unapply();

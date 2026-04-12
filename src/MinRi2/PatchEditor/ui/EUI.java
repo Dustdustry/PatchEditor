@@ -34,8 +34,6 @@ public class EUI{
 
     public static void init(){
         EStyles.init();
-        NodeFavorites.init();
-        FieldNotes.init();
 
         manager = new PatchManager();
         selector = new ContentSelector();
