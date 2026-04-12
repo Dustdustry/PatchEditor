@@ -1,5 +1,6 @@
 package MinRi2.PatchEditor.ui.editor;
 
+import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.export.*;
 import MinRi2.PatchEditor.node.*;
 import MinRi2.PatchEditor.node.EditorNode.*;
@@ -8,7 +9,6 @@ import MinRi2.PatchEditor.node.patch.*;
 import MinRi2.PatchEditor.ui.*;
 import MinRi2.PatchEditor.ui.NodeCategorizer.*;
 import MinRi2.PatchEditor.ui.dialog.*;
-import MinRi2.PatchEditor.ui.modifier.*;
 import MinRi2.PatchEditor.utils.*;
 import arc.*;
 import arc.graphics.*;
@@ -17,7 +17,6 @@ import arc.scene.actions.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.ImageButton.*;
-import arc.scene.ui.Tooltip.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;

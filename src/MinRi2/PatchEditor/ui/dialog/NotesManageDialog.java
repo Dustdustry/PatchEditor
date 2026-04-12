@@ -1,9 +1,8 @@
 package MinRi2.PatchEditor.ui.dialog;
 
+import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.ui.*;
 import arc.*;
-import arc.scene.ui.*;
-import arc.scene.ui.layout.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
