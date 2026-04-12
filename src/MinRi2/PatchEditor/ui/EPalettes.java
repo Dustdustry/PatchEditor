@@ -21,6 +21,7 @@ public class EPalettes{
     unmodified = Color.valueOf("#6A7B8C"),
     modified = Color.valueOf("#937156"),
     gray = Color.valueOf("#767676"),
-    grayFront = Pal.lightishGray;
+    grayFront = Pal.lightishGray,
+    lighterGray = Color.valueOf("#929292");
 
 }

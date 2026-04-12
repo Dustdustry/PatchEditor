@@ -32,6 +32,7 @@ import mindustry.ui.*;
  * Create by 2024/2/16
  */
 public class NodeCard extends Table{
+    public static final float NOTE_WIDTH = 480f;
     public static float buttonWidth = 330f;
     public static float buttonHeight = buttonWidth / 3f;
 
@@ -260,6 +261,8 @@ public class NodeCard extends Table{
         Color unmodifiedColor = unmodifiedColor0;
 
         table.table(t -> {
+            if(Vars.mobile) addNoteHolder(t, node);
+
             t.table(infoTable -> {
                 infoTable.left();
                 NodeDisplay.displayNameType(infoTable, node);
@@ -288,20 +291,6 @@ public class NodeCard extends Table{
                 t.clearActions();
                 t.addAction(Actions.color(patched ? modifiedColor : unmodifiedColor, 0.2f));
             });
-
-            String note = FieldNotes.getNote(node.getFieldID());
-            if(note != null){
-                Tooltip tooltip = Tooltips.getInstance().create(note);
-                tooltip.allowMobile = true;
-
-                Element holder = new Element(){{
-                    fillParent = true;
-                    touchable = Touchable.enabled;
-                    addListener(tooltip);
-                }};
-                t.addChild(holder);
-                holder.toBack();
-            }
         });
     }
 
@@ -322,6 +311,8 @@ public class NodeCard extends Table{
         }
 
         Button btn = table.button(b -> {
+            addNoteHolder(b, node);
+
             b.table(infoTable -> {
                 infoTable.left();
                 NodeDisplay.display(infoTable, node);
@@ -330,6 +321,8 @@ public class NodeCard extends Table{
             b.table(buttons -> {
                 buttons.defaults().growX().pad(4f);
                 buttons.table(top -> setupChildNodeButtons(top, node, null)).grow();
+                buttons.row();
+                buttons.table(bottom -> setupTinyButton(bottom, node)).pad(0f);
             }).pad(4f).growY();
 
             b.image().width(4f).color(Color.darkGray).growY().right();
@@ -475,7 +468,7 @@ public class NodeCard extends Table{
     }
 
     private void setupTinyButton(Table table, EditorNode node){
-        table.defaults().size(Vars.iconSmall);
+        table.right().defaults().size(Vars.iconSmall);
 
         if(node.isRequired()){
             table.image(Icon.infoCircleSmall).tooltip("@node.mayRequired", true).scaling(Scaling.stretch);
@@ -488,7 +481,8 @@ public class NodeCard extends Table{
         }else{
             String note = FieldNotes.getNote(node.getFieldID());
             if(note != null){
-                table.image(Icon.bookOpenSmall).color(EPalettes.value).size(Vars.iconSmall * 0.85f);
+                table.image(Icon.bookOpenSmall).color(EPalettes.lighterGray).size(Vars.iconSmall * 0.85f)
+                .tooltip(t -> t.margin(12f).background(Styles.black8).labelWrap(note).width(480f).style(Styles.outlineLabel));
             }
         }
 
@@ -500,6 +494,25 @@ public class NodeCard extends Table{
             table.button(Icon.starSmall, EStyles.favoriteButton, () -> {
                 NodeFavorites.toggle(node);
             }).tooltip(tooltip).checked(NodeFavorites.isFavorite(node));
+        }
+    }
+
+    private void addNoteHolder(Table table, EditorNode node){
+        String note = FieldNotes.getNote(node.getFieldID());
+        if(note != null){
+            Tooltip tooltip = new Tooltip(t -> {
+                t.margin(12f).background(Styles.black8);
+                t.labelWrap(note).width(NOTE_WIDTH).style(Styles.outlineLabel);
+            });
+            tooltip.allowMobile = true;
+
+            Element holder = new Element(){{
+                fillParent = true;
+                touchable = Touchable.enabled;
+                addListener(tooltip);
+            }};
+            table.addChild(holder);
+            holder.toBack();
         }
     }
 
