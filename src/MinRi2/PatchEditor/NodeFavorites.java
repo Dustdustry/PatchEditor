@@ -130,12 +130,22 @@ public class NodeFavorites{
         Seq<FavoriteField> favorites = data.favorites;
         if(favorites != null){
             for(FavoriteField field : favorites){
+                if(!field.valid()) continue;
+
                 if(data.version == 1){
-                    Class<?> resolve = ClassMap.classes.get(field.field);
-                    if(resolve != null) field.field = PatchJsonIO.getTypeName(resolve);
+                    String className = field.ownerType;
+                    Class<?> resolve = PatchJsonIO.resolveType(className);
+                    if(resolve == null){
+                        try{
+                            resolve = Class.forName(className, false, ClassLoader.getSystemClassLoader());
+                        }catch(ClassNotFoundException ignored){}
+                    }
+                    if(resolve != null){
+                        field.ownerType = PatchJsonIO.getTypeName(resolve);
+                        field.id = field.ownerType + "#" + field.field;
+                    }
                 }
 
-                if(!field.valid()) continue;
                 result.put(field.id, field);
             }
         }
@@ -150,8 +160,8 @@ public class NodeFavorites{
 
     public static class FavoriteField{
         public String id;
-        public String ownerType;
-        public String field;
+        public transient String ownerType;
+        public transient String field;
 
         public FavoriteField(){
         }
@@ -172,16 +182,12 @@ public class NodeFavorites{
             if(id == null || id.isEmpty()) return false;
 
             int split = id.lastIndexOf('#');
-            if((ownerType == null || ownerType.isEmpty()) && split != -1){
-                ownerType = id.substring(0, split);
-            }else if(ownerType == null || ownerType.isEmpty()){
-                ownerType = "unknown";
+            if(ownerType == null){
+                ownerType = split != -1 ? id.substring(0, split) : "unknown";
             }
 
-            if((field == null || field.isEmpty()) && split != -1 && split + 1 < id.length()){
-                field = id.substring(split + 1);
-            }else if(field == null || field.isEmpty()){
-                field = id;
+            if(field == null){
+                field = split != -1 ? id.substring(split + 1) : id;
             }
 
             return !ownerType.isEmpty() && !field.isEmpty();
