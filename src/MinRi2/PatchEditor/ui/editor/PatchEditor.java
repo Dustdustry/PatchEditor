@@ -22,6 +22,7 @@ import mindustry.ui.dialogs.*;
 public class PatchEditor extends BaseDialog{
     private final NodeCard card;
     private final FavoritesDialog favoritesDialog;
+    private ScrollPane pane;
 
     private EditorPatch editPatch;
 
@@ -82,6 +83,8 @@ public class PatchEditor extends BaseDialog{
             PatchNode namePatch = manager.getRoot().getOrNull("name");
             editPatch.patch = PatchJsonIO.toPatch(objectTree, manager.getRoot(), EditorSettings.getPatchExportOptions());
             editPatch.name = namePatch != null && namePatch.value != null ? namePatch.value : "";
+
+            pane = null;
         });
 
         update(() -> {
@@ -198,6 +201,8 @@ public class PatchEditor extends BaseDialog{
         cont.clearChildren();
 
         card.rebuild();
-        cont.pane(Styles.noBarPane, card).scrollX(false).pad(16f).padTop(8f).grow();
+
+        if(pane == null) pane = new ScrollPane(card, Styles.noBarPane);
+        cont.add(pane).scrollX(false).pad(16f).padTop(8f).grow();
     }
 }
