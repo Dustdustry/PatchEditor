@@ -34,7 +34,7 @@ public class ObjectExample{
 
         if(example == null){
             JsonValue value = new JsonValue(ValueType.object);
-            value.addChild("type", new JsonValue(PatchJsonIO.getClassTypeName(type)));
+            value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(type)));
 
             try{
                 Json parserJson = PatchJsonIO.getParser().getJson();

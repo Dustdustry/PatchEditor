@@ -103,14 +103,9 @@ public class PatchJsonIO{
     }
 
     // internal type name
-    public static String getClassTypeName(Class<?> clazz){
+    public static String getTypeName(Class<?> clazz){
         String key = ClassMap.classes.findKey(clazz, true);
         return key != null ? key : clazz.getName();
-    }
-
-    public static String getTypeName(Class<?> clazz){
-        if(clazz == null) return null;
-        return getClassTypeName(clazz);
     }
 
     public static ContentParser getParser(){

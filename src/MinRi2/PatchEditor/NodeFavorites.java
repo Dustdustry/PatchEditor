@@ -6,6 +6,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.io.*;
+import mindustry.mod.*;
 
 import java.lang.reflect.*;
 
@@ -31,18 +32,16 @@ public class NodeFavorites{
         return key != null && map.containsKey(key);
     }
 
-    public static boolean toggle(EditorNode node){
+    public static void toggle(EditorNode node){
         String key = node.getFieldID();
-        if(key == null) return false;
+        if(key == null) return;
 
         if(map.containsKey(key)){
             map.remove(key);
             save();
-            return false;
         }else{
             map.put(key, resolve(node));
             save();
-            return true;
         }
     }
 
@@ -118,7 +117,7 @@ public class NodeFavorites{
 
     public static String exportJson(){
         FavoritesData data = new FavoritesData();
-        data.version = 1;
+        data.version = 2;
         data.favorites.addAll(map.values());
         return JsonIO.json.toJson(data);
     }
@@ -131,6 +130,11 @@ public class NodeFavorites{
         Seq<FavoriteField> favorites = data.favorites;
         if(favorites != null){
             for(FavoriteField field : favorites){
+                if(data.version == 1){
+                    Class<?> resolve = ClassMap.classes.get(field.field);
+                    if(resolve != null) field.field = PatchJsonIO.getTypeName(resolve);
+                }
+
                 if(!field.valid()) continue;
                 result.put(field.id, field);
             }

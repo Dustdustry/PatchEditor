@@ -195,7 +195,7 @@ public abstract class PatchOperator{
 
             // type changing base on overriding
             if(node.sign != ModifierSign.PLUS) node.sign = ModifierSign.MODIFY;
-            node.getOrCreate("type").value = PatchJsonIO.getClassTypeName(type);
+            node.getOrCreate("type").value = PatchJsonIO.getTypeName(type);
         }
     }
 

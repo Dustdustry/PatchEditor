@@ -170,8 +170,8 @@ public class ObjectResolver{
             if(type.constructor != null){
                 node.addChild("type", EditorList.getUnitTypeName(type.constructor.get().getClass()), UnitConstructorType.class).addSign(ModifierSign.MODIFY);
             }
-            node.addChild("aiController", PatchJsonIO.getClassTypeName(type.aiController.get().getClass()), AIController.class).addSign(ModifierSign.MODIFY);
-            node.addChild("controller", PatchJsonIO.getClassTypeName(CommandAI.class), AIController.class).addSign(ModifierSign.MODIFY);
+            node.addChild("aiController", PatchJsonIO.getTypeName(type.aiController.get().getClass()), AIController.class).addSign(ModifierSign.MODIFY);
+            node.addChild("controller", PatchJsonIO.getTypeName(CommandAI.class), AIController.class).addSign(ModifierSign.MODIFY);
         }
 
         if(object instanceof Block block){

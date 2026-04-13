@@ -228,7 +228,7 @@ public class ObjectExporter{
         value.setType(ValueType.object);
         Class<?> type = ClassHelper.unoymousClass(object.getClass());
         if(PatchJsonIO.typeOverrideable(type)){
-            String typeName = PatchJsonIO.getClassTypeName(type);
+            String typeName = PatchJsonIO.getTypeName(type);
             value.addChild("type", new JsonValue(typeName));
         }
 

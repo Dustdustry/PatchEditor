@@ -204,7 +204,7 @@ public class PatchJsonTransform{
                 JsonValue elementValue = new JsonValue(ValueType.array);
                 JsonHelper.moveChild(value, elementValue);
 
-                value.addChild("type", new JsonValue(PatchJsonIO.getClassTypeName(MultiEffect.class)));
+                value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(MultiEffect.class)));
                 value.addChild("effects", elementValue);
             }else if(type == BulletType.class){
                 /* to MultiBulletType */
@@ -212,7 +212,7 @@ public class PatchJsonTransform{
                 JsonValue elementValue = new JsonValue(ValueType.array);
                 JsonHelper.moveChild(value, elementValue);
 
-                value.addChild("type", new JsonValue(PatchJsonIO.getClassTypeName(MultiBulletType.class)));
+                value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(MultiBulletType.class)));
                 value.addChild("bullets", elementValue);
             }else if(type == DrawBlock.class){
                 /* to DrawMulti */
@@ -220,7 +220,7 @@ public class PatchJsonTransform{
                 JsonValue elementValue = new JsonValue(ValueType.array);
                 JsonHelper.moveChild(value, elementValue);
 
-                value.addChild("type", new JsonValue(PatchJsonIO.getClassTypeName(DrawMulti.class)));
+                value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(DrawMulti.class)));
                 value.addChild("drawers", elementValue);
             }
         }
