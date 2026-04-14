@@ -8,10 +8,6 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.io.*;
 
-/**
- * Field notes with fixed priority:
- * user notes > built-in notes.
- */
 public class FieldNotes{
     public static final String builtInNotesPath = "notes/default.json";
     public static final String userNotesFileName = "field-notes.user.json";

@@ -6,14 +6,10 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.io.*;
-import mindustry.mod.*;
 
 import java.lang.reflect.*;
 
-/**
- * Persistent favorites for "type field", e.g. "mindustry.world.Block#health".
- */
-public class NodeFavorites{
+public class FieldFavorites{
     public static final String fileName = "favorites.json";
 
     private static Fi configFi;

@@ -16,7 +16,7 @@ import java.util.*;
 
 public class NodeCategorizer{
     private static final Comparator<EditorNode> baseComparator = Structs.comps(
-        Structs.comparingBool(n -> !NodeFavorites.isFavorite(n)),
+        Structs.comparingBool(n -> !FieldFavorites.isFavorite(n)),
         Structs.comps(
             Structs.comparingBool(n -> !n.isRequired()),
             Structs.comparingBool(n -> !(n.hasValue() && n.getObjNode() != null))

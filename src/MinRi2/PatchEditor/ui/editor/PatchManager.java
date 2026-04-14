@@ -47,7 +47,7 @@ public class PatchManager extends BaseDialog{
         shown(() -> {
             if(!initFavorite){
                 initFavorite = true;
-                NodeFavorites.init();
+                FieldFavorites.init();
                 FieldNotes.init();
             }
         });

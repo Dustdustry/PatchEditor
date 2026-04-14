@@ -496,10 +496,10 @@ public class NodeCard extends Table{
             }
         }
 
-        if(NodeFavorites.canFavorite(node)){
+        if(FieldFavorites.canFavorite(node)){
             table.button(Icon.starSmall, EStyles.favoriteButton, () -> {
-                NodeFavorites.toggle(node);
-            }).tooltip(Core.bundle.get("node.favorite.toggle")).checked(NodeFavorites.isFavorite(node));
+                FieldFavorites.toggle(node);
+            }).tooltip(Core.bundle.get("node.favorite.toggle")).checked(FieldFavorites.isFavorite(node));
         }
     }
 

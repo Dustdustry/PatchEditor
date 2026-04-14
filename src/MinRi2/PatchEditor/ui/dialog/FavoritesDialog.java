@@ -2,7 +2,7 @@ package MinRi2.PatchEditor.ui.dialog;
 
 import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.ui.*;
-import MinRi2.PatchEditor.NodeFavorites.*;
+import MinRi2.PatchEditor.FieldFavorites.*;
 import arc.*;
 import arc.graphics.*;
 import arc.scene.*;
@@ -53,10 +53,10 @@ public class FavoritesDialog extends BaseDialog{
                 .disabled(b -> Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty());
                 buttons.button("@favorites.clear", Icon.cancel, Styles.cleart, () -> {
                     Vars.ui.showConfirm("@confirm", "@favorites.clear.confirm", () -> {
-                        NodeFavorites.clear();
+                        FieldFavorites.clear();
                         rebuildFavoritesTable();
                     });
-                }).disabled(b -> NodeFavorites.all().isEmpty());
+                }).disabled(b -> FieldFavorites.all().isEmpty());
 
                 for(Element child : buttons.getChildren()){
                     if(child instanceof Button btn){
@@ -95,7 +95,7 @@ public class FavoritesDialog extends BaseDialog{
         table.clear();
         table.top().defaults().pad(4f);
 
-        Seq<FavoriteField> favorites = NodeFavorites.all().select(favorite ->
+        Seq<FavoriteField> favorites = FieldFavorites.all().select(favorite ->
         Strings.matches(searchText, favorite.displayName())
         || Strings.matches(searchText, favorite.id));
 
@@ -170,7 +170,7 @@ public class FavoritesDialog extends BaseDialog{
                 EUI.infoToast("@favorites.copy-id.succeed");
             }).tooltip("@favorites.copy-id");
             buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
-                NodeFavorites.remove(favorite.id);
+                FieldFavorites.remove(favorite.id);
                 rebuildFavoritesTable();
             }).tooltip("@favorites.remove");
         }).pad(4f);
@@ -182,7 +182,7 @@ public class FavoritesDialog extends BaseDialog{
     }
 
     private void exportFavorites(){
-        Core.app.setClipboardText(NodeFavorites.exportJson());
+        Core.app.setClipboardText(FieldFavorites.exportJson());
         EUI.infoToast("@favorites.export.succeed");
     }
 
@@ -195,7 +195,7 @@ public class FavoritesDialog extends BaseDialog{
 
         int imported;
         try{
-            imported = NodeFavorites.importJson(text, false);
+            imported = FieldFavorites.importJson(text, false);
         }catch(Exception e){
             Vars.ui.showException("@favorites.import.failed", e);
             return;
