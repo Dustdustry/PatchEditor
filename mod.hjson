@@ -11,7 +11,7 @@ author: "minRi2"
 main: "MinRi2.PatchEditor.Main"
 
 #the mod description as seen in the mod dialog
-description: "内容包编辑器 在 地图编辑器-> 地图信息->内容包编辑器 中打开内容包管理器"
+description: "Provide an in-game GUI for DataPatcher."
 
 #the mod version
 version: 1.8.5
