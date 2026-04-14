@@ -71,7 +71,7 @@ public class NotesDialog extends BaseDialog{
             buttons.button("@back", Icon.left, this::hide);
         }
 
-//                buttons.button("@notes.github.open", Icon.book, Styles.cleart, this::openGithub);
+//      buttons.button("@notes.github.open", Icon.book, Styles.cleart, this::openGithub);
         buttons.button("@notes.clear", Icon.cancel, () -> Vars.ui.showConfirm("@confirm", "@notes.clear.confirm", () -> {
             if(FieldNotes.clearUserNotes()){
                 rebuildNotesTable();
