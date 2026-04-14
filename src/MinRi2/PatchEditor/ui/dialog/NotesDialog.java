@@ -160,24 +160,25 @@ public class NotesDialog extends BaseDialog{
         table.background(Tex.whiteui).setColor(EPalettes.gray);
 
         table.table(info -> {
-            info.left().defaults().left().growX();
-            info.add(fieldId).pad(8f);
+            info.left().defaults().left();
+
+            int split = fieldId.indexOf("#");
+            String fieldName = fieldId.substring(split + 1);
+            info.add(fieldName).style(Styles.outlineLabel).pad(8f);
 
             String note = FieldNotes.getNote(fieldId);
             if(note != null){
                 info.row();
                 info.add(Core.bundle.format("notes.value", note))
-                .padLeft(8f).padRight(8f).padBottom(8f).wrap().growX();
+                .padLeft(8f).padRight(8f).padBottom(8f).wrap().growX().colspan(2);
             }
-
-            info.row();
-            String source = Core.bundle.get(FieldNotes.getUserNote(fieldId) != null ? "notes.source.user" : "notes.source.builtin");
-            info.add(Core.bundle.format("notes.source", source))
-            .padLeft(8f).padRight(8f).padBottom(8f).color(Pal.lightishGray).growX();
         }).growX();
 
+        String source = Core.bundle.get(FieldNotes.getUserNote(fieldId) != null ? "notes.source.user" : "notes.source.builtin");
+        table.add(source).padLeft(8f).color(Pal.lightishGray);
+
         table.table(buttons -> {
-            buttons.defaults().size(Vars.iconSmall).pad(4f);
+            buttons.defaults().width(Vars.iconMed).growY().pad(4f);
             buttons.button(Icon.editSmall, Styles.clearNonei, () -> {
                 EUI.noteEditor.show(fieldId, () -> {
                     table.clear();
@@ -194,7 +195,7 @@ public class NotesDialog extends BaseDialog{
                 table.clear();
                 setupNoteFieldTable(table, fieldId);
             }).tooltip("@notes.clear-user").disabled(b -> FieldNotes.getUserNote(fieldId) == null);
-        }).pad(4f);
+        }).growY().pad(4f);
 
         table.image().width(4f).color(Color.darkGray).growY().right();
         table.row();

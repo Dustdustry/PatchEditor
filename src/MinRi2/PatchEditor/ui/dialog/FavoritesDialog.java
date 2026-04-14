@@ -157,7 +157,10 @@ public class FavoritesDialog extends BaseDialog{
 
         table.table(info -> {
             info.left().defaults().left().growX();
-            info.add(fieldId).pad(8f);
+
+            int split = fieldId.indexOf("#");
+            String fieldName = fieldId.substring(split + 1);
+            info.add(fieldName).style(Styles.outlineLabel).pad(8f);
 
             String note = FieldNotes.getNote(fieldId);
             if(note != null){
@@ -167,7 +170,7 @@ public class FavoritesDialog extends BaseDialog{
         }).growX();
 
         table.table(buttons -> {
-            buttons.defaults().size(Vars.iconSmall).pad(4f);
+            buttons.defaults().width(Vars.iconMed).growY().pad(4f);
             buttons.button(Icon.editSmall, Styles.clearNonei, () -> {
                 EUI.noteEditor.show(fieldId, () -> {
                     table.clear();
@@ -184,7 +187,7 @@ public class FavoritesDialog extends BaseDialog{
                 table.clear();
                 setupFavoriteFieldTable(table, fieldId);
             }).tooltip("@favorites.remove");
-        }).pad(4f);
+        }).growY().pad(4f);
 
         table.image().width(4f).color(Color.darkGray).growY().right();
         table.row();
