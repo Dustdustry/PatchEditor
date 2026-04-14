@@ -11,6 +11,8 @@ public class EditNoteDialog extends BaseDialog{
     private String fieldId;
     private String note;
 
+    private Runnable hidden;
+
     public EditNoteDialog(){
         super("@patch-editor.note.edit");
 
@@ -26,14 +28,23 @@ public class EditNoteDialog extends BaseDialog{
             }
 
             fieldId = null;
+            if(hidden != null){
+                Core.app.post(hidden);
+                hidden = null;
+            }
         });
         addCloseButton();
     }
 
     public void show(String fieldId){
+        show(fieldId, null);
+    }
+
+    public void show(String fieldId, Runnable hidden){
         if(fieldId == null || fieldId.isEmpty()) return;
         this.fieldId = fieldId;
         this.note = FieldNotes.getNote(fieldId);
+        this.hidden = hidden;
         show();
     }
 

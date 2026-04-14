@@ -3,6 +3,7 @@ package MinRi2.PatchEditor;
 import MinRi2.PatchEditor.node.*;
 import arc.files.*;
 import arc.struct.*;
+import arc.struct.ObjectMap.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.io.*;
@@ -56,8 +57,8 @@ public class FieldFavorites{
         save();
     }
 
-    public static Seq<FavoriteField> all(){
-        return map.values().toSeq();
+    public static Seq<String> allId(){
+        return map.keys().toSeq();
     }
 
     public static boolean canFavorite(EditorNode node){
@@ -126,7 +127,7 @@ public class FieldFavorites{
         Seq<FavoriteField> favorites = data.favorites;
         if(favorites != null){
             for(FavoriteField field : favorites){
-                if(!field.valid()) continue;
+                if(!field.check()) continue;
 
                 if(data.version == 1){
                     String className = field.ownerType;
@@ -168,13 +169,7 @@ public class FieldFavorites{
             this.field = field;
         }
 
-        public String displayName(){
-            int split = ownerType.lastIndexOf('.');
-            String owner = (split == -1 ? ownerType : ownerType.substring(split + 1));
-            return owner + "." + field;
-        }
-
-        public boolean valid(){
+        public boolean check(){
             if(id == null || id.isEmpty()) return false;
 
             int split = id.lastIndexOf('#');

@@ -1,8 +1,8 @@
 package MinRi2.PatchEditor.ui.dialog;
 
 import MinRi2.PatchEditor.*;
+import MinRi2.PatchEditor.FieldNotes.*;
 import MinRi2.PatchEditor.ui.*;
-import MinRi2.PatchEditor.FieldFavorites.*;
 import arc.*;
 import arc.graphics.*;
 import arc.scene.*;
@@ -17,15 +17,15 @@ import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
-public class FavoritesDialog extends BaseDialog{
+public class NotesDialog extends BaseDialog{
     private String searchText = "";
     private final ObjectSet<String> shownTypes = new ObjectSet<>();
 
     private ScrollPane pane;
-    private final Table favoritesTable = new Table();
+    private final Table notesTable = new Table();
 
-    public FavoritesDialog(){
-        super("@patch-editor.favorites");
+    public NotesDialog(){
+        super("@patch-editor.notes");
 
         resized(this::rebuild);
         shown(this::rebuild);
@@ -45,21 +45,25 @@ public class FavoritesDialog extends BaseDialog{
 
             table.table(Styles.grayPanel, this::setupSearchTable).row();
 
-            if(pane == null) pane = new ScrollPane(favoritesTable, Styles.noBarPane);
+            if(pane == null) pane = new ScrollPane(notesTable, Styles.noBarPane);
             table.add(pane).scrollX(false).grow().row();
 
             table.table(Styles.grayPanel, buttons -> {
                 buttons.defaults().growX().height(42f);
 
-                buttons.button("@favorites.export", Icon.copy, Styles.cleart, this::exportFavorites);
-                buttons.button("@favorites.import", Icon.download, Styles.cleart, this::importFavorites)
-                .disabled(b -> Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty());
-                buttons.button("@favorites.clear", Icon.cancel, Styles.cleart, () -> {
-                    Vars.ui.showConfirm("@confirm", "@favorites.clear.confirm", () -> {
-                        FieldFavorites.clear();
-                        rebuildFavoritesTable();
-                    });
+                buttons.button("@notes.export", Icon.copy, Styles.cleart, () -> {
+                    Core.app.setClipboardText(FieldNotes.exportUserNotesJson());
+                    EUI.infoToast("@notes.export.succeed");
                 });
+                buttons.button("@notes.import", Icon.download, Styles.cleart, this::importNotes)
+                .disabled(b -> Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty());
+//                buttons.button("@notes.github.open", Icon.book, Styles.cleart, this::openGithub);
+                buttons.button("@notes.clear", Icon.cancel, Styles.cleart, () -> Vars.ui.showConfirm("@confirm", "@notes.clear.confirm", () -> {
+                    if(FieldNotes.clearUserNotes()){
+                        rebuildNotesTable();
+                        EUI.infoToast("@notes.clear.succeed");
+                    }
+                })).disabled(b -> FieldNotes.userNoteCount() == 0);
 
                 for(Element child : buttons.getChildren()){
                     if(child instanceof Button btn){
@@ -71,7 +75,7 @@ public class FavoritesDialog extends BaseDialog{
             });
         }).width(width).growY();
 
-        rebuildFavoritesTable();
+        rebuildNotesTable();
     }
 
     private void setupSearchTable(Table table){
@@ -79,7 +83,7 @@ public class FavoritesDialog extends BaseDialog{
 
         TextField field = table.add(EUI.deboundTextField(searchText, text -> {
             searchText = text;
-            rebuildFavoritesTable();
+            rebuildNotesTable();
         })).padLeft(4f).padRight(4f).growX().get();
 
         if(Core.app.isDesktop()){
@@ -89,26 +93,28 @@ public class FavoritesDialog extends BaseDialog{
         table.button(Icon.cancelSmall, Styles.clearNonei, () -> {
             searchText = "";
             field.setText(searchText);
-            rebuildFavoritesTable();
+            rebuildNotesTable();
         }).disabled(b -> searchText.isEmpty()).width(Vars.iconSmall).growY();
     }
 
-    private void rebuildFavoritesTable(){
-        final Table table = favoritesTable;
+    private void rebuildNotesTable(){
+        final Table table = notesTable;
         table.clear();
         table.top().defaults().pad(4f);
 
-        Seq<String> fieldIds = FieldFavorites.allId().select(fieldId -> Strings.matches(searchText, fieldId));
+        Seq<String> notes = FieldNotes.allId().select(fieldId ->
+        Strings.matches(searchText, fieldId)
+        || (FieldNotes.getNote(fieldId) != null && Strings.matches(searchText, FieldNotes.getNote(fieldId))));
 
-        if(fieldIds.isEmpty()){
-            table.add("@favorites.empty").pad(16f).color(Color.lightGray);
+        if(notes.isEmpty()){
+            table.add("@notes.empty").pad(16f).color(Color.lightGray);
             return;
         }
 
         OrderedMap<String, Seq<String>> mapped = new OrderedMap<>();
-        for(String stringId : fieldIds){
-            String ownerType = stringId.split("#")[0];
-            mapped.get(ownerType, Seq::new).add(stringId);
+        for(String fieldId : notes){
+            String ownerType = fieldId.split("#")[0];
+            mapped.get(ownerType, Seq::new).add(fieldId);
         }
 
         boolean first = true;
@@ -139,7 +145,7 @@ public class FavoritesDialog extends BaseDialog{
 
             table.collapser(cont -> {
                 for(String fieldId : fields){
-                    cont.table(t -> setupFavoriteFieldTable(t, fieldId)).padBottom(4f).growX();
+                    cont.table(t -> setupNoteFieldTable(t, fieldId)).padBottom(4f).growX();
                     cont.row();
                 }
             }, () -> shownTypes.contains(type)).growX();
@@ -150,7 +156,7 @@ public class FavoritesDialog extends BaseDialog{
         }
     }
 
-    private void setupFavoriteFieldTable(Table table, String fieldId){
+    private void setupNoteFieldTable(Table table, String fieldId){
         table.background(Tex.whiteui).setColor(EPalettes.gray);
 
         table.table(info -> {
@@ -160,8 +166,14 @@ public class FavoritesDialog extends BaseDialog{
             String note = FieldNotes.getNote(fieldId);
             if(note != null){
                 info.row();
-                info.add(Core.bundle.format("favorites.note.value", note)).padLeft(8f).padRight(8f).padBottom(8f).color(Pal.lightishGray).wrap().growX();
+                info.add(Core.bundle.format("notes.value", note))
+                .padLeft(8f).padRight(8f).padBottom(8f).wrap().growX();
             }
+
+            info.row();
+            String source = Core.bundle.get(FieldNotes.getUserNote(fieldId) != null ? "notes.source.user" : "notes.source.builtin");
+            info.add(Core.bundle.format("notes.source", source))
+            .padLeft(8f).padRight(8f).padBottom(8f).color(Pal.lightishGray).growX();
         }).growX();
 
         table.table(buttons -> {
@@ -169,7 +181,7 @@ public class FavoritesDialog extends BaseDialog{
             buttons.button(Icon.editSmall, Styles.clearNonei, () -> {
                 EUI.noteEditor.show(fieldId, () -> {
                     table.clear();
-                    setupFavoriteFieldTable(table, fieldId);
+                    setupNoteFieldTable(table, fieldId);
                 });
             }).tooltip("@patch-editor.note.edit");
             buttons.button(Icon.copySmall, Styles.clearNonei, () -> {
@@ -177,9 +189,11 @@ public class FavoritesDialog extends BaseDialog{
                 EUI.infoToast("@favorites.copy-id.succeed");
             }).tooltip("@favorites.copy-id");
             buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
-                FieldFavorites.remove(fieldId);
-                rebuildFavoritesTable();
-            }).tooltip("@favorites.remove");
+                FieldNotes.removeUserNote(fieldId);
+
+                table.clear();
+                setupNoteFieldTable(table, fieldId);
+            }).tooltip("@notes.clear-user").disabled(b -> FieldNotes.getUserNote(fieldId) == null);
         }).pad(4f);
 
         table.image().width(4f).color(Color.darkGray).growY().right();
@@ -188,27 +202,29 @@ public class FavoritesDialog extends BaseDialog{
         horizontalLine.colspan(table.getColumns());
     }
 
-    private void exportFavorites(){
-        Core.app.setClipboardText(FieldFavorites.exportJson());
-        EUI.infoToast("@favorites.export.succeed");
-    }
-
-    private void importFavorites(){
+    private void importNotes(){
         String text = Core.app.getClipboardText();
         if(text == null || text.isEmpty()){
-            EUI.infoToast("@favorites.import.failed");
+            EUI.infoToast("@notes.import.failed");
             return;
         }
 
-        int imported;
         try{
-            imported = FieldFavorites.importJson(text, false);
+            FieldNotes.importUserNotes(text, false);
         }catch(Exception e){
-            Vars.ui.showException("@favorites.import.failed", e);
+            Vars.ui.showException("@notes.import.failed", e);
             return;
         }
 
-        rebuildFavoritesTable();
-        EUI.infoToast(Core.bundle.format("favorites.import.succeed", imported));
+        rebuildNotesTable();
+        EUI.infoToast("@notes.import.succeed");
+    }
+
+    private void openGithub(){
+        if(Core.app.openURI(FieldNotes.githubNotesUrl)){
+            EUI.infoToast("@notes.github.open.succeed");
+        }else{
+            EUI.infoToast("@notes.github.open.failed");
+        }
     }
 }

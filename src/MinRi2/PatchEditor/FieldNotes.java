@@ -83,11 +83,26 @@ public class FieldNotes{
         return true;
     }
 
+    public static int userNoteCount(){
+        return userNotes.size;
+    }
+
+    public static Seq<String> allId(){
+        ObjectSet<String> set = new ObjectSet<>();
+        for(String id : builtInNotes.keys()){
+            set.add(id);
+        }
+        for(String id : userNotes.keys()){
+            set.add(id);
+        }
+        return set.toSeq();
+    }
+
     public static String exportUserNotesJson(){
         return notesToJson(userNotes);
     }
 
-    public static int importUserNotes(String text, boolean replace){
+    public static void importUserNotes(String text, boolean replace){
         OrderedMap<String, String> imported = parseNotesJson(text);
 
         if(replace) userNotes.clear();
@@ -96,7 +111,6 @@ public class FieldNotes{
         }
 
         saveUserNotes();
-        return 0;
     }
 
     private static void saveUserNotes(){
@@ -132,8 +146,8 @@ public class FieldNotes{
 
     private static String notesToJson(OrderedMap<String, String> notesMap){
         NotesData data = new NotesData();
-        data.meta.version = 1;
-        data.meta.updatedAt = String.valueOf(System.currentTimeMillis());
+        data.version = 1;
+        data.updatedAt = String.valueOf(System.currentTimeMillis());
 
         for(Entry<String, String> entry : notesMap){
             String id = entry.key;
@@ -152,12 +166,9 @@ public class FieldNotes{
     }
 
     public static class NotesData{
-        public NotesMeta meta = new NotesMeta();
-        public OrderedMap<String, OrderedMap<String, String>> notes = new OrderedMap<>();
-    }
-
-    public static class NotesMeta{
         public int version;
         public String updatedAt;
+
+        public OrderedMap<String, OrderedMap<String, String>> notes = new OrderedMap<>();
     }
 }
