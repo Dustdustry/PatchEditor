@@ -127,7 +127,7 @@ public class PatchManager extends BaseDialog{
         table.table(Styles.grayPanel, buttonTable -> {
             buttonTable.defaults().minWidth(130f).height(40f).margin(8f).pad(8f).growX();
 
-            buttonTable.button("@add-patch", Icon.add, Styles.cleart, () -> {
+            buttonTable.button("@patch-manager.add-patch", Icon.add, Styles.cleart, () -> {
                 String name = findPatchName();
                 JsonValue json = new JsonValue(ValueType.object);
                 json.addChild("name", new JsonValue(name));
@@ -135,14 +135,14 @@ public class PatchManager extends BaseDialog{
                 rebuildPatchTable();
             });
 
-            buttonTable.button("@import-patch", Icon.add, Styles.cleart, () -> {
+            buttonTable.button("@patch-manager.import-patch", Icon.add, Styles.cleart, () -> {
                 String text = Core.app.getClipboardText();
 
                 JsonValue value;
                 try{
                     value = PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(text).toString(Jformat.plain));
                 }catch(Exception ignored){
-                    EUI.infoToast("@import-patch.failed");
+                    EUI.infoToast("@patch-manager.import-patch.failed");
                     return;
                 }
 
@@ -151,7 +151,7 @@ public class PatchManager extends BaseDialog{
                 editorPatches.add(new EditorPatch(name, text));
                 rebuildPatchTable();
 
-                EUI.infoToast("@import-patch.succeed");
+                EUI.infoToast("@patch-manager.import-patch.succeed");
             }).disabled(b -> Core.app.getClipboardText() == null);
         }).pad(8f).padTop(4f).growX();
     }
@@ -174,20 +174,20 @@ public class PatchManager extends BaseDialog{
                     buttons.defaults().size(32f).pad(4f);
 
                     buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
-                        Vars.ui.showConfirm("@confirm", Core.bundle.format("patch.remove.confirm", patch.displayName()), () -> {
+                        Vars.ui.showConfirm("@confirm", Core.bundle.format("patch-manager.patch.remove.confirm", patch.displayName()), () -> {
                             editorPatches.remove(patch, true);
                             rebuildPatchTable();
                         });
-                    }).tooltip("@patch.remove", true);
+                    }).tooltip("@patch-manager.patch.remove", true);
 
                     buttons.button(Icon.copySmall, Styles.clearNonei, () -> {
                         Core.app.setClipboardText(patch.patch);
                         EUI.infoToast("[green]Copy: []" + patch.name);
-                    }).tooltip("@patch.copy", true);
+                    }).tooltip("@patch-manager.patch.copy", true);
 
                     buttons.button(Icon.editSmall, Styles.clearNonei, () -> {
                         editor.edit(patch);
-                    }).tooltip("@patch.edit", true);
+                    }).tooltip("@patch-manager.patch.edit", true);
                 }).pad(4f);
 
                 t.image().width(4f).color(Color.darkGray).growY().right();

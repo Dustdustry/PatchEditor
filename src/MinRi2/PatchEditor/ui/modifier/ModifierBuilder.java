@@ -65,7 +65,7 @@ public abstract class ModifierBuilder<T>{
 
             if(consumer.getTypeMeta() == String.class){
                 table.button(Icon.pencil, Styles.clearNonei, () -> {
-                    BaseDialog dialog = new BaseDialog("@dialog.editText");
+                    BaseDialog dialog = new BaseDialog("@patch-editor.editText");
                     Table cont = dialog.cont;
 
                     cont.add(dialog.titleTable).fillX().row();

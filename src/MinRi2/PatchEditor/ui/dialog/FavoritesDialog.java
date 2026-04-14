@@ -51,6 +51,8 @@ public class FavoritesDialog extends BaseDialog{
             table.table(Styles.grayPanel, buttons -> {
                 buttons.defaults().growX().height(42f);
 
+                buttons.button("@patch-editor.notes", Icon.book, Styles.cleart, () -> EUI.notes.show());
+
                 buttons.button("@favorites.export", Icon.copy, Styles.cleart, this::exportFavorites);
                 buttons.button("@favorites.import", Icon.download, Styles.cleart, this::importFavorites)
                 .disabled(b -> Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty());
@@ -59,7 +61,7 @@ public class FavoritesDialog extends BaseDialog{
                         FieldFavorites.clear();
                         rebuildFavoritesTable();
                     });
-                });
+                }).disabled(b -> FieldFavorites.fieldCount() == 0);
 
                 for(Element child : buttons.getChildren()){
                     if(child instanceof Button btn){
@@ -178,7 +180,9 @@ public class FavoritesDialog extends BaseDialog{
             }).tooltip("@favorites.copy-id");
             buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
                 FieldFavorites.remove(fieldId);
-                rebuildFavoritesTable();
+
+                table.clear();
+                setupFavoriteFieldTable(table, fieldId);
             }).tooltip("@favorites.remove");
         }).pad(4f);
 
@@ -200,15 +204,14 @@ public class FavoritesDialog extends BaseDialog{
             return;
         }
 
-        int imported;
         try{
-            imported = FieldFavorites.importJson(text, false);
+            FieldFavorites.importJson(text, false);
         }catch(Exception e){
             Vars.ui.showException("@favorites.import.failed", e);
             return;
         }
 
         rebuildFavoritesTable();
-        EUI.infoToast(Core.bundle.format("favorites.import.succeed", imported));
+        EUI.infoToast(Core.bundle.format("favorites.import.succeed"));
     }
 }

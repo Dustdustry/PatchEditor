@@ -21,7 +21,6 @@ import mindustry.ui.dialogs.*;
  */
 public class PatchEditor extends BaseDialog{
     private final NodeCard card;
-    private final FavoritesDialog favoritesDialog;
     private ScrollPane pane;
 
     private EditorPatch editPatch;
@@ -62,7 +61,6 @@ public class PatchEditor extends BaseDialog{
 
         manager = new NodeManager();
         card = new NodeCard(manager);
-        favoritesDialog = new FavoritesDialog();
 
         // notify here?
         manager.onChanged((operator, node, uiUpdated) -> {
@@ -70,8 +68,6 @@ public class PatchEditor extends BaseDialog{
 
             editorTree.navigateThrough(operator.path, EditorNode::patchChanged);
         });
-
-        favoritesDialog.hidden(this::rebuild);
 
         resized(this::rebuild);
         shown(() -> {
@@ -181,8 +177,8 @@ public class PatchEditor extends BaseDialog{
             if(Vars.mobile) buttons.button("@node-card.expandLast", Icon.downOpen, Styles.grayt, () -> card.getFrontCard().editLastData());
 
             buttons.add().expandX();
-            buttons.button("@patch-editor.favorites", Icon.star, Styles.grayt, favoritesDialog::show);
-//            buttons.button("@favorites.note.manage", Icon.book, Styles.grayt, NotesManageDialog::showNotes);
+            buttons.button("@patch-editor.favorites", Icon.star, Styles.grayt, () -> EUI.favorites.show());
+            buttons.button("@patch-editor.notes", Icon.book, Styles.grayt, () -> EUI.notes.show());
 
             for(Element child : buttons.getChildren()){
                 if(child instanceof TextButton textButton){

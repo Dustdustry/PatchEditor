@@ -57,6 +57,10 @@ public class FieldFavorites{
         save();
     }
 
+    public static int fieldCount(){
+        return map.size;
+    }
+
     public static Seq<String> allId(){
         return map.keys().toSeq();
     }
@@ -65,7 +69,7 @@ public class FieldFavorites{
         return node.getFieldId() != null;
     }
 
-    public static int importJson(String text, boolean replace){
+    public static void importJson(String text, boolean replace){
         OrderedMap<String, FavoriteField> imported = parseJson(text);
 
         int before = map.size;
@@ -81,8 +85,6 @@ public class FieldFavorites{
         if(changed != 0 || replace){
             save();
         }
-
-        return changed;
     }
 
     private static void load(){

@@ -32,8 +32,10 @@ public class EUI{
     public static StringItemSelector stringItemSelector;
     public static SoundSelector soundSelector;
 
-    public static FavoritesDialog favorites;
     public static EditNoteDialog noteEditor;
+
+    public static FavoritesDialog favorites;
+    public static NotesDialog notes;
 
     public static void init(){
         EStyles.init();
@@ -46,8 +48,10 @@ public class EUI{
         stringItemSelector = new StringItemSelector();
         soundSelector = new SoundSelector();
 
-        favorites = new FavoritesDialog();
         noteEditor = new EditNoteDialog();
+
+        favorites = new FavoritesDialog();
+        notes = new NotesDialog();
 
         mountEditor();
     }
