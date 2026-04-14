@@ -1,7 +1,6 @@
 package MinRi2.PatchEditor.ui.dialog;
 
 import MinRi2.PatchEditor.*;
-import MinRi2.PatchEditor.FieldNotes.*;
 import MinRi2.PatchEditor.ui.*;
 import arc.*;
 import arc.graphics.*;
@@ -47,35 +46,46 @@ public class NotesDialog extends BaseDialog{
 
             if(pane == null) pane = new ScrollPane(notesTable, Styles.noBarPane);
             table.add(pane).scrollX(false).grow().row();
-
-            table.table(Styles.grayPanel, buttons -> {
-                buttons.defaults().growX().height(42f);
-
-                buttons.button("@notes.export", Icon.copy, Styles.cleart, () -> {
-                    Core.app.setClipboardText(FieldNotes.exportUserNotesJson());
-                    EUI.infoToast("@notes.export.succeed");
-                });
-                buttons.button("@notes.import", Icon.download, Styles.cleart, this::importNotes)
-                .disabled(b -> Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty());
-//                buttons.button("@notes.github.open", Icon.book, Styles.cleart, this::openGithub);
-                buttons.button("@notes.clear", Icon.cancel, Styles.cleart, () -> Vars.ui.showConfirm("@confirm", "@notes.clear.confirm", () -> {
-                    if(FieldNotes.clearUserNotes()){
-                        rebuildNotesTable();
-                        EUI.infoToast("@notes.clear.succeed");
-                    }
-                })).disabled(b -> FieldNotes.userNoteCount() == 0);
-
-                for(Element child : buttons.getChildren()){
-                    if(child instanceof Button btn){
-                        for(Cell<?> cell : btn.getCells()){
-                            cell.pad(8f);
-                        }
-                    }
-                }
-            });
         }).width(width).growY();
 
         rebuildNotesTable();
+        rebuildButtons();
+    }
+
+    private void rebuildButtons(){
+        buttons.clearChildren();
+
+        boolean isPortrait = Core.graphics.isPortrait();
+
+        if(!isPortrait) buttons.button("@back", Icon.left, this::hide);
+
+        buttons.button("@notes.export", Icon.copy, () -> {
+            Core.app.setClipboardText(FieldNotes.exportUserNotesJson());
+            EUI.infoToast("@notes.export.succeed");
+        });
+        buttons.button("@notes.import", Icon.download, this::importNotes)
+        .disabled(b -> Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty());
+
+        if(isPortrait){
+            buttons.row();
+            buttons.button("@back", Icon.left, this::hide);
+        }
+
+//                buttons.button("@notes.github.open", Icon.book, Styles.cleart, this::openGithub);
+        buttons.button("@notes.clear", Icon.cancel, () -> Vars.ui.showConfirm("@confirm", "@notes.clear.confirm", () -> {
+            if(FieldNotes.clearUserNotes()){
+                rebuildNotesTable();
+                EUI.infoToast("@notes.clear.succeed");
+            }
+        })).disabled(b -> FieldNotes.userNoteCount() == 0);
+
+        for(Element child : buttons.getChildren()){
+            if(child instanceof Button btn){
+                for(Cell<?> cell : btn.getCells()){
+                    cell.pad(8f);
+                }
+            }
+        }
     }
 
     private void setupSearchTable(Table table){

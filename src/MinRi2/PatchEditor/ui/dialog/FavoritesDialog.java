@@ -2,7 +2,6 @@ package MinRi2.PatchEditor.ui.dialog;
 
 import MinRi2.PatchEditor.*;
 import MinRi2.PatchEditor.ui.*;
-import MinRi2.PatchEditor.FieldFavorites.*;
 import arc.*;
 import arc.graphics.*;
 import arc.scene.*;
@@ -47,33 +46,41 @@ public class FavoritesDialog extends BaseDialog{
 
             if(pane == null) pane = new ScrollPane(favoritesTable, Styles.noBarPane);
             table.add(pane).scrollX(false).grow().row();
-
-            table.table(Styles.grayPanel, buttons -> {
-                buttons.defaults().growX().height(42f);
-
-                buttons.button("@patch-editor.notes", Icon.book, Styles.cleart, () -> EUI.notes.show());
-
-                buttons.button("@favorites.export", Icon.copy, Styles.cleart, this::exportFavorites);
-                buttons.button("@favorites.import", Icon.download, Styles.cleart, this::importFavorites)
-                .disabled(b -> Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty());
-                buttons.button("@favorites.clear", Icon.cancel, Styles.cleart, () -> {
-                    Vars.ui.showConfirm("@confirm", "@favorites.clear.confirm", () -> {
-                        FieldFavorites.clear();
-                        rebuildFavoritesTable();
-                    });
-                }).disabled(b -> FieldFavorites.fieldCount() == 0);
-
-                for(Element child : buttons.getChildren()){
-                    if(child instanceof Button btn){
-                        for(Cell<?> cell : btn.getCells()){
-                            cell.pad(8f);
-                        }
-                    }
-                }
-            });
         }).width(width).growY();
 
         rebuildFavoritesTable();
+        rebuildButtons();
+    }
+    private void rebuildButtons(){
+        buttons.clearChildren();
+
+        boolean isPortrait = Core.graphics.isPortrait();
+
+        if(!isPortrait) buttons.button("@back", Icon.left, this::hide);
+
+        buttons.button("@favorites.export", Icon.copy, this::exportFavorites);
+        buttons.button("@favorites.import", Icon.download, this::importFavorites)
+        .disabled(b -> Core.app.getClipboardText() == null || Core.app.getClipboardText().isEmpty());
+
+        if(isPortrait){
+            buttons.row();
+            buttons.button("@back", Icon.left, this::hide);
+        }
+
+        buttons.button("@favorites.clear", Icon.cancel, () -> {
+            Vars.ui.showConfirm("@confirm", "@favorites.clear.confirm", () -> {
+                FieldFavorites.clear();
+                rebuildFavoritesTable();
+            });
+        }).disabled(b -> FieldFavorites.fieldCount() == 0);
+
+        for(Element child : buttons.getChildren()){
+            if(child instanceof Button btn){
+                for(Cell<?> cell : btn.getCells()){
+                    cell.pad(8f);
+                }
+            }
+        }
     }
 
     private void setupSearchTable(Table table){
