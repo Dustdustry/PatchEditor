@@ -47,7 +47,7 @@ public class FieldNotes{
     }
 
     public static boolean canNote(EditorNode node){
-        return node.getFieldID() != null;
+        return node.getFieldId() != null;
     }
 
     public static String getNote(String fieldId){
@@ -59,6 +59,11 @@ public class FieldNotes{
     public static String getBuiltInNote(String fieldId){
         if(fieldId == null || fieldId.isEmpty()) return null;
         return builtInNotes.get(fieldId);
+    }
+
+    public static String getUserNote(String fieldId){
+        if(fieldId == null || fieldId.isEmpty()) return null;
+        return userNotes.get(fieldId);
     }
 
     public static void setUserNote(String fieldId, String note){

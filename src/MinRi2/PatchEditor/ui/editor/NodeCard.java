@@ -485,11 +485,11 @@ public class NodeCard extends Table{
 
         if(Core.settings.getBool("patch-editor.editNotes") && FieldNotes.canNote(node)){
             table.button(Icon.editSmall, EStyles.noteButton, () -> {
-                EUI.fieldNote.show(node.getFieldID());
-            }).color(EPalettes.gray).checked(b -> FieldNotes.getNote(node.getFieldID()) != null)
+                EUI.noteEditor.show(node.getFieldId());
+            }).color(EPalettes.gray).checked(b -> FieldNotes.getNote(node.getFieldId()) != null)
             .tooltip("@patch-editor.note.edit");
         }else{
-            String note = FieldNotes.getNote(node.getFieldID());
+            String note = FieldNotes.getNote(node.getFieldId());
             if(note != null){
                 table.image(Icon.bookOpenSmall).color(EPalettes.lighterGray).size(Vars.iconSmall * 0.85f)
                 .tooltip(t -> t.margin(12f).background(Styles.black8).labelWrap(note).width(480f).style(Styles.outlineLabel));
@@ -504,7 +504,7 @@ public class NodeCard extends Table{
     }
 
     private void addNoteHolder(Table table, EditorNode node){
-        String note = FieldNotes.getNote(node.getFieldID());
+        String note = FieldNotes.getNote(node.getFieldId());
         if(note != null){
             Tooltip tooltip = new Tooltip(t -> {
                 t.margin(12f).background(Styles.black8);

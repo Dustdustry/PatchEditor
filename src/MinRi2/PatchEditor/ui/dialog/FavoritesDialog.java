@@ -36,7 +36,7 @@ public class FavoritesDialog extends BaseDialog{
         cont.top();
         cont.clearChildren();
 
-        float width = Math.min(Math.max(600f, Core.graphics.getWidth() * 0.7f), 1000f);
+        float width = Math.min(Core.graphics.getWidth() * 0.7f, 1000f);
         cont.table(table -> {
             table.top();
             table.defaults().pad(8f).growX();
@@ -163,7 +163,7 @@ public class FavoritesDialog extends BaseDialog{
         table.table(buttons -> {
             buttons.defaults().size(Vars.iconSmall).pad(4f);
             buttons.button(Icon.editSmall, Styles.clearNonei, () -> {
-                EUI.fieldNote.show(favorite.id);
+                EUI.noteEditor.show(favorite.id);
             }).tooltip("@patch-editor.note.edit");
             buttons.button(Icon.copySmall, Styles.clearNonei, () -> {
                 Core.app.setClipboardText(favorite.id);

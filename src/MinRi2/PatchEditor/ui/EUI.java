@@ -33,7 +33,7 @@ public class EUI{
     public static SoundSelector soundSelector;
 
     public static FavoritesDialog favorites;
-    public static FieldNoteDialog fieldNote;
+    public static EditNoteDialog noteEditor;
 
     public static void init(){
         EStyles.init();
@@ -47,7 +47,7 @@ public class EUI{
         soundSelector = new SoundSelector();
 
         favorites = new FavoritesDialog();
-        fieldNote = new FieldNoteDialog();
+        noteEditor = new EditNoteDialog();
 
         mountEditor();
     }

@@ -28,12 +28,12 @@ public class NodeFavorites{
     }
 
     public static boolean isFavorite(EditorNode node){
-        String key = node.getFieldID();
+        String key = node.getFieldId();
         return key != null && map.containsKey(key);
     }
 
     public static void toggle(EditorNode node){
-        String key = node.getFieldID();
+        String key = node.getFieldId();
         if(key == null) return;
 
         if(map.containsKey(key)){
@@ -65,7 +65,7 @@ public class NodeFavorites{
     }
 
     public static boolean canFavorite(EditorNode node){
-        return node.getFieldID() != null;
+        return node.getFieldId() != null;
     }
 
     public static int importJson(String text, boolean replace){
@@ -107,7 +107,7 @@ public class NodeFavorites{
     }
 
     private static FavoriteField resolve(EditorNode node){
-        String key = node.getFieldID();
+        String key = node.getFieldId();
         if(key == null) return null;
 
         Field field = node.getObjNode().field;

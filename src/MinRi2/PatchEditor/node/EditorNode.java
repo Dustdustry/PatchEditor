@@ -185,7 +185,7 @@ public class EditorNode{
         return false;
     }
 
-    public @Nullable String getFieldID(){
+    public @Nullable String getFieldId(){
         if(objectNode == null || objectNode.field == null) return null;
         return PatchJsonIO.getTypeName(objectNode.field.getDeclaringClass()) + "#" + objectNode.field.getName();
     }
