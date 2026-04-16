@@ -14,7 +14,7 @@ main: "MinRi2.PatchEditor.Main"
 description: "Provide an in-game GUI for DataPatcher."
 
 #the mod version
-version: 1.8.5
+version: 1.9.0
 
 #the minimum game build required to run this mod
 minGameVersion: 156
