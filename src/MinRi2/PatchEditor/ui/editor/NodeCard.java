@@ -66,6 +66,16 @@ public class NodeCard extends Table{
         });
     }
 
+    private static Tooltip getNoteTooltip(String note, boolean allowMobile){
+        Tooltip tooltip = new Tooltip(t -> {
+            t.margin(12f).background(Styles.black8);
+            t.labelWrap(note).width(noteWidth).style(Styles.outlineLabel);
+        });
+        tooltip.allowMobile = allowMobile;
+
+        return tooltip;
+    }
+
     @Override
     public void act(float delta){
         super.act(delta);
@@ -492,7 +502,7 @@ public class NodeCard extends Table{
             String note = FieldNotes.getNote(node.getFieldId());
             if(note != null){
                 table.image(Icon.bookOpenSmall).color(EPalettes.lighterGray).size(Vars.iconSmall * 0.85f)
-                .tooltip(t -> t.margin(12f).background(Styles.black8).labelWrap(note).width(480f).style(Styles.outlineLabel));
+                .get().addListener(getNoteTooltip(note, true));
             }
         }
 
@@ -506,16 +516,10 @@ public class NodeCard extends Table{
     private void addNoteHolder(Table table, EditorNode node){
         String note = FieldNotes.getNote(node.getFieldId());
         if(note != null){
-            Tooltip tooltip = new Tooltip(t -> {
-                t.margin(12f).background(Styles.black8);
-                t.labelWrap(note).width(noteWidth).style(Styles.outlineLabel);
-            });
-            tooltip.allowMobile = true;
-
             Element holder = new Element(){{
                 fillParent = true;
                 touchable = Touchable.enabled;
-                addListener(tooltip);
+                addListener(getNoteTooltip(note, true));
             }};
             table.addChild(holder);
             holder.toBack();
