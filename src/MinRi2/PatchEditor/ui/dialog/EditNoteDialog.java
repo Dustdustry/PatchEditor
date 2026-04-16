@@ -21,7 +21,7 @@ public class EditNoteDialog extends BaseDialog{
             if(note != null){
                 String userNote = note.trim();
                 if(!userNote.isEmpty()){
-                    FieldNotes.setUserNote(fieldId, note);
+                    FieldNotes.setUserNote(fieldId, userNote);
                 }else{
                     FieldNotes.removeUserNote(fieldId);
                 }

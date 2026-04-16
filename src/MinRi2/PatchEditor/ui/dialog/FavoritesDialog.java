@@ -190,9 +190,7 @@ public class FavoritesDialog extends BaseDialog{
             }).tooltip("@favorites.copy-id");
             buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
                 FieldFavorites.remove(fieldId);
-
-                table.clear();
-                setupFavoriteFieldTable(table, fieldId);
+                rebuildFavoritesTable();
             }).tooltip("@favorites.remove");
         }).growY().pad(4f);
 

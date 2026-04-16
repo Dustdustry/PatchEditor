@@ -202,6 +202,7 @@ public class NotesDialog extends BaseDialog{
             buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {
                 FieldNotes.removeUserNote(fieldId);
 
+                // Just remove user note. Don't rebuild the hole table
                 table.clear();
                 setupNoteFieldTable(table, fieldId);
             }).tooltip("@notes.clear-user").disabled(b -> FieldNotes.getUserNote(fieldId) == null);

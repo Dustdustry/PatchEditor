@@ -19,11 +19,11 @@ public class SoundSelector extends SelectorDialog<Sound>{
         super("@selector.sound");
 
         hidden(() -> {
-            for(int handle : playingSounds.items){
+            playingSounds.each(handle -> {
                 if(SoloudAssessor.idValid(handle)){
                     SoloudAssessor.idStopMethod(handle);
                 }
-            }
+            });
             playingSounds.clear();
         });
     }
@@ -63,14 +63,14 @@ public class SoundSelector extends SelectorDialog<Sound>{
                     idValidMethod = Soloud.class.getDeclaredMethod("idValid", int.class);
                     idValidMethod.setAccessible(true);
                 }catch(NoSuchMethodException e){
-                    throw new RuntimeException(e);
+                    return false;
                 }
             }
 
             try{
                 return (boolean)idValidMethod.invoke(null, handle);
             }catch(IllegalAccessException | InvocationTargetException e){
-                throw new RuntimeException(e);
+                return false;
             }
         }
 
@@ -79,15 +79,14 @@ public class SoundSelector extends SelectorDialog<Sound>{
                 try{
                     idStopMethod = Soloud.class.getDeclaredMethod("idStop", int.class);
                     idStopMethod.setAccessible(true);
-                }catch(NoSuchMethodException e){
-                    throw new RuntimeException(e);
+                }catch(NoSuchMethodException ignored){
+                    return;
                 }
             }
 
             try{
                 idStopMethod.invoke(null, handle);
-            }catch(IllegalAccessException | InvocationTargetException e){
-                throw new RuntimeException(e);
+            }catch(IllegalAccessException | InvocationTargetException ignored){
             }
         }
     }

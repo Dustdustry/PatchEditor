@@ -63,13 +63,14 @@ public class EUI{
             Table table = Reflect.get(pane, "widget");
 
             Table buttonTable = (Table)table.getChildren().peek();
+            if(buttonTable.find("patch-editor") != null) return;
 
             buttonTable.row();
 
             buttonTable.button(b -> {
                 b.add("[accent][PE]").pad(8f).left();
                 b.add("@patch-manager").expandX();
-            }, Styles.cleari, manager::show)
+            }, Styles.cleari, manager::show).name("patch-editor")
             .colspan(buttonTable.getColumns()).width(Float.NEGATIVE_INFINITY).growX();
 
             buttonTable.row();
