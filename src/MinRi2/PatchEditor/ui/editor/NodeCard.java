@@ -12,6 +12,7 @@ import MinRi2.PatchEditor.ui.dialog.*;
 import MinRi2.PatchEditor.utils.*;
 import arc.*;
 import arc.graphics.*;
+import arc.input.*;
 import arc.scene.*;
 import arc.scene.actions.*;
 import arc.scene.event.*;
@@ -275,6 +276,13 @@ public class NodeCard extends Table{
             t.table(infoTable -> {
                 infoTable.left();
                 NodeDisplay.displayNameType(infoTable, node);
+
+                final String path = node.getPath();
+                infoTable.touchable = Touchable.enabled;
+                infoTable.clicked(KeyCode.mouseMiddle, () -> {
+                    Core.app.setClipboardText(path);
+                    EUI.infoToast(path);
+                });
             }).pad(8f).fill();
 
             t.table(modifier::build).pad(4).grow();
@@ -335,6 +343,13 @@ public class NodeCard extends Table{
             b.table(infoTable -> {
                 infoTable.left();
                 NodeDisplay.display(infoTable, node);
+
+                final String path = node.getPath();
+                infoTable.touchable = Touchable.enabled;
+                infoTable.clicked(KeyCode.mouseMiddle, () -> {
+                    Core.app.setClipboardText(path);
+                    EUI.infoToast(path);
+                });
             }).pad(8f).grow();
 
             b.table(buttons -> {
