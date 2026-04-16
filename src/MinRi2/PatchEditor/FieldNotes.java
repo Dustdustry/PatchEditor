@@ -1,6 +1,7 @@
 package MinRi2.PatchEditor;
 
 import MinRi2.PatchEditor.node.*;
+import arc.*;
 import arc.files.*;
 import arc.struct.*;
 import arc.struct.ObjectMap.*;
@@ -9,7 +10,7 @@ import mindustry.*;
 import mindustry.io.*;
 
 public class FieldNotes{
-    public static final String builtInNotesPath = "notes/default.json";
+    public static final String builtInNotesName = "default";
     public static final String userNotesFileName = "field-notes.user.json";
     public static final String githubNotesUrl = "https://github.com/minri2/PatchEditor/tree/main/notes";
 
@@ -23,7 +24,11 @@ public class FieldNotes{
         if(!dir.exists()) dir.mkdirs();
 
         userNotesFi = dir.child(userNotesFileName);
-        Fi builtIn = Vars.tree.get(builtInNotesPath);
+
+        Fi notesFi = EVars.thisMod.root.child("notes");
+        String localeBuiltIn = builtInNotesName + "_" + Core.bundle.getLocale() + ".json";
+        String builtInPath = notesFi.child(localeBuiltIn).exists() ? localeBuiltIn : builtInNotesName + ".json";
+        Fi builtIn = notesFi.child(builtInPath);
 
         try{
             if(userNotesFi.exists()){

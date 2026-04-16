@@ -21,6 +21,7 @@ public class Main extends Mod{
 
     public Main(){
         Events.on(ClientLoadEvent.class, e -> {
+            EVars.init();
             EUI.init();
 
             if(OS.hasProp("exposeExporterJS")){
