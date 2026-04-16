@@ -278,7 +278,6 @@ public class NodeCard extends Table{
                 NodeDisplay.displayNameType(infoTable, node);
 
                 final String path = node.getPath();
-                infoTable.touchable = Touchable.enabled;
                 infoTable.clicked(KeyCode.mouseMiddle, () -> {
                     Core.app.setClipboardText(path);
                     EUI.infoToast(path);
@@ -345,7 +344,6 @@ public class NodeCard extends Table{
                 NodeDisplay.display(infoTable, node);
 
                 final String path = node.getPath();
-                infoTable.touchable = Touchable.enabled;
                 infoTable.clicked(KeyCode.mouseMiddle, () -> {
                     Core.app.setClipboardText(path);
                     EUI.infoToast(path);
