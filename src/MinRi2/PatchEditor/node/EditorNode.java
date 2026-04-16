@@ -84,7 +84,7 @@ public class EditorNode{
                         }catch(Exception e){
                             Log.err(e);
                         }
-                    }else if(!children.containsKey(childPatch.key)){
+                    }else if(!children.containsKey(childPatch.key) && !"type".equals(childPatch.key)){
                         EditorNode child = new InvalidEditorNode(childPatch.key, manager);
                         child.parent = this;
                         children.put(childPatch.key, child);
