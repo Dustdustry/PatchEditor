@@ -125,7 +125,7 @@ public class PatchManager extends BaseDialog{
         table.row();
 
         table.table(Styles.grayPanel, buttonTable -> {
-            buttonTable.defaults().minWidth(130f).height(40f).margin(8f).pad(8f).growX();
+            buttonTable.defaults().minWidth(150f).height(40f).margin(8f).pad(8f).growX();
 
             buttonTable.button("@patch-manager.add-patch", Icon.add, Styles.cleart, () -> {
                 String name = findPatchName();
@@ -135,7 +135,7 @@ public class PatchManager extends BaseDialog{
                 rebuildPatchTable();
             });
 
-            buttonTable.button("@patch-manager.import-patch", Icon.add, Styles.cleart, () -> {
+            buttonTable.button("@patch-manager.import-patch", Icon.download, Styles.cleart, () -> {
                 String text = Core.app.getClipboardText();
 
                 JsonValue value;
@@ -152,7 +152,7 @@ public class PatchManager extends BaseDialog{
                 rebuildPatchTable();
 
                 EUI.infoToast("@patch-manager.import-patch.succeed");
-            }).disabled(b -> Core.app.getClipboardText() == null);
+            }).disabled(b -> Core.app.getClipboardText() == null).minWidth(180f);
         }).pad(8f).padTop(4f).growX();
     }
 
