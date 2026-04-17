@@ -190,13 +190,6 @@ public class PatchJsonIO{
         try{
             Class<?> type = objectNode.type;
             if(patchNode.value != null){
-                if(type == float.class || type == Float.class) return Float.parseFloat(patchNode.value);
-                if(type == double.class || type == Double.class) return Double.parseDouble(patchNode.value);
-                if(type == long.class || type == Long.class) return Long.parseLong(patchNode.value);
-                if(type == int.class || type == Integer.class) return Integer.parseInt(patchNode.value);
-                if(type == short.class || type == Short.class) return Short.parseShort(patchNode.value);
-                if(type == byte.class || type == Byte.class) return Byte.parseByte(patchNode.value);
-
                 Class<?> resolvedType = PatchJsonIO.resolveType(patchNode.value);
                 if(resolvedType != null) return resolvedType;
             }
@@ -309,7 +302,7 @@ public class PatchJsonIO{
         value.setName(patchNode.key);
         if(patchNode.value != null){
             if(patchNode.type == ValueType.doubleValue || patchNode.type == ValueType.longValue){
-                value.set(Strings.parseDouble(patchNode.value, 0), patchNode.value);
+                value.set(Double.parseDouble(patchNode.value), patchNode.value);
             }else{
                 value.set(patchNode.value);
             }
