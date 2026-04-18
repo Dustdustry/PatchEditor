@@ -13,6 +13,10 @@ import java.lang.reflect.*;
 public class ObjectExample{
     private static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
 
+    public static Object getExample(Class<?> base){
+        return getExample(base, base);
+    }
+
     public static Object getExample(Class<?> base, Class<?> type){
         if(type == float.class || type == Float.class) return 0f;
         if(type == double.class || type == Double.class) return 0d;

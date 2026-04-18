@@ -177,23 +177,26 @@ public class ObjectResolver{
         if(object instanceof Block block){
             ObjectNode consumesNode = node.addChild("consumes", emptyObject, Consume.class);
 
+            consumesNode.addChild("item", null, Item.class);
+            consumesNode.addChild("itemCharged", ObjectExample.getExample(ConsumeItemCharged.class), ConsumeItemCharged.class);
+            consumesNode.addChild("itemFlammable", ObjectExample.getExample(ConsumeItemFlammable.class), ConsumeItemFlammable.class);
+            consumesNode.addChild("itemRadioactive", ObjectExample.getExample(ConsumeItemRadioactive.class), ConsumeItemRadioactive.class);
+            consumesNode.addChild("itemExplosive", ObjectExample.getExample(ConsumeItemExplosive.class), ConsumeItemExplosive.class);
+            consumesNode.addChild("itemList", ObjectExample.getExample(ConsumeItemList.class), ConsumeItemList.class);
+            consumesNode.addChild("itemExplode", ObjectExample.getExample(ConsumeItemExplode.class), ConsumeItemExplode.class);
+            consumesNode.addChild("items", ObjectExample.getExample(ConsumeItems.class), ConsumeItems.class);
+
+            consumesNode.addChild("liquidFlammable", ObjectExample.getExample(ConsumeLiquidFlammable.class), ConsumeLiquidFlammable.class);
+            consumesNode.addChild("liquid", ObjectExample.getExample(ConsumeLiquid.class), ConsumeLiquid.class);
+            consumesNode.addChild("liquids", ObjectExample.getExample(ConsumeLiquids.class), ConsumeLiquids.class);
+            consumesNode.addChild("coolant", ObjectExample.getExample(ConsumeCoolant.class), ConsumeCoolant.class);
+            consumesNode.addChild("power", ObjectExample.getExample(ConsumePower.class), ConsumePower.class);
+            consumesNode.addChild("powerBuffered", 0f, float.class);
+
             consumesNode.addSign(ModifierSign.MODIFY);
-
-            consumesNode.addChild("item", null, Item.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("itemCharged", null, ConsumeItemCharged.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("itemFlammable", null, ConsumeItemFlammable.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("itemRadioactive", null, ConsumeItemRadioactive.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("itemExplosive", null, ConsumeItemExplosive.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("itemList", null, ConsumeItemList.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("itemExplode", null, ConsumeItemExplode.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("items", null, ConsumeItems.class).addSign(ModifierSign.MODIFY);
-
-            consumesNode.addChild("liquidFlammable", null, ConsumeLiquidFlammable.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("liquid", null, ConsumeLiquid.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("liquids", null, ConsumeLiquids.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("coolant", null, ConsumeCoolant.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("power", null, ConsumePower.class).addSign(ModifierSign.MODIFY);
-            consumesNode.addChild("powerBuffered", null, float.class).addSign(ModifierSign.MODIFY);
+            for(ObjectNode child : consumesNode.getChildren().values()){
+                child.addSign(ModifierSign.MODIFY);
+            }
 
             ObjectNode removeNode = consumesNode.addChild("remove", emptyObject, Consume.class);
             removeNode.addSign(ModifierSign.MODIFY);
