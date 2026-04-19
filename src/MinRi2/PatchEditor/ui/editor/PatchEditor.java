@@ -8,8 +8,10 @@ import MinRi2.PatchEditor.ui.editor.PatchManager.*;
 import arc.*;
 import arc.input.*;
 import arc.scene.*;
+import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import arc.util.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -91,28 +93,23 @@ public class PatchEditor extends BaseDialog{
             }
         });
 
-        keyDown(KeyCode.up, () -> {
-            NodeCard front = card.getFrontCard();
-            if(front != card) front.extractWorking();
-        });
+        keyDown(KeyCode.up, () -> card.getFrontCard().extractWorking());
         keyDown(KeyCode.down, () -> card.getFrontCard().editLastData());
+
+        addListener(new InputListener(){
+            @Override
+            public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
+                if(button == KeyCode.mouseForward) card.getFrontCard().editLastData();
+                else if(button == KeyCode.mouseBack) card.getFrontCard().extractWorking();
+                return super.touchDown(event, x, y, pointer, button);
+            }
+        });
 
         addCloseListener();
 
         update(() -> {
-           if(Core.input.keyTap(KeyCode.tab)){
-               if(!Core.input.shift()){
-                   card.getFrontCard().editLastData();
-               }else{
-                   NodeCard front = card.getFrontCard();
-                   if(front != card) front.extractWorking();
-               }
-           }
-        });
-
-        update(() -> {
             if(Core.scene.getDialog() != this) return;
-            if(Core.scene.getKeyboardFocus() != null) return;
+            if(Core.scene.getKeyboardFocus() != null && !Core.scene.getKeyboardFocus().isDescendantOf(this)) return;
 
             if(Core.input.ctrl()){
                 if(Core.input.keyTap(KeyCode.z)){
