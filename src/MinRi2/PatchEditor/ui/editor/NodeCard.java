@@ -491,7 +491,7 @@ public class NodeCard extends Table{
             }).tooltip("@node.changeType");
         }
 
-        if(hasModifier){
+        if(hasModifier && !child.isAppended()){
             table.button(Icon.undo, Styles.clearNonei, () -> {
                 modifier.resetModify();
                 modifier.syncUI();
