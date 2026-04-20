@@ -119,15 +119,13 @@ public class ObjectResolver{
                 node.addChild(name, entry.value);
             }
         }else if(object instanceof EnumSet<?> set){
-            Class<?> enumClass = set.array.getClass().getComponentType();
-            if(enumClass == null){
-                Log.warn("Cannot get enum type of enum set ''.", node.name);
-                return;
-            }
-            int i = 0;
-            for(Object o : set.array){
-                node.addChild("" + i++, o, enumClass)
-                .addSign(ModifierSign.MODIFY, enumClass, enumClass, null);
+            Class<?> enumClass = set.array != null ? set.array.getClass().getComponentType() : null;
+            if(enumClass != null){
+                int i = 0;
+                for(Object o : set.array){
+                    node.addChild("" + i++, o, enumClass)
+                    .addSign(ModifierSign.MODIFY, enumClass, enumClass, null);
+                }
             }
         }else if(object instanceof Attributes attributes){
             for(Attribute att : Attribute.all){
