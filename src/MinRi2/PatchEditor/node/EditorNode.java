@@ -137,6 +137,10 @@ public class EditorNode{
         return ClassHelper.unoymousClass(objectNode.object.getClass());
     }
 
+    public boolean canAppend(){
+        return getObject() == null || ClassHelper.isArrayLike(getTypeIn()) && !isAppended() && !isOverriding();
+    }
+
     public boolean isAppended(){
         return false;
     }

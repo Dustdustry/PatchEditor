@@ -16,6 +16,10 @@ public abstract class PatchOperator{
         this.path = path;
     }
 
+    public boolean shouldApply(PatchNode root){
+        return true;
+    }
+
     public abstract void apply(PatchNode root);
 
     // TODO: necessary status?
@@ -171,6 +175,11 @@ public abstract class PatchOperator{
         }
 
         @Override
+        public boolean shouldApply(PatchNode root){
+            return root.navigateChild(path, false) == null;
+        }
+
+        @Override
         public void apply(PatchNode root){
             captureSnapshot(root);
             PatchNode node = root.navigateChild(path, true).getOrCreate(key);
@@ -208,6 +217,12 @@ public abstract class PatchOperator{
         }
 
         @Override
+        public boolean shouldApply(PatchNode root){
+            PatchNode node = root.navigateChild(path, false);
+            return node == null || node.sign != sign;
+        }
+
+        @Override
         public void apply(PatchNode root){
             captureSnapshot(root);
             root.navigateChild(path, true).sign = sign;
@@ -220,6 +235,12 @@ public abstract class PatchOperator{
         public SetValueTypeOp(String path, ValueType type){
             super(path);
             this.type = type;
+        }
+
+        @Override
+        public boolean shouldApply(PatchNode root){
+            PatchNode node = root.navigateChild(path, false);
+            return node == null || node.type != type;
         }
 
         @Override

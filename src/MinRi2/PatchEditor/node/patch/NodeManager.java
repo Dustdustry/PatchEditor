@@ -46,6 +46,8 @@ public class NodeManager{
     }
 
     public void applyOp(PatchOperator operator, boolean uiUpdated){
+        if(!operator.shouldApply(root)) return;
+
         withPathsIndexing(operator.path, () -> {
             operator.apply(root);
             undoStack.add(operator);
