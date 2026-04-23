@@ -8,6 +8,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.JsonValue.*;
 import mindustry.ctype.*;
+import mindustry.world.consumers.*;
 
 import java.lang.reflect.*;
 
@@ -138,7 +139,18 @@ public class EditorNode{
     }
 
     public boolean canAppend(){
-        return getObject() == null || ClassHelper.isArrayLike(getTypeIn()) && !isAppended() && !isOverriding();
+        if(getObject() == null) return true;
+        if(!ClassHelper.isArrayLike(getTypeIn()) || isAppended() || isOverriding()) return false;
+
+        ObjectNode current = getObjNode();
+        while(current != null){
+            if("consumes".equals(current.name) && current.type == Consume.class){
+                return false;
+            }
+            current = current.getParent();
+        }
+
+        return true;
     }
 
     public boolean isAppended(){
