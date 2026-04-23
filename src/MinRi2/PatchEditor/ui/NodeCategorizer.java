@@ -54,8 +54,9 @@ public class NodeCategorizer{
             }
         }
 
-        Seq<NodeCategory> seq = map.values().toSeq().retainAll(c -> c.nodes.any());
-        seq.add(environment, other);
+        Seq<NodeCategory> seq = map.values().toSeq();
+        if(environment.nodes.any()) seq.add(environment);
+        if(other.nodes.any()) seq.add(other);
         for(NodeCategory category : seq){
             category.nodes.sort(baseComparator);
         }
