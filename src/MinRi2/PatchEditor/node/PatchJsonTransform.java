@@ -166,7 +166,7 @@ public class PatchJsonTransform{
                     }
                 }
             }
-        }if(type == ConsumeItems.class){
+        }else if(type == ConsumeItems.class){
             if(value.isString()){
                 // items: copper/2 -> items: {items: [copper/2]}
                 String item = value.asString();
