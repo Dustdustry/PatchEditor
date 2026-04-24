@@ -247,7 +247,7 @@ public class EditorNode{
             int dot = path.indexOf(NodeManager.pathComp, start);
             String name = dot == -1 ? path.substring(start) : path.substring(start, dot);
             current = current.buildChildren().get(name);
-            if(current == null) return;
+            if(current == null || dot == -1) return;
             start = dot + 1;
         }
     }
