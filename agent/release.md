@@ -42,9 +42,10 @@
 - **[Refactoring]**: Performed [Cleanup/Restructuring].
 - **[Optimization]**: Optimized [Logic] to ensure [Result].
 
-**Full Changelog**: https://github.com/[User]/[Repo]/compare/[Old_Tag]...[New_Tag]
+**Full Changelog**: https://github.com/Dustdustry/PatchEditor/compare/[Old_Tag]...[New_Tag]
 
 ## Workflow
-1. 接收用户输入的版本号，自行查询变动列表
+1. 接收用户输入的版本号，使用git差异命令查询变动列表
 2. 将变动归类到“特性”、“修复”或“优化”中
 3. 按照模板生成的中英双语 Markdown 文本
+4. 发送 Markdown 源文本

@@ -37,31 +37,28 @@ public class NodeCard extends Table{
     public static float buttonWidth = 330f;
     public static float buttonHeight = buttonWidth / 3f;
 
-    private final Table cardCont, nodesTable; // workingTable / childrenNodesTable
-    public boolean editing;
-    public NodeCard parent, childCard;
+    private final Table nodesTable; // workingTable / childrenNodesTable
 
     private final NodeManager manager;
     private EditorNode rootEditorNode;
 
-    private String editorPath, lastEditorPath;
+    private String editorPath = "", parentPath = "";
+    private int depth;
 
-    private String searchText = "";
+    private final ObjectMap<String, String> lastEditMap = new ObjectMap<>();
+    private String[] searchTextMap = new String[8];
 
     private boolean needRebuildNodes;
 
     public NodeCard(NodeManager manager){
         this.manager = manager;
 
-        cardCont = new Table();
         nodesTable = new Table();
 
         top().left();
-        cardCont.top();
         nodesTable.top().left();
 
         manager.onChanged((op, node, uiUpdated) -> {
-            if(editorPath == null) return;
             if(!isRelatedPath(op.path, editorPath) || uiUpdated) return;
             needRebuildNodes = true;
         });
@@ -81,107 +78,82 @@ public class NodeCard extends Table{
     public void act(float delta){
         super.act(delta);
 
-        if(!editing && needRebuildNodes){
+        if(needRebuildNodes){
             rebuildNodesTable();
         }
     }
 
     public void setRootEditorNode(EditorNode rootEditorNode){
         this.rootEditorNode = rootEditorNode;
-        if(childCard != null) childCard.setRootEditorNode(rootEditorNode);
+        lastEditMap.clear();
     }
 
     public void setEditPath(String path){
-        editorPath = path;
+        EditorNode node = rootEditorNode.navigate(path);
+        if(node == null || (node != rootEditorNode && !node.isEditable())){
+            return;
+        }
+
+        lastEditMap.put(parentPath, editorPath);
+
+        editorPath = path == null ? "" : path;
+
+        int dot = editorPath.lastIndexOf(NodeManager.pathComp);
+        parentPath = dot == -1 ? "" : editorPath.substring(0, dot);
+
+        rebuild();
     }
 
-    public NodeCard getFrontCard(){
-        NodeCard card = this;
-
-        while(card.editing && card.childCard != null){
-            card = card.childCard;
-        }
-
-        return card;
-    }
-
-    private void editChildNode(String path){
-        if(childCard == null){
-            childCard = new NodeCard(manager);
-            childCard.setRootEditorNode(rootEditorNode);
-            childCard.parent = this;
-        }else if(childCard.editing){
-            childCard.editChildNode(null);
-        }
-
-        EditorNode editorNode = rootEditorNode.navigate(path);
-        if(editorNode != null && !editorNode.isEditable()){
-            editing = false;
-        }else{
-            editing = path != null;
-            childCard.setEditPath(path);
-        }
-
-        rebuildCont();
-    }
-
-    public void extractWorking(){
-        if(parent != null){
-            parent.lastEditorPath = editorPath;
-            parent.editChildNode(null);
-        }
+    public void extract(){
+        if(!editorPath.isEmpty()) setEditPath(parentPath);
     }
 
     public void editLastData(){
-        if((childCard == null || !childCard.editing) && lastEditorPath != null && lastEditorPath.startsWith(editorPath)){
-            editChildNode(lastEditorPath);
+        String lastPath = lastEditMap.get(editorPath);
+        if(lastPath != null && rootEditorNode.navigate(lastPath) != null){
+            setEditPath(lastPath);
         }
     }
 
     public void rebuild(){
         clearChildren();
 
-        EditorNode editorNode = getEditorNode();
-        if(editorNode == null){
-            editChildNode(null);
-            return;
+        Table currentCont = table().growX().get();
+        Seq<EditorNode> nodes = rootEditorNode.navigateThrough(editorPath, new Seq<>());
+
+        depth = nodes.size - 1;
+        if(depth + 1 > searchTextMap.length){
+            String[] newMap = new String[depth + 1];
+            System.arraycopy(searchTextMap, 0, newMap, 0, newMap.length);
+            searchTextMap = newMap;
         }
 
-        defaults().growX();
-        buildTitle(this);
-        row();
-        rebuildCont();
-        add(cardCont).grow();
+        for(EditorNode node : nodes){
+            currentCont = currentCont.table(cont -> {
+                cont.table(Tex.whiteui, title -> {
+                    buildTitle(title, node);
+                }).color(node == rootEditorNode ? EPalettes.main2 : EPalettes.main3).growX();
+                cont.row();
+            }).padLeft(16f).growX().get();
+        }
+
+        currentCont.table(this::setupSearchTable).pad(8f).growX();
+        currentCont.row();
+        currentCont.add(nodesTable).grow();
+
+        // After layout assigned size
+        Core.app.post(this::rebuildNodesTable);
     }
 
     public EditorNode getEditorNode(){
-        return editorPath == null ? null : rootEditorNode.navigate(editorPath);
-    }
-
-    private void rebuildCont(){
-        cardCont.clearChildren();
-
-        cardCont.defaults().padLeft(16f);
-
-        if(editing){
-            childCard.rebuild();
-            cardCont.add(childCard).grow();
-            nodesTable.clear();
-        }else{
-            cardCont.table(this::setupSearchTable).pad(8f).growX();
-            cardCont.row();
-            cardCont.add(nodesTable).fill();
-
-            // After layout assigned size
-            Core.app.post(this::rebuildNodesTable);
-        }
+        return rootEditorNode.navigate(editorPath);
     }
 
     private void setupSearchTable(Table table){
         table.image(Icon.zoom).size(64f);
 
-        TextField field = table.add(EUI.deboundTextField(searchText, text -> {
-            searchText = text;
+        TextField field = table.add(EUI.deboundTextField(searchTextMap[depth], text -> {
+            searchTextMap[depth] = text;
             rebuildNodesTable();
         })).pad(8f).growX().get();
 
@@ -190,8 +162,8 @@ public class NodeCard extends Table{
         }
 
         table.button(Icon.cancel, Styles.clearNonei, () -> {
-            searchText = "";
-            field.setText(searchText);
+            searchTextMap[depth] = "";
+            field.setText("");
             rebuildNodesTable();
         }).size(64f);
     }
@@ -202,8 +174,7 @@ public class NodeCard extends Table{
 
         EditorNode editorNode = getEditorNode();
         if(editorNode == null){
-            // 已被清除，回退编辑但不记忆上次编辑
-            Core.app.post(() -> parent.editChildNode(null));
+            setEditPath(parentPath);
             return;
         }
 
@@ -225,9 +196,10 @@ public class NodeCard extends Table{
 
             cont.defaults().size(buttonWidth, buttonWidth / 4).pad(4f).margin(8f).top().left();
 
+            String searchText = searchTextMap[depth];
             int index = 0;
             for(EditorNode child : category.nodes){
-                if(!searchText.isEmpty()){
+                if(searchText != null && !searchText.isEmpty()){
                     String displayName = NodeDisplay.getDisplayName(child.getDisplayValue());
 
                     if(!Strings.matches(searchText, child.getObjNode().name)
@@ -363,7 +335,7 @@ public class NodeCard extends Table{
             horizontalLine.colspan(b.getColumns());
         }, style, () -> {}).disabled(node.isRemoving() || (node.getObject() == null && !node.isOverriding())).get();
 
-        EUI.backButtonClick(btn, () -> editChildNode(node.getPath()));
+        EUI.backButtonClick(btn, () -> setEditPath(node.getPath()));
     }
 
     private void addPlusButton(Table table, EditorNode editorNode){
@@ -537,67 +509,65 @@ public class NodeCard extends Table{
         }
     }
 
-    private void buildTitle(Table table){
-        EditorNode editorNode = getEditorNode();
+    private void buildTitle(Table table, EditorNode node){
+        table.defaults().pad(8f);
 
-        Color titleColor = parent == null ? EPalettes.main2 : EPalettes.main3;
-        table.table(Tex.whiteui, nodeTitle -> {
-            nodeTitle.defaults().pad(8f);
+        table.table(Tex.whiteui, nameTable -> {
+            nameTable.table(t -> {
+                t.left();
+                NodeDisplay.display(t, node);
+            }).pad(8f).grow();
 
-            nodeTitle.table(Tex.whiteui, nameTable -> {
-                nameTable.table(t -> {
-                    t.left();
-                    NodeDisplay.display(t, editorNode);
-                }).pad(8f).grow();
+            nameTable.image().width(4f).color(Color.darkGray).growY().right();
+            nameTable.row();
+            Cell<?> horizontalLine = nameTable.image().height(4f).color(Color.darkGray).growX();
+            horizontalLine.colspan(nameTable.getColumns());
+        }).color(Pal.darkestGray).size(buttonWidth, buttonHeight);
 
-                nameTable.image().width(4f).color(Color.darkGray).growY().right();
-                nameTable.row();
-                Cell<?> horizontalLine = nameTable.image().height(4f).color(Color.darkGray).growX();
-                horizontalLine.colspan(nameTable.getColumns());
-            }).color(Pal.darkestGray).size(buttonWidth, buttonHeight);
+        table.table(buttons -> {
+            buttons.defaults().size(64f).pad(8f);
 
-            nodeTitle.table(buttons -> {
-                buttons.defaults().size(64f).pad(8f);
+            // Clear data
+            buttons.button(Icon.refresh, Styles.cleari, () -> {
+                Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", node.getPath()), node::clearJson);
+            }).tooltip("@node-card.clear-data", true);
 
-                // Clear data
-                buttons.button(Icon.refresh, Styles.cleari, () -> {
-                    Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", editorNode.getPath()), editorNode::clearJson);
-                }).tooltip("@node-card.clear-data", true);
+            if(node != rootEditorNode){
+                buttons.button(Icon.download, Styles.cleari, () -> {
+                    try{
+                        node.importPatch(Core.app.getClipboardText());
+                    }catch(RuntimeException e){
+                        Vars.ui.showException("@node-card.appendPatchNode.failed", e);
+                        return;
+                    }
+                    EUI.infoToast(Core.bundle.format("node-card.appendPatchNode", editorPath));
+                }).padLeft(16f).tooltip(Core.bundle.format("node-card.appendPatchNode", editorPath), true)
+                .disabled(b -> Core.app.getClipboardText() == null);
 
-                if(editorNode != rootEditorNode){
-                    buttons.button(Icon.download, Styles.cleari, () -> {
-                        try{
-                            editorNode.importPatch(Core.app.getClipboardText());
-                        }catch(RuntimeException e){
-                            Vars.ui.showException("@node-card.appendPatchNode.failed", e);
-                            return;
-                        }
-                        EUI.infoToast(Core.bundle.format("node-card.appendPatchNode", editorPath));
-                    }).padLeft(16f).tooltip(Core.bundle.format("node-card.appendPatchNode", editorPath), true)
-                    .disabled(b -> Core.app.getClipboardText() == null);
+                buttons.button(Icon.copy, Styles.cleari, () -> {
+                    PatchNode patchNode = node.getPatch();
+                    Core.app.setClipboardText(patchNode == null ? "" : PatchJsonIO.toPatch(node.getObjNode(), patchNode, EditorSettings.getPatchExportOptions()));
+                    EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
+                }).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
 
-                    buttons.button(Icon.copy, Styles.cleari, () -> {
-                        PatchNode patchNode = editorNode.getPatch();
-                        Core.app.setClipboardText(patchNode == null ? "" : PatchJsonIO.toPatch(editorNode.getObjNode(), patchNode, EditorSettings.getPatchExportOptions()));
-                        EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
-                    }).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
+                buttons.button(Icon.effect, Styles.cleari, () -> {
+                    String patch = PatchExporter.export(node.getMetaNode(), EditorSettings.getExportConfig(), EditorSettings.getPatchExportOptions());
+                    Core.app.setClipboardText(patch);
+                    EUI.infoToast(Core.bundle.format("node-card.magicExportNode", editorPath));
+                }).padLeft(16f).tooltip(Core.bundle.format("node-card.magicExportNode.tooltip", editorPath), true);
+            }
+        });
 
-                    buttons.button(Icon.effect, Styles.cleari, () -> {
-                        String patch = PatchExporter.export(editorNode.getMetaNode(), EditorSettings.getExportConfig(), EditorSettings.getPatchExportOptions());
-                        Core.app.setClipboardText(patch);
-                        EUI.infoToast(Core.bundle.format("node-card.magicExportNode", editorPath));
-                    }).padLeft(16f).tooltip(Core.bundle.format("node-card.magicExportNode.tooltip", editorPath), true);
-                }
-            });
+        table.table(cardButtons -> {
+            cardButtons.defaults().size(64f).pad(8f);
 
-            nodeTitle.table(cardButtons -> {
-                cardButtons.defaults().size(64f).pad(8f);
-
-                if(parent != null){
-                    cardButtons.button(Icon.upOpen, Styles.cleari, this::extractWorking).tooltip("@node-card.extract", false);
-                }
-            }).expandX().right().growY();
-        }).color(titleColor);
+            if(node != rootEditorNode){
+                String parentPath = node.parentPath();
+                cardButtons.button(Icon.upOpen, Styles.cleari, () -> {
+                    setEditPath(parentPath);
+                }).tooltip("@node-card.extract", false);
+            }
+        }).expandX().right().growY();
     }
 
     @Override

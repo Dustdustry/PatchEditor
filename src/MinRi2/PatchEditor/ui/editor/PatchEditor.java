@@ -11,7 +11,6 @@ import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import arc.util.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -93,14 +92,14 @@ public class PatchEditor extends BaseDialog{
             }
         });
 
-        keyDown(KeyCode.up, () -> card.getFrontCard().extractWorking());
-        keyDown(KeyCode.down, () -> card.getFrontCard().editLastData());
+        keyDown(KeyCode.up, card::extract);
+        keyDown(KeyCode.down, card::editLastData);
 
         addListener(new InputListener(){
             @Override
             public boolean touchDown(InputEvent event, float x, float y, int pointer, KeyCode button){
-                if(button == KeyCode.mouseForward) card.getFrontCard().editLastData();
-                else if(button == KeyCode.mouseBack) card.getFrontCard().extractWorking();
+                if(button == KeyCode.mouseForward) card.editLastData();
+                else if(button == KeyCode.mouseBack) card.extract();
                 return super.touchDown(event, x, y, pointer, button);
             }
         });
@@ -171,7 +170,7 @@ public class PatchEditor extends BaseDialog{
             .disabled(b -> !manager.canUndo());
             buttons.button("@patch-editor.redo", Icon.redo, Styles.grayt, manager::redo)
             .disabled(b -> !manager.canRedo());
-            if(Vars.mobile) buttons.button("@node-card.expandLast", Icon.downOpen, Styles.grayt, () -> card.getFrontCard().editLastData());
+            if(Vars.mobile) buttons.button("@node-card.expandLast", Icon.downOpen, Styles.grayt, card::editLastData);
 
             buttons.add().expandX();
             buttons.button("@patch-editor.favorites", Icon.star, Styles.grayt, () -> EUI.favorites.show());

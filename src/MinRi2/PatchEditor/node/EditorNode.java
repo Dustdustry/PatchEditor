@@ -206,6 +206,10 @@ public class EditorNode{
         return PatchJsonIO.getTypeName(objectNode.field.getDeclaringClass()) + "#" + objectNode.field.getName();
     }
 
+    public String parentPath(){
+        return parent.getPath();
+    }
+
     public String getPath(){
         if(path == null){
             path = parent == null ? ""
@@ -234,15 +238,21 @@ public class EditorNode{
     }
 
     public void navigateThrough(String path, Cons<EditorNode> cons){
+        cons.get(this);
+
         if(path == null || path.isEmpty()) return;
 
         EditorNode current = this;
-        cons.get(current);
         for(String s : path.split(NodeManager.pathSplitter)){
             current = current.buildChildren().get(s);
             if(current == null) return;
             cons.get(current);
         }
+    }
+
+    public Seq<EditorNode> navigateThrough(String path, Seq<EditorNode> seq){
+        navigateThrough(path, seq::add);
+        return seq;
     }
 
     public void setValue(String value, ValueType valueType, boolean uiUpdated){
@@ -301,6 +311,11 @@ public class EditorNode{
     }
 
     public void clearChildren(){
+        // help gc
+        for(EditorNode child : children.values()){
+            child.parent = null;
+            child.children.clear();
+        }
         children.clear();
         needResolve = true;
         patchChanged = true;
