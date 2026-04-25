@@ -226,29 +226,22 @@ public class EditorNode{
         if(path == null || path.isEmpty()) return this;
 
         EditorNode current = this;
-        int start = 0;
-        while(true){
-            int dot = path.indexOf(NodeManager.pathComp, start);
-            String name = dot == -1 ? path.substring(start) : path.substring(start, dot);
-            current = current.buildChildren().get(name);
-            if(current == null || dot == -1) return current;
-            start = dot + 1;
+        for(String s : path.split(NodeManager.pathSplitter)){
+            current = current.buildChildren().get(s);
+            if(current == null) return current;
         }
+        return current;
     }
 
     public void navigateThrough(String path, Cons<EditorNode> cons){
         if(path == null || path.isEmpty()) return;
 
         EditorNode current = this;
-        int start = 0;
-        while(true){
+        cons.get(current);
+        for(String s : path.split(NodeManager.pathSplitter)){
+            current = current.buildChildren().get(s);
+            if(current == null) return;
             cons.get(current);
-
-            int dot = path.indexOf(NodeManager.pathComp, start);
-            String name = dot == -1 ? path.substring(start) : path.substring(start, dot);
-            current = current.buildChildren().get(name);
-            if(current == null || dot == -1) return;
-            start = dot + 1;
         }
     }
 

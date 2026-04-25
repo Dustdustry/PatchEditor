@@ -84,14 +84,11 @@ public class PatchNode{
         if(path.isEmpty()) return this;
 
         PatchNode current = this;
-        int start = 0;
-        while(true){
-            int dot = path.indexOf(NodeManager.pathComp, start);
-            String name = dot == -1 ? path.substring(start) : path.substring(start, dot);
+        for(String name : path.split(NodeManager.pathSplitter)){
             current = create ? current.getOrCreate(name) : current.getOrNull(name);
-            if(current == null || dot == -1) return current;
-            start = dot + 1;
+            if(current == null) return null;
         }
+        return current;
     }
 
     @Override
