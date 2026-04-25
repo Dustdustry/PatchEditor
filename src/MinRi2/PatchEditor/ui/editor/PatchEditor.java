@@ -130,6 +130,7 @@ public class PatchEditor extends BaseDialog{
         objectTree = ObjectNode.createRoot();
         editorTree = new EditorNode(objectTree, manager);
         card.setRootEditorNode(editorTree);
+        card.clean();
     }
 
     public void edit(EditorPatch patch){

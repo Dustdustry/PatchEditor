@@ -85,6 +85,9 @@ public class NodeCard extends Table{
 
     public void setRootEditorNode(EditorNode rootEditorNode){
         this.rootEditorNode = rootEditorNode;
+    }
+
+    public void clean(){
         lastEditMap.clear();
     }
 
