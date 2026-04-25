@@ -187,7 +187,7 @@ public class ObjectExporter{
 
     private static void exportFields(ObjectNode objectNode, JsonValue value, ExportConfig config){
         Class<?> type = ClassHelper.unoymousClass(objectNode.object.getClass());
-        ObjectNode template = ObjectResolver.getTemplate(type);
+        ObjectNode template = ObjectResolver.getTemplate(type, ObjectExample.getExample(type, type, true));
         Seq<String> blackList = findFieldBlacklist(type);
 
         for(Entry<String, ObjectNode> entry : objectNode.getChildren()){

@@ -14,10 +14,14 @@ public class ObjectExample{
     private static final ObjectMap<Class<?>, Object> exampleMap = new ObjectMap<>();
 
     public static Object getExample(Class<?> base){
-        return getExample(base, base);
+        return getExample(base, base, false);
     }
 
     public static Object getExample(Class<?> base, Class<?> type){
+        return getExample(base, type, false);
+    }
+
+    public static Object getExample(Class<?> base, Class<?> type, boolean newContent){
         if(type == float.class || type == Float.class) return 0f;
         if(type == double.class || type == Double.class) return 0d;
         if(type == boolean.class || type == Boolean.class) return false;
@@ -33,7 +37,15 @@ public class ObjectExample{
 
         base = PatchJsonIO.getTypeParser(base);
         if(MappableContent.class.isAssignableFrom(base)){
-            example = getContentExample(base);
+            if(newContent){
+                example = getContentExample(base);
+            }else{
+                ContentType contentType = PatchJsonIO.classContentType(base);
+                if(contentType == null) return null;
+                Seq<Content> contents = Vars.content.getBy(contentType);
+                if(contents.isEmpty()) return null;
+                example = contents.first();
+            }
         }
 
         if(example == null){

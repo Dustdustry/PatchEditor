@@ -233,6 +233,13 @@ public class ObjectResolver{
         return shadowNode;
     }
 
+    public static ObjectNode getTemplate(Class<?> type, Object object){
+        ObjectNode objectNode = new ObjectNode("", object, type);
+        // TODO: template is always modifiable?
+        objectNode.addSign(ModifierSign.MODIFY);
+        return objectNode;
+    }
+
     public static ObjectNode getTemplate(Class<?> type){
         if(templateNode == null) templateNode = new ObjectMap<>();
 
