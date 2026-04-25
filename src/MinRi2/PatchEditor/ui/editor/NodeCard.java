@@ -124,7 +124,7 @@ public class NodeCard extends Table{
         depth = nodes.size - 1;
         if(depth + 1 > searchTextMap.length){
             String[] newMap = new String[depth + 1];
-            System.arraycopy(searchTextMap, 0, newMap, 0, newMap.length);
+            System.arraycopy(searchTextMap, 0, newMap, 0, searchTextMap.length);
             searchTextMap = newMap;
         }
 
