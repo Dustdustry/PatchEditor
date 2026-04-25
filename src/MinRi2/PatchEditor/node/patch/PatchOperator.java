@@ -176,7 +176,8 @@ public abstract class PatchOperator{
 
         @Override
         public boolean shouldApply(PatchNode root){
-            return root.navigateChild(path, false) == null;
+            PatchNode node = root.navigateChild(path, false);
+            return node == null || node.getOrNull(key) == null;
         }
 
         @Override
