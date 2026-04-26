@@ -89,6 +89,7 @@ public class NodeCard extends Table{
 
     public void clean(){
         lastEditMap.clear();
+        clearChildren();
     }
 
     public void setEditPath(String path){
