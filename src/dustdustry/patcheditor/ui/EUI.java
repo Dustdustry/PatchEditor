@@ -52,11 +52,9 @@ public class EUI{
 
         favorites = new FavoritesDialog();
         notes = new NotesDialog();
-
-        mountEditor();
     }
 
-    private static void mountEditor(){
+    public static void mountEditor(){
         MapInfoDialog infoDialog = Reflect.get(Vars.ui.editor, "infoDialog");
         infoDialog.shown(() -> Core.app.post(() -> {
             ScrollPane pane = (ScrollPane)infoDialog.cont.getChildren().get(0);

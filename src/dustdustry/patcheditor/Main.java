@@ -23,6 +23,7 @@ public class Main extends Mod{
         Events.on(ClientLoadEvent.class, e -> {
             EVars.init();
             EUI.init();
+            EUI.mountEditor();
 
             if(OS.hasProp("exposeExporterJS")){
                 Scripts scripts = Vars.mods.getScripts();
