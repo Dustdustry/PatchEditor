@@ -1,0 +1,120 @@
+package dustdustry.patcheditor.node.modifier;
+
+import dustdustry.patcheditor.node.*;
+import dustdustry.patcheditor.node.EditorList.*;
+import dustdustry.patcheditor.node.modifier.DataModifier.*;
+import arc.audio.*;
+import arc.func.*;
+import arc.graphics.*;
+import arc.graphics.g2d.*;
+import arc.math.*;
+import arc.struct.*;
+import arc.util.*;
+import mindustry.ctype.*;
+import mindustry.entities.*;
+import mindustry.entities.units.*;
+import mindustry.type.*;
+import mindustry.world.meta.*;
+
+/**
+ * @author minri2
+ * Create by 2024/2/16
+ */
+public class NodeModifier{
+    public static final Seq<ModifierConfig> modifyConfig = new Seq<>();
+
+    static {
+        modifyConfig.addAll(
+        // field specific first
+        new ModifierConfig(WeaponNameModifier::new, String.class).fieldOf(Weapon.class, "name"),
+
+        // enum
+        new ModifierConfig(() -> new EnumModifier(UnitConstructorType.values()), UnitConstructorType.class),
+        new ModifierConfig(() -> new EnumModifier(BlockFlag.values()), BlockFlag.class),
+        new ModifierConfig(() -> new EnumModifier(EditorList.getSubTypeNames(AIController.class)), AIController.class),
+        new ModifierConfig(() -> new EnumModifier(EditorList.getVisibilityList()), BuildVisibility.class),
+        new ModifierConfig(() -> new EnumModifier(EditorList.getInterpList()), Interp.class),
+        new ModifierConfig(() -> new EnumModifier(EditorList.getAttributeList()), Attribute.class),
+        new ModifierConfig(() -> new EnumModifier(Category.values()), Category.class),
+
+        new ModifierConfig(EffectModifier::new, Effect.class),
+
+        new ModifierConfig(ColorModifier::new, Color.class),
+        new ModifierConfig(ContentTypeModifier::new, MappableContent.class),
+        new ModifierConfig(BooleanModifier::new, Boolean.class, boolean.class),
+
+        new ModifierConfig(SoundModifier::new, Sound.class),
+        new ModifierConfig(TextureRegionModifier::new, TextureRegion.class),
+        new ModifierConfig(StringModifier::new, String.class),
+        new ModifierConfig(NumberModifier::new, Number.class,
+        byte.class, short.class, int.class, long.class, float.class, double.class)
+        );
+    }
+
+    public static DataModifier<?> getModifier(ObjectNode node){
+        if(canModify(node)){
+            Class<?> type = node.type;
+            for(ModifierConfig config : modifyConfig){
+                if(config.canModify(node, type)) return config.getModifier();
+            }
+        }
+        return null;
+    }
+
+    public static int getModifierIndex(ObjectNode node){
+        if(canModify(node)){
+            int i = 0;
+            Class<?> type = node.type;
+            for(ModifierConfig config : modifyConfig){
+                if(config.canModify(node, type)) return i;
+                i++;
+            }
+        }
+        return -1;
+    }
+
+    public static boolean canModify(ObjectNode node){
+        return node != null && node.hasSign(ModifierSign.MODIFY);
+    }
+
+    public static class ModifierConfig{
+        public final Seq<Class<?>> modifierTypes = new Seq<>();
+        private final Prov<DataModifier<?>> prov;
+
+        private @Nullable Boolf<ObjectNode> nodeCheck;
+
+        public ModifierConfig(Prov<DataModifier<?>> prov, Seq<Class<?>> types){
+            this.prov = prov;
+            modifierTypes.addAll(types);
+        }
+
+        public ModifierConfig(Prov<DataModifier<?>> prov, Class<?>... types){
+            this.prov = prov;
+            modifierTypes.addAll(types);
+        }
+
+        public boolean canModify(ObjectNode node, Class<?> type){
+            return (nodeCheck == null || nodeCheck.get(node)) && modifierTypes.contains(c -> c.isAssignableFrom(type));
+        }
+
+        public ModifierConfig check(Boolf<ObjectNode> extraCheck){
+            this.nodeCheck = extraCheck;
+            return this;
+        }
+
+        public ModifierConfig fieldOf(Class<?> clazz, String name){
+            return check(node -> node.getParent() != null && clazz.isAssignableFrom(node.getParent().type) && name.equals(node.name));
+        }
+
+        public DataModifier<?> getModifier(){
+            return prov.get();
+        }
+
+        @Override
+        public String toString(){
+            return "ModifierConfig{" +
+            "modifierTypes=" + modifierTypes +
+            '}';
+        }
+    }
+}

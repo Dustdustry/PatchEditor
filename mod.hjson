@@ -8,7 +8,7 @@ name: "patch-editor"
 author: "minRi2"
 
 #the fully qualified main class of the mod
-main: "MinRi2.PatchEditor.Main"
+main: "dustdustry.patcheditor.Main"
 
 #the mod description as seen in the mod dialog
 description: "Provide an in-game GUI for DataPatcher."
