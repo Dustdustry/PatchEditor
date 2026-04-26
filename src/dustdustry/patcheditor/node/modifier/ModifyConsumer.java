@@ -13,7 +13,5 @@ public interface ModifyConsumer<T>{
 
     void onModify(T value);
 
-    boolean isModified();
-
     boolean checkValue(T value);
 }

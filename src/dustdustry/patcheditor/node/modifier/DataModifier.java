@@ -58,11 +58,6 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     }
 
     @Override
-    public boolean isModified(){
-        return !Objects.equals(getDefaultValue(), getValue());
-    }
-
-    @Override
     public Class<?> getDataType(){
         EditorNode node = getDataNode();
         return node == null ? null : node.getTypeOut();
