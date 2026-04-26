@@ -58,6 +58,8 @@ public class ContentSelector extends SelectorDialog<Content>{
     }
 
     public void select(@Nullable ContentType contentType, @Nullable Class<?> restrictClass, Boolf<Content> selectable, Boolf<Content> consumer){
+        if(this.contentType != contentType) query = "";
+
         this.contentType = contentType;
         this.restrictClass = restrictClass;
         this.selectable = selectable;
