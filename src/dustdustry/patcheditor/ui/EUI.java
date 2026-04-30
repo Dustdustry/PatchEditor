@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.ui;
 
+import dustdustry.patcheditor.*;
 import dustdustry.patcheditor.ui.dialog.*;
 import dustdustry.patcheditor.ui.editor.*;
 import dustdustry.patcheditor.ui.dialog.selector.*;
@@ -52,6 +53,9 @@ public class EUI{
 
         favorites = new FavoritesDialog();
         notes = new NotesDialog();
+
+        FieldFavorites.init();
+        FieldNotes.init();
     }
 
     public static void mountEditor(){
