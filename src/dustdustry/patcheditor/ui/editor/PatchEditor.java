@@ -21,10 +21,10 @@ import mindustry.ui.dialogs.*;
  * Create by 2024/2/15
  */
 public class PatchEditor extends BaseDialog{
-    private final NodeCard card;
-    private ScrollPane pane;
+    protected final NodeCard card;
+    protected ScrollPane pane;
 
-    private EditorPatch editPatch;
+    public EditorPatch editPatch;
 
     /**
      * <p>
@@ -53,9 +53,9 @@ public class PatchEditor extends BaseDialog{
      * Builder 负责处理数据合法性，同时 DataModifier 还作为 Builer 的 consumer，提供修改的合法检查，提供初始值和是否修改
      * </p>
      * */
-    private EditorNode editorTree;
-    private ObjectNode objectTree;
-    private final NodeManager manager;
+    protected EditorNode editorTree;
+    protected ObjectNode objectTree;
+    protected final NodeManager manager;
 
     public PatchEditor(){
         super("@patch-editor");
