@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.ui.editor;
 
+import arc.util.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.node.patch.*;
 import dustdustry.patcheditor.ui.*;
@@ -101,8 +102,6 @@ public class PatchEditor extends BaseDialog{
             }
         });
 
-        addCloseListener();
-
         update(() -> {
             if(Core.scene.getDialog() != this) return;
             if(Core.scene.getKeyboardFocus() != null && !Core.scene.getKeyboardFocus().isDescendantOf(this)) return;
@@ -159,6 +158,8 @@ public class PatchEditor extends BaseDialog{
     protected void setup(){
         if(cont.hasChildren()) return;
 
+        addCloseListener();
+
         titleTable.clearChildren();
         titleTable.left().background(Tex.whiteui).setColor(EPalettes.main);
 
@@ -190,7 +191,6 @@ public class PatchEditor extends BaseDialog{
         }).growX();
 
         cont.top();
-        addCloseListener();
     }
 
     protected void rebuild(){
@@ -200,5 +200,12 @@ public class PatchEditor extends BaseDialog{
 
         if(pane == null) pane = new ScrollPane(card, Styles.noBarPane);
         cont.add(pane).scrollX(false).pad(16f).padTop(8f).grow();
+    }
+
+    @Override
+    public void hide(){
+        super.hide();
+
+        Log.info("hide");
     }
 }

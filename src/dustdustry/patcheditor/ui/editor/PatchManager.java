@@ -82,7 +82,7 @@ public class PatchManager extends BaseDialog{
             }
         });
 
-        editor.hidden(this::rebuildPatchTable);
+        editor.hidden(() -> Core.app.post(this::rebuildPatchTable));
     }
 
     private void setup(){
