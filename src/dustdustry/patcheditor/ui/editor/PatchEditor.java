@@ -77,10 +77,7 @@ public class PatchEditor extends BaseDialog{
         });
         hidden(() -> {
             manager.clearStacks();
-            PatchNode namePatch = manager.getRoot().getOrNull("name");
-            editPatch.patch = PatchJsonIO.toPatch(objectTree, manager.getRoot(), EditorSettings.getPatchExportOptions());
-            editPatch.name = namePatch != null && namePatch.value != null ? namePatch.value : "";
-
+            savePatch();
             pane = null;
         });
 
@@ -131,6 +128,12 @@ public class PatchEditor extends BaseDialog{
         editorTree = new EditorNode(objectTree, manager);
         card.setRootEditorNode(editorTree);
         card.clean();
+    }
+
+    protected void savePatch(){
+        PatchNode namePatch = manager.getRoot().getOrNull("name");
+        editPatch.patch = PatchJsonIO.toPatch(objectTree, manager.getRoot(), EditorSettings.getPatchExportOptions());
+        editPatch.name = namePatch != null && namePatch.value != null ? namePatch.value : "";
     }
 
     public void edit(EditorPatch patch){
