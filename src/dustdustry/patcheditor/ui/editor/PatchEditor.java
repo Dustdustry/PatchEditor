@@ -201,11 +201,4 @@ public class PatchEditor extends BaseDialog{
         if(pane == null) pane = new ScrollPane(card, Styles.noBarPane);
         cont.add(pane).scrollX(false).pad(16f).padTop(8f).grow();
     }
-
-    @Override
-    public void hide(){
-        super.hide();
-
-        Log.info("hide");
-    }
 }
