@@ -52,7 +52,10 @@ public class NodeDisplay{
         if(object == null) return Icon.none.getRegion();
 
         TextureRegion region = null;
-        if(object instanceof ContentType type) region = contentSymbolMap.get(type, Icon.effect.getRegion());
+        if(object instanceof ContentType type){
+            if(contentSymbolMap == null) initSymbol();
+            region = contentSymbolMap.get(type, Icon.effect.getRegion());
+        }
         else if(object instanceof UnlockableContent unlockable) region = unlockable.uiIcon;
         else if(object instanceof Weapon weapon) region = Core.atlas.find(weapon.name, Icon.none.getRegion());
         else if(object instanceof ItemStack stack) region = stack.item.uiIcon;
