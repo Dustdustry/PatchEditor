@@ -148,7 +148,9 @@ public class PatchEditor extends BaseDialog{
             return;
         }
 
-        card.setEditPath("");
+        if(!Core.settings.getBool("patch-editor.rememberPath")){
+            card.setEditPath("");
+        }
 
         editPatch = patch;
 
