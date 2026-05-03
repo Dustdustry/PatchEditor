@@ -480,13 +480,14 @@ public class NodeCard extends Table{
             table.image(Icon.infoCircleSmall).tooltip("@node.mayRequired", true).scaling(Scaling.stretch);
         }
 
+        String note = FieldNotes.getNote(node.getFieldId());
         if(Core.settings.getBool("patch-editor.editNotes") && FieldNotes.canNote(node)){
+            String currentNote = note == null ? Core.bundle.get("patch-editor.note.none") : note;
             table.button(Icon.editSmall, EStyles.noteButton, () -> {
                 EUI.noteEditor.show(node.getFieldId());
             }).color(EPalettes.gray).checked(b -> FieldNotes.getNote(node.getFieldId()) != null)
-            .tooltip("@patch-editor.note.edit");
+            .tooltip(Core.bundle.format("patch-editor.note.edit", currentNote));
         }else{
-            String note = FieldNotes.getNote(node.getFieldId());
             if(note != null){
                 table.image(Icon.bookOpenSmall).color(EPalettes.lighterGray).size(Vars.iconSmall * 0.85f)
                 .get().addListener(getNoteTooltip(note, true));
