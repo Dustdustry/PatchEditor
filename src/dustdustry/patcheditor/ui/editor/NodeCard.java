@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.ui.editor;
 
+import arc.math.*;
 import dustdustry.patcheditor.*;
 import dustdustry.patcheditor.export.*;
 import dustdustry.patcheditor.node.*;
@@ -34,8 +35,9 @@ import mindustry.ui.*;
  */
 public class NodeCard extends Table{
     public static final float noteWidth = 480f;
-    public static float buttonWidth = 330f;
-    public static float buttonHeight = buttonWidth / 3f;
+    public static float buttonWidth = 340f;
+    public static float buttonPadding = 4f;
+    public static float buttonHeight = buttonWidth / 4f;
 
     private final Table nodesTable; // workingTable / childrenNodesTable
 
@@ -78,7 +80,7 @@ public class NodeCard extends Table{
     public void act(float delta){
         super.act(delta);
 
-        if(needRebuildNodes){
+        if(!needsLayout() && needRebuildNodes){
             rebuildNodesTable();
         }
     }
@@ -143,10 +145,9 @@ public class NodeCard extends Table{
 
         currentCont.table(this::setupSearchTable).pad(8f).growX();
         currentCont.row();
-        currentCont.add(nodesTable).grow();
+        currentCont.add(nodesTable).name("nodes").grow();
 
-        // After layout assigned size
-        Core.app.post(this::rebuildNodesTable);
+        needRebuildNodes = true;
     }
 
     public EditorNode getEditorNode(){
@@ -158,7 +159,7 @@ public class NodeCard extends Table{
 
         TextField field = table.add(EUI.deboundTextField(searchTextMap[depth], text -> {
             searchTextMap[depth] = text;
-            rebuildNodesTable();
+            needRebuildNodes = true;
         })).pad(8f).growX().get();
 
         if(Core.app.isDesktop()){
@@ -168,7 +169,7 @@ public class NodeCard extends Table{
         table.button(Icon.cancel, Styles.clearNonei, () -> {
             searchTextMap[depth] = "";
             field.setText("");
-            rebuildNodesTable();
+            needRebuildNodes = true;
         }).size(64f);
     }
 
@@ -184,7 +185,15 @@ public class NodeCard extends Table{
 
         editorNode.sync();
 
-        int columns = Math.max(1, (int)(nodesTable.getWidth() / Scl.scl() / buttonWidth));
+        float cardWidth = buttonWidth, cardPadding = buttonPadding;
+        float preColumns = nodesTable.getWidth() / Scl.scl() / (cardWidth + cardPadding);
+
+        boolean upwards = Mathf.ceil(preColumns) - preColumns < 0.3f;
+        int columns = Math.max(1, upwards ? Mathf.ceil(preColumns) : Mathf.floor(preColumns));
+        if(upwards){
+            cardWidth = (nodesTable.getWidth() / Scl.scl() - (preColumns + 2) * (cardPadding * 2)) / columns;
+        }
+
         Seq<NodeCategory> seq = NodeCategorizer.categorizedNode(editorNode);
         for(NodeCategory category : seq){
             if(category.nodes.isEmpty() && !category.isOther) continue;
@@ -195,10 +204,11 @@ public class NodeCard extends Table{
                 t.image().color(Pal.darkerGray).height(4f).growX();
             }).marginTop(16f).marginBottom(8f).growX();
             nodesTable.row();
-            Table cont = nodesTable.table().left().get();
+            Table cont = nodesTable.table().growX().get();
             nodesTable.row();
 
-            cont.defaults().size(buttonWidth, buttonWidth / 4).pad(4f).margin(8f).top().left();
+            cont.left();
+            cont.defaults().size(cardWidth, cardWidth / 4f).pad(cardPadding).margin(8f).top().left();
 
             String searchText = searchTextMap[depth];
             int index = 0;
