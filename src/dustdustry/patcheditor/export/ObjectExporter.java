@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.export;
 
+import dustdustry.patcheditor.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.utils.*;
 import arc.*;
@@ -101,7 +102,7 @@ public class ObjectExporter{
             }else{
                 exportObject(objectNode, result, config);
             }
-        }else if(object instanceof AmmoType ammo){
+        }else if(EVars.hasAmoType && object instanceof AmmoType ammo){
             if(ammo instanceof ItemAmmoType itemAmmo){
                 result.set(itemAmmo.item.name);
             }else if(ammo instanceof PowerAmmoType powerAmmo){
