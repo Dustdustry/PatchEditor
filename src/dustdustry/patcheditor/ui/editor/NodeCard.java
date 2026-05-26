@@ -1,6 +1,7 @@
 package dustdustry.patcheditor.ui.editor;
 
 import arc.math.*;
+import arc.scene.utils.*;
 import dustdustry.patcheditor.*;
 import dustdustry.patcheditor.export.*;
 import dustdustry.patcheditor.node.*;
@@ -572,6 +573,29 @@ public class NodeCard extends Table{
                 }).padLeft(16f).tooltip(Core.bundle.format("node-card.magicExportNode.tooltip", editorPath), true);
             }
         });
+
+        if(node == rootEditorNode){
+            table.table(Styles.black6, pathTable -> {
+                pathTable.add("@node-card.path").padRight(8f);
+                pathTable.label(() -> editorPath.isEmpty() ? "root" : editorPath).minWidth(64f);
+
+                pathTable.clicked(() -> {
+                    Core.app.setClipboardText(editorPath);
+                    EUI.infoToast(Core.bundle.format("node-card.path.copy", editorPath));
+                });
+
+                pathTable.button(Icon.downloadSmall, Styles.clearNonei, () -> {
+                    String path = Core.app.getClipboardText();
+                    EditorNode pathNode = rootEditorNode.navigate(path);
+                    if(pathNode != null){
+                        setEditPath(pathNode.getPath());
+                        EUI.infoToast(Core.bundle.format("node-card.path.navigate", editorPath));
+                    }else{
+                        EUI.infoToast(Core.bundle.format("node-card.path.invalid", editorPath));
+                    }
+                }).padLeft(8f).disabled(b -> Core.app.getClipboardText() == null);
+            }).marginLeft(8f).marginRight(8f).height(64);
+        }
 
         table.table(cardButtons -> {
             cardButtons.defaults().size(64f).pad(8f);

@@ -12,8 +12,10 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
+import mindustry.entities.bullet.*;
 import mindustry.entities.units.*;
 import mindustry.type.*;
+import mindustry.type.weapons.*;
 import mindustry.world.meta.*;
 
 /**
@@ -26,6 +28,13 @@ public class NodeModifier{
     static {
         modifyConfig.addAll(
         // field specific first
+        /** TODO:
+         * {@link BasicBulletType#load()}
+         * {@link PointLaserBulletType#load()}
+         * {@link SapBulletType#load()}
+         * {@link Weapon#load()}
+         * {@link RepairBeamWeapon#load()}
+         */
         new ModifierConfig(WeaponNameModifier::new, String.class).fieldOf(Weapon.class, "name"),
 
         // enum
