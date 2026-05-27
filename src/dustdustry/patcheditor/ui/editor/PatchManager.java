@@ -1,6 +1,5 @@
 package dustdustry.patcheditor.ui.editor;
 
-import dustdustry.patcheditor.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.ui.*;
 import dustdustry.patcheditor.ui.dialog.*;
@@ -116,7 +115,7 @@ public class PatchManager extends BaseDialog{
         table.row();
 
         table.table(Styles.grayPanel, buttonTable -> {
-            buttonTable.defaults().minWidth(150f).height(40f).margin(8f).pad(8f).growX();
+            buttonTable.defaults().minWidth(120f).height(40f).margin(8f).pad(4f).growX();
 
             buttonTable.button("@patch-manager.add-patch", Icon.add, Styles.cleart, () -> {
                 String name = findPatchName();
@@ -126,24 +125,8 @@ public class PatchManager extends BaseDialog{
                 rebuildPatchTable();
             });
 
-            buttonTable.button("@patch-manager.import-patch", Icon.download, Styles.cleart, () -> {
-                String text = Core.app.getClipboardText();
-
-                JsonValue value;
-                try{
-                    value = PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(text).toString(Jformat.plain));
-                }catch(Exception ignored){
-                    EUI.infoToast("@patch-manager.import-patch.failed");
-                    return;
-                }
-
-                JsonValue nameValue = value.get("name");
-                String name = nameValue != null && nameValue.isString() ? nameValue.asString() : findPatchName();
-                editorPatches.add(new EditorPatch(name, text));
-                rebuildPatchTable();
-
-                EUI.infoToast("@patch-manager.import-patch.succeed");
-            }).disabled(b -> Core.app.getClipboardText() == null).minWidth(180f);
+            buttonTable.button("@patch-manager.import-patch", Icon.download, Styles.cleart, this::showImportDialog)
+            .minWidth(140f);
         }).pad(8f).padTop(4f).growX();
     }
 
@@ -173,8 +156,17 @@ public class PatchManager extends BaseDialog{
 
                     buttons.button(Icon.copySmall, Styles.clearNonei, () -> {
                         Core.app.setClipboardText(patch.patch);
-                        EUI.infoToast("[green]Copy: []" + patch.name);
+                        EUI.infoToast("patch-manager.patch.copy" + patch.name);
                     }).tooltip("@patch-manager.patch.copy", true);
+
+                    buttons.button(Icon.exportSmall, Styles.clearNonei, () -> {
+                        Vars.platform.export(patch.displayName(), "json", file -> {
+                            file.writeString(patch.patch);
+                            Core.app.post(() -> {
+                                EUI.infoToast(Core.bundle.format("patch-manager.patch.export.info", file.absolutePath()));
+                            });
+                        });
+                    }).tooltip("@patch-manager.patch.export", true);
 
                     buttons.button(Icon.editSmall, Styles.clearNonei, () -> {
                         editor.edit(patch);
@@ -231,6 +223,48 @@ public class PatchManager extends BaseDialog{
                 return name;
             }
         }
+    }
+
+    private void showImportDialog(){
+        BaseDialog dialog = new BaseDialog("@patch-manager.import-patch");
+
+        dialog.cont.table(Tex.button, table -> {
+            table.margin(12f);
+            table.defaults().size(200f, 50f).pad(4f);
+
+            table.button("@patch-manager.import-patch.clipboard", Icon.copy, Styles.cleart, () -> {
+                dialog.hide();
+                importPatch(Core.app.getClipboardText());
+            }).disabled(b -> Core.app.getClipboardText() == null).row();
+
+            table.button("@patch-manager.import-patch.file", Icon.download, Styles.cleart, () -> {
+                dialog.hide();
+                Vars.platform.showMultiFileChooser(fi -> {
+                    importPatch(fi.readString());
+                }, "hjson", "json", "txt");
+            }).row();
+        });
+
+        dialog.addCloseButton();
+        dialog.show();
+    }
+
+    private void importPatch(String patch){
+        JsonValue value;
+        try{
+            value = PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
+        }catch(Exception ignored){
+            EUI.infoToast("@patch-manager.import-patch.failed");
+            return;
+        }
+
+        JsonValue nameValue = value.get("name");
+        String name = nameValue != null && nameValue.isString() ? nameValue.asString() : findPatchName();
+        editorPatches.add(new EditorPatch(name, patch));
+        Core.app.post(() -> {
+            rebuildPatchTable();
+            EUI.infoToast("@patch-manager.import-patch.succeed");
+        });
     }
 
     public static class EditorPatch{

@@ -8,6 +8,7 @@ import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.node.EditorNode.*;
 import dustdustry.patcheditor.node.modifier.*;
 import dustdustry.patcheditor.node.patch.*;
+import dustdustry.patcheditor.node.patch.PatchOperator.*;
 import dustdustry.patcheditor.ui.*;
 import dustdustry.patcheditor.ui.NodeCategorizer.*;
 import dustdustry.patcheditor.ui.dialog.*;
@@ -576,24 +577,26 @@ public class NodeCard extends Table{
 
         if(node == rootEditorNode){
             table.table(Styles.black6, pathTable -> {
-                pathTable.add("@node-card.path").padRight(8f);
-                pathTable.label(() -> editorPath.isEmpty() ? "root" : editorPath).minWidth(64f);
-
-                pathTable.clicked(() -> {
-                    Core.app.setClipboardText(editorPath);
-                    EUI.infoToast(Core.bundle.format("node-card.path.copy", editorPath));
-                });
-
                 pathTable.button(Icon.downloadSmall, Styles.clearNonei, () -> {
                     String path = Core.app.getClipboardText();
                     EditorNode pathNode = rootEditorNode.navigate(path);
                     if(pathNode != null){
                         setEditPath(pathNode.getPath());
-                        EUI.infoToast(Core.bundle.format("node-card.path.navigate", editorPath));
+                        EUI.infoToast(Core.bundle.format("node-card.path.navigate", path));
                     }else{
-                        EUI.infoToast(Core.bundle.format("node-card.path.invalid", editorPath));
+                        EUI.infoToast(Core.bundle.format("node-card.path.invalid", path));
                     }
-                }).padLeft(8f).disabled(b -> Core.app.getClipboardText() == null);
+                }).padRight(4f).height(40f).disabled(b -> Core.app.getClipboardText() == null);
+
+                pathTable.table(t -> {
+                    t.add("@node-card.path").padRight(8f);
+                    t.label(() -> editorPath.isEmpty() ? "root" : editorPath).minWidth(64f);
+
+                    t.clicked(() -> {
+                        Core.app.setClipboardText(editorPath);
+                        EUI.infoToast(Core.bundle.format("node-card.path.copy", editorPath));
+                    });
+                });
             }).marginLeft(8f).marginRight(8f).height(64);
         }
 
