@@ -144,6 +144,7 @@ public class EditorNode{
 
         ObjectNode current = getObjNode();
         while(current != null){
+            // Append to array of consume is illegal.
             if("consumes".equals(current.name) && current.type == Consume.class){
                 return false;
             }
@@ -268,6 +269,7 @@ public class EditorNode{
     }
 
     public void clearJson(boolean uiUpdated){
+        clearChildren();
         manager.applyOp(new ClearOp(getPath()), uiUpdated);
     }
 
