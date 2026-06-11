@@ -64,14 +64,14 @@ public class EditNoteDialog extends BaseDialog{
             t.label(() -> fieldId).expandX().left();
             t.row();
 
-            String builtIn = FieldNotes.getBuiltInNote(fieldId);
+            String wiki = FieldNotes.getWikiNote(fieldId);
             String user = FieldNotes.getUserNote(fieldId);
-            t.add("@patch-editor.note.builtIn");
-            t.add(builtIn == null ? "@patch-editor.note.none" : builtIn).wrap().color(builtIn == null ? Pal.lightishGray : EPalettes.grayFront)
+            t.add("@patch-editor.note.wikiNote");
+            t.add(wiki == null ? "@patch-editor.note.none" : wiki).wrap().color(wiki == null ? Pal.lightishGray : EPalettes.grayFront)
             .growX().left();
             t.row();
 
-            t.add("@patch-editor.note.custom");
+            t.add("@patch-editor.note.customNote");
             t.area(user, text -> note = text).minHeight(180f).growX().get().setMessageText("@patch-editor.note.none");
         }).width(width);
     }

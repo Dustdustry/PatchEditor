@@ -498,7 +498,7 @@ public class NodeCard extends Table{
             table.button(Icon.editSmall, EStyles.noteButton, () -> {
                 EUI.noteEditor.show(node.getFieldId());
             }).color(EPalettes.gray).checked(b -> FieldNotes.getNote(node.getFieldId()) != null)
-            .tooltip(Core.bundle.format("patch-editor.note.edit", currentNote));
+            .tooltip(Core.bundle.format("patch-editor.note.editWithNote", currentNote));
         }else{
             if(note != null){
                 table.image(Icon.bookOpenSmall).color(EPalettes.lighterGray).size(Vars.iconSmall * 0.85f)

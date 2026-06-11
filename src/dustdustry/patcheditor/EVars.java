@@ -7,6 +7,9 @@ public class EVars{
     public static LoadedMod thisMod;
     public static boolean hasAmoType;
 
+    public static String githubNotesRepo = "Dustdustry/PatchNotes";
+    public static String githubNotesBranch = "main";
+
     public static void init(){
         thisMod = Vars.mods.getMod(Main.class);
 

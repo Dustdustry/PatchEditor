@@ -10,13 +10,14 @@ import mindustry.*;
 import mindustry.io.*;
 
 public class FieldNotes{
-    public static final String builtInNotesName = "default";
     public static final String userNotesFileName = "field-notes.user.json";
-    public static final String githubNotesUrl = "https://github.com/minri2/PatchEditor/tree/main/notes";
+    public static final String wikiNotesFileName = "field-notes.wiki.json";
 
     private static Fi userNotesFi;
+    private static Fi wikiNotesFi;
 
-    private static final OrderedMap<String, String> builtInNotes = new OrderedMap<>();
+    private static NotesData wikiNotesData = new NotesData();
+    private static OrderedMap<String, String> wikiNotesCache;
     private static final OrderedMap<String, String> userNotes = new OrderedMap<>();
 
     public static void init(){
@@ -24,11 +25,17 @@ public class FieldNotes{
         if(!dir.exists()) dir.mkdirs();
 
         userNotesFi = dir.child(userNotesFileName);
+        wikiNotesFi = dir.child(wikiNotesFileName);
 
-        Fi notesFi = EVars.thisMod.root.child("notes");
-        String localeBuiltIn = builtInNotesName + "_" + Core.bundle.getLocale() + ".json";
-        String builtInPath = notesFi.child(localeBuiltIn).exists() ? localeBuiltIn : builtInNotesName + ".json";
-        Fi builtIn = notesFi.child(builtInPath);
+        try{
+            if(wikiNotesFi.exists()){
+                wikiNotesData = JsonIO.json.fromJson(NotesData.class, wikiNotesFi.readString());
+                if(wikiNotesData == null) wikiNotesData = new NotesData();
+                if(wikiNotesData.notes == null) wikiNotesData.notes = new OrderedMap<>();
+            }
+        }catch(Exception e){
+            Log.err("Failed to load wiki notes", e);
+        }
 
         try{
             if(userNotesFi.exists()){
@@ -37,14 +44,23 @@ public class FieldNotes{
         }catch(Exception e){
             Log.err("Failed to load user notes", e);
         }
+    }
 
-        try{
-            if(builtIn.exists()){
-                builtInNotes.putAll(parseNotesJson(builtIn.readString()));
+    private static void invalidateWikiCache(){
+        wikiNotesCache = null;
+    }
+
+    private static OrderedMap<String, String> wikiNotes(){
+        if(wikiNotesCache == null){
+            wikiNotesCache = new OrderedMap<>();
+            for(Entry<String, OrderedMap<String, String>> entry : wikiNotesData.notes){
+                String typeName = entry.key;
+                for(Entry<String, String> noteEntry : entry.value){
+                    wikiNotesCache.put(typeName + "#" + noteEntry.key, noteEntry.value);
+                }
             }
-        }catch(Exception e){
-            Log.err("Failed to load built-in notes", e);
         }
+        return wikiNotesCache;
     }
 
     public static boolean canNote(EditorNode node){
@@ -54,12 +70,12 @@ public class FieldNotes{
     public static String getNote(String fieldId){
         if(fieldId == null || fieldId.isEmpty()) return null;
         String user = userNotes.get(fieldId);
-        return user != null ? user : builtInNotes.get(fieldId);
+        return user != null ? user : wikiNotes().get(fieldId);
     }
 
-    public static String getBuiltInNote(String fieldId){
+    public static String getWikiNote(String fieldId){
         if(fieldId == null || fieldId.isEmpty()) return null;
-        return builtInNotes.get(fieldId);
+        return wikiNotes().get(fieldId);
     }
 
     public static String getUserNote(String fieldId){
@@ -92,9 +108,21 @@ public class FieldNotes{
         return userNotes.size;
     }
 
+    public static int wikiNoteCount(){
+        return wikiNotes().size;
+    }
+
+    public static String getWikiMetaVersion(){
+        return wikiNotesData.versionTag;
+    }
+
+    public static long getWikiMetaUpdateTime(){
+        return wikiNotesData.updateTime;
+    }
+
     public static Seq<String> allId(){
         ObjectSet<String> set = new ObjectSet<>();
-        for(String id : builtInNotes.keys()){
+        for(String id : wikiNotes().keys()){
             set.add(id);
         }
         for(String id : userNotes.keys()){
@@ -103,19 +131,84 @@ public class FieldNotes{
         return set.toSeq();
     }
 
+    public static Seq<String> allUserIds(){
+        return userNotes.keys().toSeq();
+    }
+
     public static String exportUserNotesJson(){
         return notesToJson(userNotes);
     }
 
-    public static void importUserNotes(String text, boolean replace){
-        OrderedMap<String, String> imported = parseNotesJson(text);
+    public static String exportWikiNotesJson(){
+        return JsonIO.json.toJson(wikiNotesData);
+    }
 
+    public static void importUserNotesClipboard(String text, boolean replace){
+        OrderedMap<String, String> imported = parseNotesJson(text);
         if(replace) userNotes.clear();
         for(Entry<String, String> entry : imported){
             userNotes.put(entry.key, entry.value);
         }
-
         saveUserNotes();
+    }
+
+    /** Parse an index.json file returning the index data. */
+    public static IndexData parseNotesIndex(String text){
+        if(text == null || text.trim().isEmpty()) return null;
+        return JsonIO.json.fromJson(IndexData.class, text);
+    }
+
+    /** Merge parsed notes from raw JSON text into wikiNotes (additive). */
+    public static void mergeWikiNotes(String text){
+        NotesData incoming = JsonIO.json.fromJson(NotesData.class, text);
+        if(incoming == null || incoming.notes == null) return;
+
+        for(Entry<String, OrderedMap<String, String>> entry : incoming.notes){
+            String typeName = entry.key;
+            OrderedMap<String, String> existingFields = wikiNotesData.notes.get(typeName);
+            if(existingFields == null){
+                wikiNotesData.notes.put(typeName, entry.value);
+            }else{
+                for(Entry<String, String> noteEntry : entry.value){
+                    existingFields.put(noteEntry.key, noteEntry.value);
+                }
+            }
+        }
+        invalidateWikiCache();
+    }
+
+    /** Replace all wiki notes with parsed notes from raw JSON text. */
+    public static void replaceWikiNotes(String text){
+        NotesData incoming = JsonIO.json.fromJson(NotesData.class, text);
+        if(incoming == null) return;
+
+        wikiNotesData.notes.clear();
+        if(incoming.notes != null){
+            wikiNotesData.notes.putAll(incoming.notes);
+        }
+        invalidateWikiCache();
+    }
+
+    public static void clearWikiNotes(){
+        wikiNotesData.notes.clear();
+        invalidateWikiCache();
+        saveWikiNotes();
+    }
+
+    public static void setWikiMeta(NoteDataIndexed meta){
+        wikiNotesData.versionTag = meta.versionTag;
+        wikiNotesData.updateTime = meta.updateTime;
+        wikiNotesData.lang = meta.lang;
+    }
+
+    public static void saveWikiNotes(){
+        try{
+            if(wikiNotesFi != null){
+                wikiNotesFi.writeString(JsonIO.json.toJson(wikiNotesData), false);
+            }
+        }catch(Exception e){
+            Log.err("Failed to save wiki notes", e);
+        }
     }
 
     private static void saveUserNotes(){
@@ -133,7 +226,7 @@ public class FieldNotes{
         if(text == null || text.trim().isEmpty()) return result;
 
         NotesData data = JsonIO.json.fromJson(NotesData.class, text);
-        if(data == null) return result;
+        if(data == null || data.notes == null) return result;
 
         for(Entry<String, OrderedMap<String, String>> entry : data.notes){
             String typeName = entry.key;
@@ -151,8 +244,7 @@ public class FieldNotes{
 
     private static String notesToJson(OrderedMap<String, String> notesMap){
         NotesData data = new NotesData();
-        data.version = 1;
-        data.updatedAt = String.valueOf(System.currentTimeMillis());
+        data.versionTag = "unknown";
 
         for(Entry<String, String> entry : notesMap){
             String id = entry.key;
@@ -171,9 +263,23 @@ public class FieldNotes{
     }
 
     public static class NotesData{
-        public int version;
-        public String updatedAt;
-
+        public String versionTag;
+        public long updateTime;
+        public String lang;
         public OrderedMap<String, OrderedMap<String, String>> notes = new OrderedMap<>();
+    }
+
+    public static class IndexData{
+        public String currentVersionTag;
+        public Seq<NoteDataIndexed> notes = new Seq<>();
+    }
+
+    public static class NoteDataIndexed{
+        public String versionTag;
+        public long updateTime;
+        public String lang;
+        public int noteCount;
+        public String fileName;
+        public String fileUrl;
     }
 }
