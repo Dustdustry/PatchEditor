@@ -154,18 +154,8 @@ public class PatchManager extends BaseDialog{
                         });
                     }).tooltip("@patch-manager.patch.remove", true);
 
-                    buttons.button(Icon.copySmall, Styles.clearNonei, () -> {
-                        Core.app.setClipboardText(patch.patch);
-                        EUI.infoToast(Core.bundle.format("patch-manager.patch.copy.info", patch.displayName()));
-                    }).tooltip("@patch-manager.patch.copy", true);
-
                     buttons.button(Icon.exportSmall, Styles.clearNonei, () -> {
-                        Vars.platform.export(patch.displayName(), "json", file -> {
-                            file.writeString(patch.patch);
-                            Core.app.post(() -> {
-                                EUI.infoToast(Core.bundle.format("patch-manager.patch.export.info", file.absolutePath()));
-                            });
-                        });
+                        showExportDialog(patch);
                     }).tooltip("@patch-manager.patch.export", true);
 
                     buttons.button(Icon.editSmall, Styles.clearNonei, () -> {
@@ -242,6 +232,34 @@ public class PatchManager extends BaseDialog{
                 Vars.platform.showMultiFileChooser(fi -> {
                     importPatch(fi.readString());
                 }, "hjson", "json", "txt");
+            }).row();
+        });
+
+        dialog.addCloseButton();
+        dialog.show();
+    }
+
+    private void showExportDialog(EditorPatch patch){
+        BaseDialog dialog = new BaseDialog("@patch-manager.patch.export");
+
+        dialog.cont.table(Tex.button, table -> {
+            table.margin(12f);
+            table.defaults().size(200f, 50f).pad(4f);
+
+            table.button("@patch-manager.patch.export.clipboard", Icon.copy, Styles.cleart, () -> {
+                dialog.hide();
+                Core.app.setClipboardText(patch.patch);
+                EUI.infoToast(Core.bundle.format("patch-manager.patch.copy.info", patch.displayName()));
+            }).row();
+
+            table.button("@patch-manager.patch.export.file", Icon.download, Styles.cleart, () -> {
+                dialog.hide();
+                Vars.platform.export(patch.displayName(), "json", file -> {
+                    file.writeString(patch.patch);
+                    Core.app.post(() -> {
+                        EUI.infoToast(Core.bundle.format("patch-manager.patch.export.info", file.absolutePath()));
+                    });
+                });
             }).row();
         });
 
