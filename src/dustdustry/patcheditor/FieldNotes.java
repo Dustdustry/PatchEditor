@@ -131,10 +131,6 @@ public class FieldNotes{
         return set.toSeq();
     }
 
-    public static Seq<String> allUserIds(){
-        return userNotes.keys().toSeq();
-    }
-
     public static String exportUserNotesJson(){
         return notesToJson(userNotes);
     }
@@ -182,15 +178,13 @@ public class FieldNotes{
         NotesData incoming = JsonIO.json.fromJson(NotesData.class, text);
         if(incoming == null) return;
 
-        wikiNotesData.notes.clear();
-        if(incoming.notes != null){
-            wikiNotesData.notes.putAll(incoming.notes);
-        }
+        wikiNotesData.clear();
+        if(incoming.notes != null) wikiNotesData.notes.putAll(incoming.notes);
         invalidateWikiCache();
     }
 
     public static void clearWikiNotes(){
-        wikiNotesData.notes.clear();
+        wikiNotesData.clear();
         invalidateWikiCache();
         saveWikiNotes();
     }
@@ -267,6 +261,13 @@ public class FieldNotes{
         public long updateTime;
         public String lang;
         public OrderedMap<String, OrderedMap<String, String>> notes = new OrderedMap<>();
+
+        public void clear(){
+            notes.clear();
+            versionTag = null;
+            updateTime = 0;
+            lang = null;
+        }
     }
 
     public static class IndexData{

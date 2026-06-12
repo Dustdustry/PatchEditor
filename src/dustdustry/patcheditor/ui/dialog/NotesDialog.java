@@ -146,22 +146,15 @@ public class NotesDialog extends BaseDialog{
             panel.table(title -> {
                 title.add("@notes.source.wiki").color(EPalettes.type);
                 title.image(Icon.infoSmall).size(Vars.iconSmall).color(Pal.lightishGray).padLeft(4f);
-            }).tooltip("@notes.source.wiki.tooltip", true).row();
 
-            if(FieldNotes.getWikiMetaVersion() != null){
-                panel.table(Styles.grayPanel, meta -> {
-                    meta.defaults().left().pad(4f);
-                    meta.add(Core.bundle.format("notes.wiki.github.meta.version", FieldNotes.getWikiMetaVersion()))
-                        .color(EPalettes.grayFront).fontScale(0.85f).row();
+                if(FieldNotes.getWikiMetaVersion() != null){
+                    title.defaults().padLeft(12f);
+                    title.add(Core.bundle.format("notes.wiki.github.meta.version", FieldNotes.getWikiMetaVersion())).color(EPalettes.grayFront);
                     if(FieldNotes.getWikiMetaUpdateTime() > 0){
-                        meta.add(Core.bundle.format("notes.wiki.github.meta.updateTime",
-                            dateFormat.format(new Date(FieldNotes.getWikiMetaUpdateTime()))))
-                            .color(EPalettes.grayFront).fontScale(0.85f).row();
+                        title.add(dateFormat.format(FieldNotes.getWikiMetaUpdateTime())).color(EPalettes.grayFront);
                     }
-                    meta.add(Core.bundle.format("notes.wiki.github.meta.count", FieldNotes.wikiNoteCount()))
-                        .color(EPalettes.grayFront).fontScale(0.85f);
-                }).growX().padBottom(4f).row();
-            }
+                }
+            }).tooltip("@notes.source.wiki.tooltip", true).row();
 
             panel.table(buttons -> {
                 buttons.defaults().pad(4f).height(48f).growX();

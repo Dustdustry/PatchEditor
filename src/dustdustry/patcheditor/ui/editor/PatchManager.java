@@ -156,7 +156,7 @@ public class PatchManager extends BaseDialog{
 
                     buttons.button(Icon.copySmall, Styles.clearNonei, () -> {
                         Core.app.setClipboardText(patch.patch);
-                        EUI.infoToast("patch-manager.patch.copy" + patch.name);
+                        EUI.infoToast(Core.bundle.format("patch-manager.patch.copy.info", patch.displayName()));
                     }).tooltip("@patch-manager.patch.copy", true);
 
                     buttons.button(Icon.exportSmall, Styles.clearNonei, () -> {
