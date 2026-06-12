@@ -18,7 +18,6 @@ public class EditorList{
 
     // Read only. Do not hold the reference.
     private static Seq<Weapon> weaponList;
-    private static Seq<AtlasRegion> regionList;
     private static Seq<Sound> soundList;
 
     private static Seq<String> visibilityList, interpList, attributeList;
@@ -29,15 +28,6 @@ public class EditorList{
             weaponList = Vars.content.units().flatMap(unit -> unit.weapons).retainAll(w -> nameSet.add(w.name));
         }
         return weaponList;
-    }
-
-    public static Seq<AtlasRegion> getRegions(){
-        if(regionList == null){
-            // yes, sort by name
-            regionList = Seq.with(Core.atlas.getRegions());
-            regionList.sort(Structs.comparing(region -> region.name));
-        }
-        return regionList;
     }
 
     public static Seq<Sound> getSoundList(){

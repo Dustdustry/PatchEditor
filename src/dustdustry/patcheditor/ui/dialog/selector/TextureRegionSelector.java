@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.ui.dialog.selector;
 
+import arc.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.ui.*;
 import arc.graphics.*;
@@ -11,6 +12,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.graphics.*;
 
+// TODO: specified UI for patch images
 public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
     public TextureRegionSelector(){
         super("@selector.texture-region");
@@ -72,7 +74,7 @@ public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
 
     @Override
     protected Seq<AtlasRegion> getItems(){
-        return EditorList.getRegions();
+        return Seq.with(Core.atlas.getRegions()).sort(Structs.comparing(region -> region.name));
     }
 
     @Override
