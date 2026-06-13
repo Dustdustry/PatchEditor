@@ -12,6 +12,7 @@ import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
+import dustdustry.patcheditor.utils.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -62,13 +63,17 @@ public class PatchEditor extends BaseDialog{
         super("@patch-editor");
 
         manager = new NodeManager();
-        card = new NodeCard(manager);
+        card = new NodeCard();
 
         // notify here?
         manager.onChanged((operator, node, uiUpdated) -> {
-            if(editorTree == null) return;
+            if(NodePath.isRelatedPath(operator.path, card.getEditorPath()) && !uiUpdated){
+                card.invalidNodes();
+            }
 
-            editorTree.navigateThrough(operator.path, EditorNode::patchChanged);
+            if(editorTree != null){
+                editorTree.navigateThrough(operator.path, EditorNode::patchChanged);
+            }
         });
 
         resized(this::rebuild);

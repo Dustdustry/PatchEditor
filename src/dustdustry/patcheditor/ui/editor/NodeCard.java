@@ -43,7 +43,6 @@ public class NodeCard extends Table{
 
     private final Table nodesTable; // workingTable / childrenNodesTable
 
-    private final NodeManager manager;
     private EditorNode rootEditorNode;
 
     private String editorPath = "", parentPath = "";
@@ -54,18 +53,11 @@ public class NodeCard extends Table{
 
     private boolean needRebuildNodes;
 
-    public NodeCard(NodeManager manager){
-        this.manager = manager;
-
+    public NodeCard(){
         nodesTable = new Table();
 
         top().left();
         nodesTable.top().left();
-
-        manager.onChanged((op, node, uiUpdated) -> {
-            if(!isRelatedPath(op.path, editorPath) || uiUpdated) return;
-            needRebuildNodes = true;
-        });
     }
 
     private static Tooltip getNoteTooltip(String note, boolean allowMobile){
@@ -76,6 +68,10 @@ public class NodeCard extends Table{
         tooltip.allowMobile = allowMobile;
 
         return tooltip;
+    }
+
+    public void invalidNodes(){
+        needRebuildNodes = true;
     }
 
     @Override
@@ -296,16 +292,6 @@ public class NodeCard extends Table{
                 t.addAction(Actions.color(patched ? modifiedColor : unmodifiedColor, 0.2f));
             });
         });
-    }
-
-    private static boolean isRelatedPath(String a, String b){
-        if(a == null || b == null) return false;
-        return isSameOrChildPath(a, b) || isSameOrChildPath(b, a);
-    }
-
-    private static boolean isSameOrChildPath(String path, String ancestor){
-        if(ancestor.isEmpty()) return true;
-        return path.equals(ancestor) || path.startsWith(ancestor + NodeManager.pathComp);
     }
 
     private static boolean isWarning(EditorNode node){
@@ -610,6 +596,10 @@ public class NodeCard extends Table{
                 }).tooltip("@node-card.extract", false);
             }
         }).expandX().right().growY();
+    }
+
+    public String getEditorPath(){
+        return editorPath;
     }
 
     @Override
