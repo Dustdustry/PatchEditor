@@ -286,27 +286,29 @@ public class PatchJsonTransform{
             return;
         }
 
-        int singleCount = 1;
-        JsonValue singleEnd = value;
-        while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null){
-            if(!dotSimplifiable(singleEnd)) break;
-            singleEnd = singleEnd.child;
-            singleCount++;
-        }
-
-        if(singleCount >= PatchJsonIO.simplifySingleCount){
-            StringBuilder name = new StringBuilder();
-            JsonValue current = value;
-            while(true){
-                name.append(current.name);
-                current = current.child;
-                if(current != singleEnd.child) name.append("."); // dot syntax
-                else break;
+        if(!value.parent.isArray()){
+            int singleCount = 1;
+            JsonValue singleEnd = value;
+            while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null){
+                if(!dotSimplifiable(singleEnd)) break;
+                singleEnd = singleEnd.child;
+                singleCount++;
             }
 
-            singleEnd.setName(name.toString());
-            JsonHelper.replace(value, singleEnd);
-            value = singleEnd;
+            if(singleCount >= PatchJsonIO.simplifySingleCount){
+                StringBuilder name = new StringBuilder();
+                JsonValue current = value;
+                while(true){
+                    name.append(current.name);
+                    current = current.child;
+                    if(current != singleEnd.child) name.append("."); // dot syntax
+                    else break;
+                }
+
+                singleEnd.setName(name.toString());
+                JsonHelper.replace(value, singleEnd);
+                value = singleEnd;
+            }
         }
 
         for(JsonValue childValue : value){
