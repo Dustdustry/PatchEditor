@@ -322,6 +322,7 @@ public class EditorNode{
         }
         children.clear();
         needResolve = true;
+        patchChanged = true;
     }
 
     public void sync(){
