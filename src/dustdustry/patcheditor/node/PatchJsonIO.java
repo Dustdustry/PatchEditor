@@ -223,10 +223,11 @@ public class PatchJsonIO{
             int i = 0;
             if(plusValue.isArray()){
                 // patchNode('+': [{}, ""]) -> multiple append
+                ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType);
                 for(JsonValue childValue : plusValue){
                     PatchNode childNode = patchNode.getOrCreate(appendPrefix + i++);
                     if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
-                    parseJson(null, childNode, childValue);
+                    parseJson(template, childNode, childValue);
                     childNode.sign = ModifierSign.PLUS;
                 }
             }else if(plusValue.isObject()){
@@ -234,7 +235,8 @@ public class PatchJsonIO{
                 PatchNode childNode = patchNode.getOrCreate(appendPrefix + i);
                 childNode.sign = ModifierSign.PLUS;
                 if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
-                parseJson(null, childNode, plusValue);
+                ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType);
+                parseJson(template, childNode, plusValue);
             }
 
             if(value.child == null){
@@ -246,10 +248,11 @@ public class PatchJsonIO{
         if(value.isArray()){
             // patchNode('array': []) -> override array.
             int i = 0;
+            ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType);
             for(JsonValue childValue : value){
                 PatchNode childNode = patchNode.getOrCreate("" + i++);
                 childNode.sign = ModifierSign.PLUS;
-                parseJson(null, childNode, childValue);
+                parseJson(template, childNode, childValue);
             }
             patchNode.type = ValueType.array;
             patchNode.sign = ModifierSign.MODIFY;
