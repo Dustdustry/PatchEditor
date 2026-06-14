@@ -51,6 +51,7 @@ public class EditorNode{
                 EditorNode child = new EditorNode(node, manager);
                 child.parent = this;
                 children.put(child.name(), child);
+                child.checkObjNode();
             }
         }
 
@@ -78,6 +79,7 @@ public class EditorNode{
                             // changing type support
                             Class<?> type = PatchJsonIO.resolveType(typeJson);
                             if(type == null) type = getObjNode().elementType; // Not changing type. Use meta type.
+                            if(getObjNode().elementType == null) throw new RuntimeException("Unknown elementType of '" + getPath() + "'");
 
                             EditorNode child = new DynamicEditorNode(childPatch.key, getObjNode().elementType, type, manager);
                             child.parent = this;
@@ -320,7 +322,6 @@ public class EditorNode{
         }
         children.clear();
         needResolve = true;
-        patchChanged = true;
     }
 
     public void sync(){
