@@ -160,14 +160,14 @@ public class NotesDialog extends BaseDialog{
                 buttons.defaults().pad(4f).height(48f).growX();
                 buttons.button("@notes.wiki.github", Icon.book, Styles.cleart, this::showGithubDialog);
                 buttons.button("@notes.wiki.file", Icon.download, Styles.cleart, () -> {
-                    Vars.platform.showMultiFileChooser(fi -> {
+                    FileChooser.open("json").submit(fi -> {
                         Vars.ui.showConfirm("@confirm", "@notes.import.replace.confirm", () -> {
                             FieldNotes.replaceWikiNotes(fi.readString());
                             FieldNotes.saveWikiNotes();
                             rebuildNotesTable();
                             EUI.infoToast(Core.bundle.format("notes.wiki.file.succeed", fi.name()));
                         });
-                    }, "json");
+                    });
                 });
 
                 buttons.row();
@@ -193,11 +193,11 @@ public class NotesDialog extends BaseDialog{
             panel.table(buttons -> {
                 buttons.defaults().pad(4f).height(48f).growX();
                 buttons.button("@notes.user.file", Icon.download, Styles.cleart, () -> {
-                    Vars.platform.showMultiFileChooser(fi -> {
+                    FileChooser.open("json").submit(fi -> {
                         FieldNotes.importUserNotesClipboard(fi.readString(), false);
                         rebuildNotesTable();
                         EUI.infoToast(Core.bundle.format("notes.user.file.succeed", fi.name()));
-                    }, "json");
+                    });
                 });
                 buttons.button("@notes.import", Icon.download, Styles.cleart, this::importNotesFromClipboard);
 

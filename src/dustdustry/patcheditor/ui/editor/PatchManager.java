@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.ui.editor;
 
+import arc.files.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.ui.*;
 import dustdustry.patcheditor.ui.dialog.*;
@@ -17,7 +18,9 @@ import mindustry.*;
 import mindustry.core.GameState.*;
 import mindustry.gen.*;
 import mindustry.mod.DataPatcher.*;
+import mindustry.mod.data.*;
 import mindustry.ui.*;
+import mindustry.ui.FileChooser.*;
 import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.state;
@@ -27,6 +30,8 @@ import static mindustry.Vars.state;
  * Create by 2024/2/17
  */
 public class PatchManager extends BaseDialog{
+    private static final Seq<PatchAsset> emptyPatchAssets = new Seq<>();
+
     private final PatchEditor editor = new PatchEditor();
     private final Table patchContainer, patchTable;
     private final Seq<EditorPatch> editorPatches = new Seq<>();
@@ -42,8 +47,8 @@ public class PatchManager extends BaseDialog{
         resized(this::rebuildCont);
 
         shown(() -> {
-            editorPatches.set(state.patcher.patches.map(EditorPatch::new));
-            Vars.state.patcher.unapply();
+            editorPatches.set(state.data.getPatches().map(EditorPatch::new));
+            state.data.reloadPatches(emptyPatchAssets);
 
             // patcher will change the object so clear all the tree
             editor.resetEditor();
@@ -54,11 +59,10 @@ public class PatchManager extends BaseDialog{
 
         hidden(() -> {
             try{
-                state.patcher.apply(editorPatches.map(p -> p.patch));
+                state.data.reloadPatches(editorPatches.map(e -> new PatchAsset(e.patch)));
             }catch(Exception e){
                 Vars.ui.showException(e);
             }
-            editorPatches.set(state.patcher.patches.map(EditorPatch::new));
 
             editor.resetEditor();
 
@@ -229,9 +233,11 @@ public class PatchManager extends BaseDialog{
 
             table.button("@patch-manager.import-patch.file", Icon.download, Styles.cleart, () -> {
                 dialog.hide();
-                Vars.platform.showMultiFileChooser(fi -> {
-                    importPatch(fi.readString());
-                }, "hjson", "json", "txt");
+                FileChooser.open("hjson", "json", "txt").submitMulti((files) -> {
+                    for(Fi fi : files){
+                        importPatch(fi.readString());
+                    }
+                });
             }).row();
         });
 
@@ -254,7 +260,7 @@ public class PatchManager extends BaseDialog{
 
             table.button("@patch-manager.patch.export.file", Icon.download, Styles.cleart, () -> {
                 dialog.hide();
-                Vars.platform.export(patch.displayName(), "json", file -> {
+                FileChooser.export(patch.displayName(), "json", file -> {
                     file.writeString(patch.patch);
                     Core.app.post(() -> {
                         EUI.infoToast(Core.bundle.format("patch-manager.patch.export.info", file.absolutePath()));
@@ -294,8 +300,8 @@ public class PatchManager extends BaseDialog{
             this.patch = patch;
         }
 
-        public EditorPatch(PatchSet patchSet){
-            this(patchSet.name, patchSet.patch);
+        public EditorPatch(PatchAsset patchAsset){
+            this(patchAsset.name, patchAsset.patch);
         }
 
         public String displayName(){

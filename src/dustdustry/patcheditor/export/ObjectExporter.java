@@ -23,7 +23,6 @@ import mindustry.entities.pattern.*;
 import mindustry.game.*;
 import mindustry.mod.*;
 import mindustry.type.*;
-import mindustry.type.ammo.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.consumers.*;
@@ -100,14 +99,6 @@ public class ObjectExporter{
             if(fieldName != null){
                 result.set(fieldName);
             }else{
-                exportObject(objectNode, result, config);
-            }
-        }else if(VersionAdapter.hasAmoType && object instanceof AmmoType ammo){
-            if(ammo instanceof ItemAmmoType itemAmmo){
-                result.set(itemAmmo.item.name);
-            }else if(ammo instanceof PowerAmmoType powerAmmo){
-                result.set(powerAmmo.totalPower, null);
-            }else {
                 exportObject(objectNode, result, config);
             }
         }else if(object instanceof DrawBlock){
