@@ -270,6 +270,13 @@ public class PatchJsonIO{
             ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve(name);
             PatchNode childNode = patchNode.getOrCreate(name);
 
+            if(childValue.has("type") && (childObj == null || overrideable(childObj.type))){
+                Class<?> type = resolveType(childValue.getString("type"));
+                if(type != null && (childObj == null || childObj.type.isAssignableFrom(type)) && typeOverrideable(type)){
+                    childObj = ObjectResolver.getTemplate(type);
+                }
+            }
+
             // map sign assign
             if(objectNode != null && ClassHelper.isMap(objectNode.type)){
                 if(childValue.isValue() && ModifierSign.REMOVE.sign.equals(childValue.asString())){
