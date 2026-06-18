@@ -21,6 +21,8 @@ public class Main extends Mod{
 
     public Main(){
         Events.on(ClientLoadEvent.class, e -> {
+            VersionAdapter.init();
+
             EVars.init();
             EUI.init();
             EUI.mountEditor();

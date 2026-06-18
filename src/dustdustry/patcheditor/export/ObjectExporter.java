@@ -102,7 +102,7 @@ public class ObjectExporter{
             }else{
                 exportObject(objectNode, result, config);
             }
-        }else if(EVars.hasAmoType && object instanceof AmmoType ammo){
+        }else if(VersionAdapter.hasAmoType && object instanceof AmmoType ammo){
             if(ammo instanceof ItemAmmoType itemAmmo){
                 result.set(itemAmmo.item.name);
             }else if(ammo instanceof PowerAmmoType powerAmmo){
