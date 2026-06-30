@@ -70,8 +70,13 @@ public abstract class ModifierBuilder<T>{
                     Table cont = dialog.cont;
 
                     cont.add(dialog.titleTable).fillX().row();
-                    cont.area(value, Styles.areaField, t -> setValue(UI.formatIcons(t)))
-                    .valid(consumer::checkValue).minSize(400f, 600f);
+                    cont.add("@patch-editor.editText.emojiHint").padBottom(8f).row();
+
+                    cont.area(value, Styles.areaField, t -> {
+                        setValue(UI.formatIcons(t));
+                    }).valid(consumer::checkValue).minSize(400f, 600f).update(area -> {
+                        if(!area.hasKeyboard()) area.setText(value);
+                    });
 
                     dialog.addCloseButton();
                     dialog.show();
