@@ -13,6 +13,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -60,7 +61,7 @@ public abstract class ModifierBuilder<T>{
 
         @Override
         public void build(Table table){
-            field = table.field(value, this::setValue)
+            field = table.field(value, t -> setValue(UI.formatIcons(t)))
             .valid(consumer::checkValue).pad(4f).growX().get();
 
             if(consumer.getTypeMeta() == String.class){
@@ -69,7 +70,7 @@ public abstract class ModifierBuilder<T>{
                     Table cont = dialog.cont;
 
                     cont.add(dialog.titleTable).fillX().row();
-                    cont.area(value, Styles.areaField, this::setValue)
+                    cont.area(value, Styles.areaField, t -> setValue(UI.formatIcons(t)))
                     .valid(consumer::checkValue).minSize(400f, 600f);
 
                     dialog.addCloseButton();
