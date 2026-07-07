@@ -14,10 +14,10 @@ main: "dustdustry.patcheditor.Main"
 description: "Provide an in-game GUI for DataPatcher."
 
 #the mod version
-version: 1.10.1
+version: 1.11.0
 
 #the minimum game build required to run this mod
-minGameVersion: 156
+minGameVersion: 159
 
 #this is a java mod
 java: true
