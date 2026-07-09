@@ -277,6 +277,12 @@ public class PatchJsonIO{
                 }
             }
 
+            // override sign assign
+            if(childObj != null && (overrideable(childObj.type) && childObj.object == null || typeOverrideable(childObj.type) && childValue.has("type"))){
+                childNode.sign = ModifierSign.MODIFY;
+                if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
+            }
+
             // map sign assign
             if(objectNode != null && ClassHelper.isMap(objectNode.type)){
                 if(childValue.isValue() && ModifierSign.REMOVE.sign.equals(childValue.asString())){
@@ -290,12 +296,6 @@ public class PatchJsonIO{
                         if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
                     }
                 }
-            }
-
-            // override sign assign
-            if(childObj != null && (overrideable(childObj.type) && childObj.object == null || typeOverrideable(childObj.type) && childValue.has("type"))){
-                childNode.sign = ModifierSign.MODIFY;
-                if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
             }
 
             // patchNode('array': {}) -> normal modify(override) do nothing
