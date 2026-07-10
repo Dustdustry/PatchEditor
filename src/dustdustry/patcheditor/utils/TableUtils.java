@@ -24,16 +24,18 @@ public class TableUtils{
         boolean appendEnd = column == table.getColumns() - 1;
 
         int newColumns = table.getColumns();
+        int insertIndex = 0;
         for(Cell<?> cell : cells){
             newCells.add(cell);
+            if(insertIndex >= columnCells.size) continue;
 
             int cellCol = Reflect.get(cell, "column");
             if(cellCol < column) continue;
-            int cellRow = Reflect.get(cell, "row");
-            if(cellRow > columnCells.size) break;
 
             if(cellCol == column){
-                Cell<?> columnCell = columnCells.get(cellRow);
+                newColumns++;
+
+                Cell<?> columnCell = columnCells.get(insertIndex++);
                 Cell<?> insertCell = Pools.get(Cell.class, Cell::new).obtain();
                 insertCell.set(columnCell);
 
@@ -52,8 +54,8 @@ public class TableUtils{
 
             if(cellCol > column){
                 int cellAboveIndex = Reflect.get(cell, "cellAboveIndex");
-                Reflect.set(cell, "column", cellCol);
-                Reflect.set(cell, "cellAboveIndex", cellAboveIndex);
+                Reflect.set(cell, "column", cellCol + 1);
+                Reflect.set(cell, "cellAboveIndex", cellAboveIndex + 1);
             }
         }
 

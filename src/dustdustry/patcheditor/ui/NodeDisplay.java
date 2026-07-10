@@ -22,7 +22,7 @@ import mindustry.ui.*;
 public class NodeDisplay{
     public static final float labelWidth = 100f;
     public static final float imageSize = Vars.iconLarge;
-    private static ObjectMap<ContentType, TextureRegion> contentSymbolMap;
+    public static ObjectMap<ContentType, TextureRegion> contentSymbolMap;
 
     private static Table table;
     private static EditorNode node;

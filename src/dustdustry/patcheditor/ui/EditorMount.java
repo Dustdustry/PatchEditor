@@ -1,29 +1,34 @@
 package dustdustry.patcheditor.ui;
 
+import arc.*;
 import arc.scene.*;
 import arc.scene.actions.*;
+import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.JsonWriter.*;
+import dustdustry.patcheditor.ui.dialog.*;
 import dustdustry.patcheditor.ui.editor.*;
 import dustdustry.patcheditor.ui.editor.PatchManager.*;
 import dustdustry.patcheditor.utils.*;
 import mindustry.*;
+import mindustry.ctype.*;
 import mindustry.editor.*;
 import mindustry.editor.data.*;
 import mindustry.gen.*;
 import mindustry.mod.data.*;
 import mindustry.ui.*;
 
-import static mindustry.Vars.state;
+import static mindustry.Vars.*;
 
 public class EditorMount{
     private static PatchEditor patchEditor;
     private static Seq<EditorPatch> editorPatches;
 
+    // extremely hacky
     public static void mount(){
         patchEditor = new PatchEditor();
         editorPatches = new Seq<>();
@@ -54,10 +59,11 @@ public class EditorMount{
     }
 
     private static void mountPatch(MapAssetsDialog assetsDialog, Table assetList){
-        editorPatches.set(Vars.state.data.getPatches().map(EditorPatch::new));
+        editorPatches.set(state.data.getPatches().map(EditorPatch::new));
         TableUtils.insertColumnAfter(assetList, 1, t -> {
+            t.defaults().set(assetList.defaults()).fill();
             for(EditorPatch editorPatch : editorPatches){
-                t.button(Icon.edit, Styles.cleari, () -> {
+                t.button(Icon.edit, Styles.graySquarei, iconMed, () -> {
                     state.data.reloadPatches(new Seq<>());
                     patchEditor.resetEditor();
                     patchEditor.edit(editorPatch, () -> {
@@ -69,7 +75,7 @@ public class EditorMount{
         });
 
         assetList.row();
-        assetList.add();
+        if(editorPatches.any()) assetList.add();
         assetList.button("### 添加空补丁包", Styles.cleart, () -> {
             Seq<PatchAsset> assets = state.data.getPatches();
 
@@ -80,7 +86,7 @@ public class EditorMount{
 
             state.data.reloadPatches(assets);
             Reflect.invoke(assetsDialog, "rebuild");
-        }).padTop(12f).height(64f).colspan(assetList.getColumns()).fillX();
+        }).padTop(12f).minWidth(240f).height(64f).colspan(assetList.getColumns()).fillX();
     }
 
     private static void mountContent(MapAssetsDialog assetsDialog, Table assetList){
