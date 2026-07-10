@@ -74,7 +74,7 @@ public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
 
     @Override
     protected Seq<AtlasRegion> getItems(){
-        return Seq.with(Core.atlas.getRegions()).sort(Structs.comparing(region -> region.name));
+        return Core.atlas.getRegionMap().values().toSeq().sortComparing(region -> region.name);
     }
 
     @Override
