@@ -18,7 +18,6 @@ public class EditorList{
 
     // Read only. Do not hold the reference.
     private static Seq<Weapon> weaponList;
-    private static Seq<Sound> soundList;
 
     private static Seq<String> visibilityList, interpList, attributeList;
 
@@ -28,14 +27,6 @@ public class EditorList{
             weaponList = Vars.content.units().flatMap(unit -> unit.weapons).retainAll(w -> nameSet.add(w.name));
         }
         return weaponList;
-    }
-
-    public static Seq<Sound> getSoundList(){
-        if(soundList == null){
-            ObjectMap<String, Sound> map = PatchJsonIO.getKeyEntryMap(Sound.class);
-            soundList = map.keys().toSeq().sort().map(map::get);
-        }
-        return soundList;
     }
 
     public static Seq<String> getSubTypeNames(Class<?> clazz){

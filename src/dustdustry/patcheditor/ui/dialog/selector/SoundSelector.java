@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.ui.dialog.selector;
 
+import arc.struct.ObjectMap.*;
 import dustdustry.patcheditor.node.*;
 import arc.*;
 import arc.audio.*;
@@ -12,6 +13,7 @@ import mindustry.ui.*;
 
 import java.lang.reflect.*;
 
+// TODO: add specified UI for sound asset.
 public class SoundSelector extends SelectorDialog<Sound>{
     private final IntSeq playingSounds = new IntSeq();
 
@@ -51,7 +53,11 @@ public class SoundSelector extends SelectorDialog<Sound>{
 
     @Override
     protected Seq<Sound> getItems(){
-        return EditorList.getSoundList();
+        ObjectMap<String, Sound> map = PatchJsonIO.getKeyEntryMap(Sound.class);
+        for(var entry : Core.assets.getAllEntries(Sound.class, new Seq<>())){
+            map.put(Strings.getFileNameWithoutExtension(entry.key), entry.value);
+        }
+        return map.keys().toSeq().sort().map(map::get);
     }
 
     public static class SoloudAssessor{
