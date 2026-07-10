@@ -14,9 +14,13 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.scene.utils.*;
 import arc.util.*;
+import dustdustry.patcheditor.ui.editor.PatchManager.*;
+import dustdustry.patcheditor.utils.*;
 import mindustry.*;
 import mindustry.editor.*;
+import mindustry.editor.data.*;
 import mindustry.gen.*;
+import mindustry.mod.data.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
@@ -37,6 +41,7 @@ public class EUI{
 
     public static FavoritesDialog favorites;
     public static NotesDialog notes;
+
 
     public static void init(){
         EStyles.init();
@@ -59,25 +64,6 @@ public class EUI{
     }
 
     public static void mountEditor(){
-        MapInfoDialog infoDialog = Reflect.get(Vars.ui.editor, "infoDialog");
-        infoDialog.shown(() -> Core.app.post(() -> {
-            ScrollPane pane = (ScrollPane)infoDialog.cont.getChildren().get(0);
-            Table table = Reflect.get(pane, "widget");
-
-            Table buttonTable = (Table)table.getChildren().peek();
-            if(buttonTable.find("patch-editor") != null) return;
-
-            buttonTable.row();
-
-            buttonTable.button(b -> {
-                b.add("[accent][PE]").pad(8f).left();
-                b.add("@patch-manager").expandX();
-            }, Styles.cleari, manager::show).name("patch-editor")
-            .colspan(buttonTable.getColumns()).width(Float.NEGATIVE_INFINITY).growX();
-
-            buttonTable.row();
-        }));
-
         BaseDialog paused = Vars.ui.paused;
         paused.shown(() -> {
             if(!Vars.net.client()){

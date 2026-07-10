@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.ui.editor;
 
+import arc.func.*;
 import arc.util.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.node.patch.*;
@@ -27,6 +28,7 @@ public class PatchEditor extends BaseDialog{
     protected ScrollPane pane;
 
     public EditorPatch editPatch;
+    protected @Nullable Runnable onSaved;
 
     /**
      * <p>
@@ -85,6 +87,11 @@ public class PatchEditor extends BaseDialog{
             manager.clearStacks();
             savePatch();
             pane = null;
+
+            if(onSaved != null){
+                onSaved.run();
+                onSaved = null;
+            }
         });
 
         update(() -> {
@@ -141,25 +148,7 @@ public class PatchEditor extends BaseDialog{
     }
 
     public void edit(EditorPatch patch){
-        manager.reset();
-        editorTree = new EditorNode(objectTree, manager);
-        card.setRootEditorNode(editorTree);
-
-        try{
-            PatchJsonIO.parseJson(objectTree, manager.getRoot(), patch.patch);
-            manager.indexPaths();
-        }catch(Exception e){
-            Vars.ui.showException(e);
-            return;
-        }
-
-        if(!Core.settings.getBool("patch-editor.rememberPath")){
-            card.setEditPath("");
-        }
-
-        editPatch = patch;
-
-        show();
+        edit(patch, null);
     }
 
     protected void setup(){
@@ -198,6 +187,30 @@ public class PatchEditor extends BaseDialog{
         }).growX();
 
         cont.top();
+    }
+
+    public void edit(EditorPatch patch, Runnable onSaved){
+        this.onSaved = onSaved;
+
+        manager.reset();
+        editorTree = new EditorNode(objectTree, manager);
+        card.setRootEditorNode(editorTree);
+
+        try{
+            PatchJsonIO.parseJson(objectTree, manager.getRoot(), patch.patch);
+            manager.indexPaths();
+        }catch(Exception e){
+            Vars.ui.showException(e);
+            return;
+        }
+
+        if(!Core.settings.getBool("patch-editor.rememberPath")){
+            card.setEditPath("");
+        }
+
+        editPatch = patch;
+
+        show();
     }
 
     protected void rebuild(){
