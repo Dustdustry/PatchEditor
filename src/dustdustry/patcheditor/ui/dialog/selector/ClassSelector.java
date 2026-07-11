@@ -39,6 +39,10 @@ public class ClassSelector extends SelectorDialog<Class<?>>{
         select(selectable, null, consumer);
     }
 
+    public void select(Class<?> superClass, Boolf<Class<?>> consumer){
+        select(null, superClass, consumer);
+    }
+
     public void select(Boolf<Class<?>> selectable, Class<?> superClass, Boolf<Class<?>> consumer){
         classes.clear();
         for(var entry : ClassMap.classes){

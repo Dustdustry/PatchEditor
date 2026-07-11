@@ -26,11 +26,13 @@ import static mindustry.Vars.*;
 
 public class EditorMount{
     private static PatchEditor patchEditor;
+    private static ContentAssetDialog contentAssetDialog;
     private static Seq<EditorPatch> editorPatches;
 
     // extremely hacky
     public static void mount(){
         patchEditor = new PatchEditor();
+        contentAssetDialog = new ContentAssetDialog();
         editorPatches = new Seq<>();
 
         MapInfoDialog infoDialog = Reflect.get(Vars.ui.editor, "infoDialog");
@@ -90,7 +92,40 @@ public class EditorMount{
     }
 
     private static void mountContent(MapAssetsDialog assetsDialog, Table assetList){
+        Seq<ContentAsset> assets = state.data.getContent();
 
+        // TODO: show info when error occurs
+        Seq<Cell> cells = assetList.getCells().select(c -> c.get() instanceof ImageButton ib && ib.getImage().getDrawable() == Icon.refresh);
+        if(cells.size != assets.size) return;
+
+        for(int i = 0; i < assets.size; i++){
+            ContentAsset asset = assets.get(i);
+            Cell cell = cells.get(i);
+
+            ImageButton button = new ImageButton(Icon.edit, Styles.graySquarei);
+            button.resizeImage(iconMed);
+            button.clicked(() -> {
+                contentAssetDialog.show(asset, () -> Reflect.invoke(assetsDialog, "rebuild"));
+            });
+
+            cell.setElement(button);
+        }
+
+        String addText = Core.bundle.get("add");
+        Cell<?> cell = assetsDialog.buttons.getCells().find(c -> {
+            if(!(c.get() instanceof TextButton tb)) return false;
+            return addText.contentEquals(tb.getText());
+        });
+        cell.setElement(new TextButton("@add"){{
+            add(new Image(Icon.add)).size(Icon.add.imageSize());
+            getCells().reverse();
+            clicked(() -> {
+                state.data.getContent().add(new ContentAsset("item1.json", ContentType.item, "{}"));
+                state.data.reloadContent(false);
+                state.data.regenerateContentSprites(false);
+                Reflect.invoke(assetsDialog, "rebuild");
+            });
+        }});
     }
 
     private static String findPatchName(Seq<PatchAsset> patchAssets){

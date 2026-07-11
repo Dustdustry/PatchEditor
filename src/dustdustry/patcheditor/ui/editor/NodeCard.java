@@ -52,6 +52,7 @@ public class NodeCard extends Table{
     private String[] searchTextMap = new String[8];
 
     private boolean needRebuildNodes;
+    private boolean forceOverride;
 
     public NodeCard(){
         nodesTable = new Table();
@@ -85,6 +86,10 @@ public class NodeCard extends Table{
 
     public void setRootEditorNode(EditorNode rootEditorNode){
         this.rootEditorNode = rootEditorNode;
+    }
+
+    public void forceOverride(boolean forceOverride){
+        this.forceOverride = forceOverride;
     }
 
     public void clean(){
@@ -372,7 +377,7 @@ public class NodeCard extends Table{
                     });
                 }
             }else{
-                boolean append = editorNode.canAppend();
+                boolean append = !forceOverride && editorNode.canAppend();
                 editorNode.append(append);
                 editorNode.setValueType(append ? ValueType.object : ValueType.array);
             }
