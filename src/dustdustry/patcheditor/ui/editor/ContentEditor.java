@@ -31,13 +31,8 @@ public class ContentEditor extends PatchEditor{
 
     @Override
     protected void savePatch(){
-        JsonValue value = PatchJsonIO.toJson(manager.getRoot());
-        SugarJsonConfig sugarJsonConfig = new SugarJsonConfig().sugarStacks(true);
-        PatchJsonTransform.sugarPatch(objectTree, value, sugarJsonConfig);
-        PatchJsonTransform.processJson(objectTree, value);
-        PatchJsonTransform.simplifyPath(value);
-
-        asset.data = value.prettyPrint(OutputType.json, 4);
+        String patch = PatchJsonIO.toPatch(objectTree, manager.getRoot(), EditorSettings.getPatchExportOptions());
+        asset.data = PatchJsonTransform.toModJson(patch);
         state.data.reloadContent(false);
         state.data.regenerateContentSprites(false);
     }
