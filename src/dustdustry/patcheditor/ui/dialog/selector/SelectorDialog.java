@@ -34,6 +34,7 @@ public abstract class SelectorDialog<T> extends BaseDialog{
     protected void rebuild(){
         if(itemCont == null) itemCont = new Table();
         if(pane == null) pane = new ScrollPane(itemCont);
+        if(!cont.hasChildren()) setupButtons();
 
         cont.clearChildren();
         cont.table(this::setupSearchTable).growX().row();
@@ -42,6 +43,8 @@ public abstract class SelectorDialog<T> extends BaseDialog{
         itemCont.clearChildren();
         setupCont(itemCont);
     }
+
+    protected void setupButtons(){}
 
     protected void setupCont(Table cont){
         float width = layoutWidth();
