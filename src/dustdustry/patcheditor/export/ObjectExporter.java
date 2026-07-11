@@ -1,7 +1,7 @@
 package dustdustry.patcheditor.export;
 
-import dustdustry.patcheditor.*;
 import dustdustry.patcheditor.node.*;
+import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.utils.*;
 import arc.*;
 import arc.audio.*;
@@ -179,7 +179,7 @@ public class ObjectExporter{
 
     private static void exportFields(ObjectNode objectNode, JsonValue value, ExportConfig config){
         Class<?> type = ClassHelper.unoymousClass(objectNode.object.getClass());
-        ObjectNode template = ObjectResolver.getTemplate(type, ObjectExample.getExample(type, type, true));
+        ObjectNode template = ObjectResolver.getTemplate(type, ObjectExample.getExample(type, type, true), objectNode.getResolutionStrategy());
         Seq<String> blackList = findFieldBlacklist(type);
 
         for(Entry<String, ObjectNode> entry : objectNode.getChildren()){

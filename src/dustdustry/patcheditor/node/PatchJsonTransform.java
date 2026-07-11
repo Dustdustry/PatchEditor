@@ -1,6 +1,7 @@
 package dustdustry.patcheditor.node;
 
 import dustdustry.patcheditor.node.patch.*;
+import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.utils.*;
 import arc.struct.*;
 import arc.util.*;
@@ -22,14 +23,14 @@ public class PatchJsonTransform{
 
         for(JsonValue child : value){
             ObjectNode childNode = child.name != null ? objectNode.getOrResolve(child.name) : null;
-            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType);
+            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
             if(childNode != null) processJson(childNode, child);
         }
 
         Seq<JsonValue> result = new Seq<>();
         for(JsonValue childValue : value){
             ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
-            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType);
+            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
 
             if(childNode == null){
                 result.add(childValue);
@@ -109,7 +110,7 @@ public class PatchJsonTransform{
 
             if(ClassHelper.isArrayLike(objectNode.type)){
                 // "requirements": ["item/amount"] | {+: [], {"item": "xxx"}}
-                ObjectNode childNode = ObjectResolver.getTemplate(objectNode.elementType);
+                ObjectNode childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
                 for(JsonValue childValue : value){
                     if(ModifierSign.PLUS.sign.equals(childValue.name)){
                         ObjectNode plusNode = objectNode.getOrResolve(childValue.name);
@@ -233,7 +234,7 @@ public class PatchJsonTransform{
         if(typeNode != null && typeNode.value != null){
             Class<?> typOverride = PatchJsonIO.resolveType(typeNode.value);
             if(typOverride != null && objectNode.type.isAssignableFrom(typOverride)){
-                objectNode = ObjectResolver.getTemplate(typOverride);
+                objectNode = ObjectResolver.getTemplate(typOverride, objectNode.getResolutionStrategy());
             }
         }
 
@@ -241,7 +242,7 @@ public class PatchJsonTransform{
         for(PatchNode childPatch : patchNode.children.values()){
             ObjectNode childObj = objectNode.getOrResolve(childPatch.key);
             if(childObj == null && objectNode.elementType != null){
-                childObj = ObjectResolver.getTemplate(objectNode.elementType);
+                childObj = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
             }
 
             clearRedundantPatch(childObj, childPatch);
@@ -338,7 +339,7 @@ public class PatchJsonTransform{
 
         for(JsonValue childValue : value){
             ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
-            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType);
+            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
             sugarPatch(childNode, childValue, config);
         }
     }

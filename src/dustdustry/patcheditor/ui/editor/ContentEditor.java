@@ -1,13 +1,10 @@
 package dustdustry.patcheditor.ui.editor;
 
-import arc.func.*;
-import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonWriter.*;
-import dustdustry.patcheditor.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.node.PatchJsonTransform.*;
-import dustdustry.patcheditor.node.patch.*;
+import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.ui.editor.PatchManager.*;
 import dustdustry.patcheditor.utils.*;
 import mindustry.ctype.*;
@@ -65,11 +62,12 @@ public class ContentEditor extends PatchEditor{
         ContentType type = asset.type;
 
         if(content == null){
-            objectTree = ObjectResolver.getTemplate(type.contentClass);
+            objectTree = ObjectResolver.getTemplate(type.contentClass, ObjectResolver.content);
         }else{
             Class<?> typeContent = ClassHelper.unoymousClass(content.getClass());
             String name = content instanceof MappableContent mc ? mc.name : "";
-            objectTree = new ObjectNode(name, ObjectExample.getExample(typeContent), typeContent);
+            objectTree = new ObjectNode(name, ObjectExample.getExample(typeContent, typeContent, true), typeContent);
+            objectTree.strategy = ObjectResolver.content;
         }
 
         super.edit(editPatch, onSaved);

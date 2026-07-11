@@ -1,6 +1,7 @@
 package dustdustry.patcheditor.node;
 
 import dustdustry.patcheditor.node.patch.*;
+import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.utils.*;
 import arc.struct.*;
 import arc.util.*;
@@ -20,6 +21,7 @@ public class ObjectNode{
     private ObjectNode parent;
     private boolean resolved = false;
     private final OrderedMap<String, ObjectNode> children = new OrderedMap<>();
+    public ResolutionStrategy strategy;
 
     public ObjectNode(String name, Object object, Class<?> type){
         this(name, object, type, null, null);
@@ -49,9 +51,10 @@ public class ObjectNode{
         this.elementType = elementType;
     }
 
-    public static ObjectNode createRoot(){
+    public static ObjectNode createRoot(ResolutionStrategy strategy){
         ObjectNode node = new ObjectNode("root", Reflect.get(DataPatcher.class, "root"), Object.class);
         node.isRoot = true;
+        node.strategy = strategy;
         return node;
     }
 
@@ -68,9 +71,15 @@ public class ObjectNode{
         return getChildren().get(name);
     }
 
+    public ResolutionStrategy getResolutionStrategy(){
+        ObjectNode root = this;
+        while(root.parent != null) root = root.parent;
+        return root.strategy != null ? root.strategy : ObjectResolver.patch;
+    }
+
     public ObjectMap<String, ObjectNode> getChildren(){
         if(!resolved){
-            ObjectResolver.resolve(this);
+            ObjectResolver.resolve(this, getResolutionStrategy());
             resolved = true;
         }
         return children;

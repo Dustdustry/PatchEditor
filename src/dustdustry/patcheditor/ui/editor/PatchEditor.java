@@ -1,9 +1,9 @@
 package dustdustry.patcheditor.ui.editor;
 
-import arc.func.*;
 import arc.util.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.node.patch.*;
+import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.ui.*;
 import dustdustry.patcheditor.ui.dialog.*;
 import dustdustry.patcheditor.ui.editor.PatchManager.*;
@@ -135,7 +135,7 @@ public class PatchEditor extends BaseDialog{
     public void resetEditor(){
         manager.reset();
         ObjectResolver.clearTemplate();
-        objectTree = ObjectNode.createRoot();
+        objectTree = ObjectNode.createRoot(ObjectResolver.patch);
         editorTree = new EditorNode(objectTree, manager);
         card.setRootEditorNode(editorTree);
         card.clean();

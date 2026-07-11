@@ -4,6 +4,7 @@ import dustdustry.patcheditor.node.PatchExportOptions.*;
 import dustdustry.patcheditor.node.PatchJsonTransform.*;
 import dustdustry.patcheditor.node.patch.*;
 
+import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.utils.*;
 import arc.*;
 import arc.audio.*;
@@ -223,7 +224,7 @@ public class PatchJsonIO{
             int i = 0;
             if(plusValue.isArray()){
                 // patchNode('+': [{}, ""]) -> multiple append
-                ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType);
+                ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
                 for(JsonValue childValue : plusValue){
                     PatchNode childNode = patchNode.getOrCreate(appendPrefix + i++);
                     if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
@@ -235,7 +236,7 @@ public class PatchJsonIO{
                 PatchNode childNode = patchNode.getOrCreate(appendPrefix + i);
                 childNode.sign = ModifierSign.PLUS;
                 if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
-                ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType);
+                ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
                 parseJson(template, childNode, plusValue);
             }
 
@@ -248,7 +249,7 @@ public class PatchJsonIO{
         if(value.isArray()){
             // patchNode('array': []) -> override array.
             int i = 0;
-            ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType);
+            ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
             for(JsonValue childValue : value){
                 PatchNode childNode = patchNode.getOrCreate("" + i++);
                 childNode.sign = ModifierSign.PLUS;
@@ -273,7 +274,7 @@ public class PatchJsonIO{
             if(childValue.has("type") && (childObj == null || overrideable(childObj.type))){
                 Class<?> type = resolveType(childValue.getString("type"));
                 if(type != null && (childObj == null || childObj.type.isAssignableFrom(type)) && typeOverrideable(type)){
-                    childObj = ObjectResolver.getTemplate(type);
+                    childObj = ObjectResolver.getTemplate(type, objectNode.getResolutionStrategy());
                 }
             }
 

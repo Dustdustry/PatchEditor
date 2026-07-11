@@ -5,10 +5,11 @@ import dustdustry.patcheditor.node.*;
 import arc.struct.ObjectMap.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
+import dustdustry.patcheditor.node.resolve.*;
 
 public class PatchExporter{
     public static String export(String path){
-        return export(ObjectNode.createRoot().navigate(path));
+        return export(ObjectNode.createRoot(ObjectResolver.patch).navigate(path));
     }
 
     public static String export(ObjectNode objectNode){

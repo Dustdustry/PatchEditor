@@ -2,6 +2,7 @@ package dustdustry.patcheditor.node.patch;
 
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.node.modifier.*;
+import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.utils.*;
 import arc.struct.ObjectMap.*;
 import arc.util.serialization.JsonValue.*;
@@ -130,11 +131,13 @@ public abstract class PatchOperator{
     public static class AppendOp extends PatchOperator{
         public final Class<?> elementType;
         public final boolean plusSyntax;
+        public final ResolutionStrategy strategy;
 
-        public AppendOp(String path, Class<?> elementType, boolean plusSyntax){
+        public AppendOp(String path, Class<?> elementType, boolean plusSyntax, ResolutionStrategy strategy){
             super(path);
             this.elementType = elementType;
             this.plusSyntax = plusSyntax;
+            this.strategy = strategy;
         }
 
         @Override
@@ -147,7 +150,7 @@ public abstract class PatchOperator{
             appended.sign = ModifierSign.PLUS;
             appended.type = ClassHelper.isArrayLike(elementType) ? ValueType.array : ValueType.object;
 
-            ObjectNode template = ObjectResolver.getTemplate(elementType);
+            ObjectNode template = ObjectResolver.getTemplate(elementType, strategy);
             DataModifier<?> modifier = NodeModifier.getModifier(template);
             if(modifier != null){
                 appended.type = modifier.valueType();

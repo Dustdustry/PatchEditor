@@ -2,6 +2,7 @@ package dustdustry.patcheditor.node;
 
 import dustdustry.patcheditor.node.patch.*;
 import dustdustry.patcheditor.node.patch.PatchOperator.*;
+import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.utils.*;
 import arc.func.*;
 import arc.struct.*;
@@ -81,14 +82,14 @@ public class EditorNode{
                             if(type == null) type = getObjNode().elementType; // Not changing type. Use meta type.
                             if(getObjNode().elementType == null) throw new RuntimeException("Unknown elementType of '" + getPath() + "'");
 
-                            EditorNode child = new DynamicEditorNode(childPatch.key, getObjNode().elementType, type, manager);
+                            EditorNode child = new DynamicEditorNode(childPatch.key, getObjNode().elementType, type, manager, getObjNode().getResolutionStrategy());
                             child.parent = this;
                             children.put(child.name(), child);
                         }catch(Exception e){
                             Log.err(e);
                         }
                     }else if(!children.containsKey(childPatch.key) && !"type".equals(childPatch.key)){
-                        EditorNode child = new InvalidEditorNode(childPatch.key, manager);
+                        EditorNode child = new InvalidEditorNode(childPatch.key, manager, getObjNode().getResolutionStrategy());
                         child.parent = this;
                         children.put(childPatch.key, child);
                     }
@@ -276,7 +277,7 @@ public class EditorNode{
     }
 
     public void append(boolean plusSyntax){
-        manager.applyOp(new AppendOp(getPath(), objectNode.elementType, plusSyntax));
+        manager.applyOp(new AppendOp(getPath(), objectNode.elementType, plusSyntax, objectNode.getResolutionStrategy()));
     }
 
     public void touch(String key, String value, ModifierSign sign){
@@ -376,8 +377,8 @@ public class EditorNode{
         public final String key;
         public final Class<?> baseType;
 
-        public DynamicEditorNode(String key, Class<?> baseType, Class<?> type, NodeManager manager){
-            super(ObjectResolver.getTemplate(type), manager);
+        public DynamicEditorNode(String key, Class<?> baseType, Class<?> type, NodeManager manager, ResolutionStrategy strategy){
+            super(ObjectResolver.getTemplate(type, strategy), manager);
 
             this.key = key;
             this.baseType = baseType;
@@ -407,8 +408,8 @@ public class EditorNode{
     public static class InvalidEditorNode extends EditorNode{
         public final String key;
 
-        public InvalidEditorNode(String key, NodeManager manager){
-            super(ObjectResolver.getTemplate(Object.class), manager);
+        public InvalidEditorNode(String key, NodeManager manager, ResolutionStrategy strategy){
+            super(ObjectResolver.getTemplate(Object.class, strategy), manager);
             this.key = key;
         }
 

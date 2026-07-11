@@ -36,11 +36,11 @@ public class ObjectExample{
         if(example != null) return example;
 
         base = PatchJsonIO.getTypeParser(base);
-        if(MappableContent.class.isAssignableFrom(base)){
+        if(MappableContent.class.isAssignableFrom(type)){
             if(newContent){
-                example = getContentExample(base);
+                example = getContentExample(type);
             }else{
-                ContentType contentType = PatchJsonIO.classContentType(base);
+                ContentType contentType = PatchJsonIO.classContentType(type);
                 if(contentType == null) return null;
                 Seq<Content> contents = Vars.content.getBy(contentType);
                 if(contents.isEmpty()) return null;
@@ -74,12 +74,7 @@ public class ObjectExample{
             return null;
         }
 
-        // remove from contentMap, contentNameMap and nameMap.
-        Vars.content.getBy(content.getContentType()).remove(content, true);
-        Vars.content.getNamesBy(content.getContentType()).remove(content.name);
-        ObjectMap<Object, String> map = Reflect.get(Vars.content, "nameMap");
-        map.remove(content.name);
-
+        Vars.content.remove(content);
         return content;
     }
 }
