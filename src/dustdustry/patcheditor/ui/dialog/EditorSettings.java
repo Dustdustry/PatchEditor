@@ -1,5 +1,7 @@
 package dustdustry.patcheditor.ui.dialog;
 
+import arc.scene.ui.ImageButton.*;
+import arc.scene.ui.TextButton.*;
 import dustdustry.patcheditor.export.ObjectExporter.*;
 import dustdustry.patcheditor.node.*;
 import arc.*;
@@ -13,6 +15,15 @@ import mindustry.ui.dialogs.SettingsMenuDialog.SettingsTable.*;
 import static arc.Core.settings;
 
 public class EditorSettings extends BaseDialog{
+    private static final TextButtonStyle grayTogglet = new TextButtonStyle(){{
+        over = Styles.flatOver;
+        disabled = Styles.grayPanelDark;
+        down = Styles.flatOver;
+        up = Styles.grayPanel;
+        checked = Styles.flatDown;
+        font = Fonts.def;
+    }};
+
     public EditorSettings(){
         super("@patch-editor.settings");
 
@@ -41,6 +52,7 @@ public class EditorSettings extends BaseDialog{
         table.checkPref("patch-editor.magicExport.allowDefault", false);
         table.checkPref("patch-editor.editNotes", false);
         table.checkPref("patch-editor.rememberPath", false);
+        table.checkPref("patch-editor.formatJson", false);
 
         table.sliderPref("patch-editor.undoLimit", 20, 0, 160, 20,s -> Core.bundle.format("setting.patch-editor.undoLimit.text", s));
         settings.add(new SingleEnumSettings("patch-editor.exportType", ExportType.values(), ExportType.hjson));
@@ -61,6 +73,7 @@ public class EditorSettings extends BaseDialog{
         return new PatchExportOptions(
         settings.getBool("patch-editor.sugar.stacks"),
         settings.getBool("patch-editor.simplifyPath"),
+        settings.getBool("patch-editor.formatJson"),
         format
         );
     }
@@ -98,7 +111,7 @@ public class EditorSettings extends BaseDialog{
                 cont.table(buttons -> {
                     for(Enum<?> anEnum : enums){
                         String text = Core.bundle.get(name + "." + anEnum.name(), anEnum.name());
-                        buttons.button(text, Styles.clearTogglet, () -> settings.put(name, anEnum.name()))
+                        buttons.button(text, grayTogglet, () -> settings.put(name, anEnum.name()))
                         .margin(8f).growX().checked(b -> anEnum.name().equals(settings.getString(name)));
                     }
                 }).padTop(3f).growX();

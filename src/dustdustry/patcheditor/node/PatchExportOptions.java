@@ -5,17 +5,19 @@ public class PatchExportOptions{
         hjson, json
     }
 
-    public final boolean sugarStacks;
-    public final boolean simplifyPath;
+    public boolean sugarStacks;
+    public boolean simplifyPath;
+    public boolean formatJson;
     public final Format format;
 
-    public PatchExportOptions(boolean sugarStacks, boolean simplifyPath, Format format){
+    public PatchExportOptions(boolean sugarStacks, boolean simplifyPath, boolean formatJson, Format format){
         this.sugarStacks = sugarStacks;
         this.simplifyPath = simplifyPath;
+        this.formatJson = formatJson;
         this.format = format == null ? Format.hjson : format;
     }
 
     public static PatchExportOptions defaults(){
-        return new PatchExportOptions(true, true, Format.hjson);
+        return new PatchExportOptions(true, true, true, Format.hjson);
     }
 }

@@ -304,6 +304,31 @@ public class PatchJsonIO{
         }
     }
 
+    /** utils */
+    public static Jval valueToJval(JsonValue value){
+        return switch(value.type()){
+            case stringValue -> Jval.valueOf(value.asString());
+            case doubleValue -> Jval.valueOf(value.asDouble());
+            case longValue -> Jval.valueOf(value.asLong());
+            case booleanValue -> Jval.valueOf(value.asBoolean());
+            case nullValue -> Jval.valueOf(null);
+            case object -> {
+                Jval object = Jval.newObject();
+                for(JsonValue childValue : value){
+                    object.put(childValue.name, valueToJval(childValue));
+                }
+                yield object;
+            }
+            case array -> {
+                Jval array = Jval.newArray();
+                for(JsonValue childValue : value){
+                    array.add(valueToJval(childValue));
+                }
+                yield array;
+            }
+        };
+    }
+
     /** patchTree to jsonTree */
     public static JsonValue toJson(PatchNode patchNode){
         return toJson(patchNode, new JsonValue(patchNode.type));
@@ -357,9 +382,9 @@ public class PatchJsonIO{
 
         // to string
         if(options.format == Format.hjson){
-            return Jval.read(value.prettyPrint(OutputType.json, 1)).toString(Jformat.hjson);
+            return valueToJval(value).toString(Jformat.hjson);
         }else{
-            return value.toJson(OutputType.json);
+            return options.formatJson ? valueToJval(value).toString(Jformat.formatted) : value.toJson(OutputType.json);
         }
     }
 

@@ -5,13 +5,19 @@ import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.util.*;
 import arc.util.serialization.*;
+import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
 import dustdustry.patcheditor.node.*;
+import dustdustry.patcheditor.node.PatchExportOptions.*;
 import dustdustry.patcheditor.ui.*;
+import dustdustry.patcheditor.ui.dialog.*;
+import dustdustry.patcheditor.ui.dialog.EditorSettings.*;
+import dustdustry.patcheditor.utils.*;
 import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.io.*;
 import mindustry.mod.data.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
@@ -70,6 +76,13 @@ public class ContentAssetEditor extends BaseDialog{
                 t.button(new TextureRegionDrawable(NodeDisplay.getDisplayIcon(type)), Styles.grayTogglei, iconMed, () -> {
                     asset.type = type;
                     contentClass = type.contentClass;
+
+                    Jval jval = Jval.read(asset.data);
+                    jval.remove("type");
+                    PatchExportOptions options = EditorSettings.getPatchExportOptions();
+                    asset.data = options.format == Format.hjson ? jval.toString(Jformat.hjson)
+                    : options.formatJson ? jval.toString(Jformat.formatted)
+                    : jval.toString(Jformat.plain);
                 }).checked(b -> asset.type == type).size(50f).pad(4f).tooltip("@content." + type.name());
             }
         });
@@ -85,7 +98,6 @@ public class ContentAssetEditor extends BaseDialog{
             }).size(260f, 50f).pad(4f).marginLeft(5f).marginRight(5f);
 
             t.image(Tex.whiteui, Pal.accent).width(4f).pad(4f).fillY();
-
         }).fillX();
 
         cont.row();
