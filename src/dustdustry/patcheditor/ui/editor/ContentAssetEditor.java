@@ -109,10 +109,7 @@ public class ContentAssetEditor extends BaseDialog{
 
         // TODO: i18n
         buttons.button("##编辑器中打开", Icon.edit, () -> {
-            editor.edit(asset, () -> {
-                applyJson();
-                readContentClass();
-            });
+            editor.edit(asset, this::applyJson);
         }).width(200f);
 
         buttons.button("@asset.content.import.file", Icon.fileText, () -> FileChooser.open("json", "json5", "hjson").submit(file -> {
@@ -129,11 +126,7 @@ public class ContentAssetEditor extends BaseDialog{
     public void show(ContentAsset asset, Runnable onHide){
         this.asset = asset;
         this.onDataChanged = onHide;
-        try{
-            readContentClass();
-        }catch(Exception e){
-            Vars.ui.showException(e);
-        }
+        readContentClass();
         show();
     }
 
@@ -142,7 +135,6 @@ public class ContentAssetEditor extends BaseDialog{
         asset.data = json;
         try{
             Jval.read(asset.data);
-            readContentClass();
             applyJson();
         }catch(Exception e){
             asset.data = oldJson;
@@ -151,15 +143,13 @@ public class ContentAssetEditor extends BaseDialog{
     }
 
     protected void readContentClass(){
-        contentClass = null;
-        Jval jval = Jval.read(asset.data);
-        contentClass = PatchJsonIO.resolveType(jval.getString("type"));
-        if(contentClass == null) contentClass = asset.type.contentClass;
+        contentClass = asset.content == null ? asset.type.contentClass : ClassHelper.unoymousClass(asset.content.getClass());
     }
 
     protected void applyJson(){
         state.data.reloadContent(false);
         state.data.regenerateContentSprites(false);
+        readContentClass();
 
         if(onDataChanged != null){
             onDataChanged.run();
