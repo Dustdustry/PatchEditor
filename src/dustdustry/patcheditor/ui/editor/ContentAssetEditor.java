@@ -1,4 +1,4 @@
-package dustdustry.patcheditor.ui.dialog;
+package dustdustry.patcheditor.ui.editor;
 
 import arc.*;
 import arc.scene.style.*;
@@ -8,7 +8,6 @@ import arc.util.serialization.*;
 import arc.util.serialization.Jval.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.ui.*;
-import dustdustry.patcheditor.ui.editor.*;
 import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
@@ -21,18 +20,18 @@ import java.util.regex.*;
 
 import static mindustry.Vars.*;
 
-public class ContentAssetDialog extends BaseDialog{
-    public static final Pattern unsafeNamePattern = Pattern.compile("[\\[\\]{}`!@#$%^&8*();:,]");
+public class ContentAssetEditor extends BaseDialog{
+    public static final Pattern unsafeNamePattern = Pattern.compile("[\\[\\]{}`!@#$%^&*();:,]");
 
     protected ContentEditor editor;
 
     protected ContentAsset asset;
-    protected @Nullable Jval jsonData;
+    protected Class<?> contentClass;
 
     protected boolean nameInvalid;
     protected @Nullable Runnable onDataChanged;
 
-    public ContentAssetDialog(){
+    public ContentAssetEditor(){
         super("@patch-editor.content-asset");
 
         editor = new ContentEditor();
@@ -53,7 +52,7 @@ public class ContentAssetDialog extends BaseDialog{
             asset.setPath(text + ".json");
         }).with(t -> {
             t.setFilter((field, c) -> !Character.isWhitespace(c));
-            t.setValidator(ContentAssetDialog::isSafeContentName);
+            t.setValidator(ContentAssetEditor::isSafeContentName);
             t.changed(() -> nameInvalid = content.byName(t.getText()) != null || !t.isValid());
         }).width(400f).get();
         cont.row();
@@ -70,7 +69,7 @@ public class ContentAssetDialog extends BaseDialog{
             for(ContentType type : ContentAsset.loadableContent){
                 t.button(new TextureRegionDrawable(NodeDisplay.getDisplayIcon(type)), Styles.grayTogglei, iconMed, () -> {
                     asset.type = type;
-                    jsonData.remove("type");
+                    contentClass = type.contentClass;
                 }).checked(b -> asset.type == type).size(50f).pad(4f).tooltip("@content." + type.name());
             }
         });
@@ -82,24 +81,11 @@ public class ContentAssetDialog extends BaseDialog{
             t.left();
             t.table(Styles.grayPanel, c -> {
                 c.margin(8f);
-                c.label(() -> {
-                    if(!jsonData.isObject()) return "无法读取类型"; // TODO: i18n
-                    Jval typeData = jsonData.get("type");
-                    Class<?> resolved = null;
-                    if(typeData != null) resolved = PatchJsonIO.resolveType(typeData.asString());
-                    if(resolved == null) resolved = asset.type.contentClass;
-                    return resolved.getSimpleName();
-                });
+                c.label(() -> PatchJsonIO.getTypeName(contentClass));
             }).size(260f, 50f).pad(4f).marginLeft(5f).marginRight(5f);
 
             t.image(Tex.whiteui, Pal.accent).width(4f).pad(4f).fillY();
 
-            t.button(Icon.edit, Styles.graySquarei, () -> {
-                EUI.classSelector.select(asset.type.contentClass, (clazz) -> {
-                    jsonData.put("type", PatchJsonIO.getTypeName(clazz));
-                    return true;
-                });
-            }).size(50f).pad(4f).disabled(b -> jsonData == null || !jsonData.isObject());
         }).fillX();
 
         cont.row();
@@ -111,10 +97,9 @@ public class ContentAssetDialog extends BaseDialog{
 
         // TODO: i18n
         buttons.button("##编辑器中打开", Icon.edit, () -> {
-            applyJson();
             editor.edit(asset, () -> {
-                jsonData = Jval.read(asset.data);
                 applyJson();
+                readContentClass();
             });
         }).width(200f);
 
@@ -132,21 +117,20 @@ public class ContentAssetDialog extends BaseDialog{
     public void show(ContentAsset asset, Runnable onHide){
         this.asset = asset;
         this.onDataChanged = onHide;
-
         try{
-            jsonData = Jval.read(asset.data);
+            readContentClass();
         }catch(Exception e){
-            jsonData = Jval.newObject();
             Vars.ui.showException(e);
         }
-
         show();
     }
 
     protected void setJson(String json){
         String oldJson = asset.data;
+        asset.data = json;
         try{
-            jsonData = Jval.read(json);
+            Jval.read(asset.data);
+            readContentClass();
             applyJson();
         }catch(Exception e){
             asset.data = oldJson;
@@ -154,8 +138,14 @@ public class ContentAssetDialog extends BaseDialog{
         }
     }
 
+    protected void readContentClass(){
+        contentClass = null;
+        Jval jval = Jval.read(asset.data);
+        contentClass = PatchJsonIO.resolveType(jval.getString("type"));
+        if(contentClass == null) contentClass = asset.type.contentClass;
+    }
+
     protected void applyJson(){
-        asset.data = jsonData.toString(Jformat.plain);
         state.data.reloadContent(false);
         state.data.regenerateContentSprites(false);
 

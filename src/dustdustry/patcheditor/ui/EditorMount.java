@@ -10,7 +10,6 @@ import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.JsonWriter.*;
-import dustdustry.patcheditor.ui.dialog.*;
 import dustdustry.patcheditor.ui.editor.*;
 import dustdustry.patcheditor.ui.editor.PatchManager.*;
 import dustdustry.patcheditor.utils.*;
@@ -26,13 +25,13 @@ import static mindustry.Vars.*;
 
 public class EditorMount{
     private static PatchEditor patchEditor;
-    private static ContentAssetDialog contentAssetDialog;
+    private static ContentAssetEditor contentAssetEditor;
     private static Seq<EditorPatch> editorPatches;
 
     // extremely hacky
     public static void mount(){
         patchEditor = new PatchEditor();
-        contentAssetDialog = new ContentAssetDialog();
+        contentAssetEditor = new ContentAssetEditor();
         editorPatches = new Seq<>();
 
         MapInfoDialog infoDialog = Reflect.get(Vars.ui.editor, "infoDialog");
@@ -105,7 +104,7 @@ public class EditorMount{
             ImageButton button = new ImageButton(Icon.edit, Styles.graySquarei);
             button.resizeImage(iconMed);
             button.clicked(() -> {
-                contentAssetDialog.show(asset, () -> Reflect.invoke(assetsDialog, "rebuild"));
+                contentAssetEditor.show(asset, () -> Reflect.invoke(assetsDialog, "rebuild"));
             });
 
             cell.setElement(button);

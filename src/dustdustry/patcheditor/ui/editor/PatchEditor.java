@@ -167,13 +167,7 @@ public class PatchEditor extends BaseDialog{
             buttons.defaults().pad(8f).growY();
 
             buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide).size(150f, 48f);
-            buttons.table(Styles.grayPanel, t -> {
-                t.defaults().width(64f).pad(4f).growY();
-                t.button(Icon.settings, Styles.cleari, () -> EUI.settings.show());
-                t.button(Icon.undo, Styles.cleari, manager::undo).disabled(b -> !manager.canUndo()).tooltip("@patch-editor.undo", true);
-                t.button(Icon.redo, Styles.cleari, manager::redo).disabled(b -> !manager.canRedo()).tooltip("@patch-editor.redo", true);
-                if(Vars.mobile) t.button(Icon.downOpen, Styles.cleari, card::editLastData).tooltip("@node-card.expandLast", true);
-            });
+            buttons.table(Styles.grayPanel, this::setupTinyButton);
 
             buttons.add().expandX();
 
@@ -191,6 +185,14 @@ public class PatchEditor extends BaseDialog{
         }).growX();
 
         cont.top();
+    }
+
+    protected void setupTinyButton(Table table){
+        table.defaults().width(64f).pad(4f).growY();
+        table.button(Icon.settings, Styles.cleari, () -> EUI.settings.show()).tooltip("@settings");
+        table.button(Icon.undo, Styles.cleari, manager::undo).disabled(b -> !manager.canUndo()).tooltip("@patch-editor.undo", true);
+        table.button(Icon.redo, Styles.cleari, manager::redo).disabled(b -> !manager.canRedo()).tooltip("@patch-editor.redo", true);
+        if(Vars.mobile) table.button(Icon.downOpen, Styles.cleari, card::editLastData).tooltip("@node-card.expandLast", true);
     }
 
     public void edit(EditorPatch patch, Runnable onSaved){

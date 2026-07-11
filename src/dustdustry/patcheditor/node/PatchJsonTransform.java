@@ -348,6 +348,10 @@ public class PatchJsonTransform{
         return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
     }
 
+    public static String toModJson(String patch){
+        return patch;
+    }
+
     public static JsonValue migrateTweaker(String patch){
         JsonValue tweakerJson = PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
         return migrateTweaker(tweakerJson);

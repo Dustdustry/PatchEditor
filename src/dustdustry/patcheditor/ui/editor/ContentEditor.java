@@ -1,14 +1,23 @@
 package dustdustry.patcheditor.ui.editor;
 
+import arc.scene.ui.layout.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonWriter.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.node.PatchJsonTransform.*;
+import dustdustry.patcheditor.node.patch.*;
+import dustdustry.patcheditor.node.patch.PatchOperator.*;
 import dustdustry.patcheditor.node.resolve.*;
+import dustdustry.patcheditor.ui.*;
+import dustdustry.patcheditor.ui.dialog.*;
 import dustdustry.patcheditor.ui.editor.PatchManager.*;
 import dustdustry.patcheditor.utils.*;
 import mindustry.ctype.*;
+import mindustry.gen.*;
 import mindustry.mod.data.*;
+import mindustry.ui.*;
+
+import static mindustry.Vars.state;
 
 public class ContentEditor extends PatchEditor{
     protected ContentAsset asset;
@@ -29,6 +38,8 @@ public class ContentEditor extends PatchEditor{
         PatchJsonTransform.simplifyPath(value);
 
         asset.data = value.prettyPrint(OutputType.json, 4);
+        state.data.reloadContent(false);
+        state.data.regenerateContentSprites(false);
     }
 
     @Override
@@ -42,6 +53,20 @@ public class ContentEditor extends PatchEditor{
 
         asset = null;
         editPatch = null;
+    }
+
+    @Override
+    protected void setupTinyButton(Table table){
+        super.setupTinyButton(table);
+
+        table.button(Icon.wrench, Styles.cleari, () -> {
+            EUI.classSelector.select(asset.type.contentClass, (clazz) -> {
+                manager.applyOp(new ChangeTypeOp("", clazz));
+                savePatch();
+                edit(asset, onSaved);
+                return true;
+            });
+        }).size(50f).pad(4f).tooltip("@node.changeType", true);
     }
 
     @Deprecated
