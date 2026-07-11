@@ -98,9 +98,8 @@ public class EditorSettings extends BaseDialog{
                 cont.table(buttons -> {
                     for(Enum<?> anEnum : enums){
                         String text = Core.bundle.get(name + "." + anEnum.name(), anEnum.name());
-                        buttons.button(text, Styles.clearTogglet, () -> {
-                            settings.put(name, anEnum.name());
-                        }).margin(4f).growX().checked(b -> anEnum.name().equals(settings.getString(name)));
+                        buttons.button(text, Styles.clearTogglet, () -> settings.put(name, anEnum.name()))
+                        .margin(8f).growX().checked(b -> anEnum.name().equals(settings.getString(name)));
                     }
                 }).padTop(3f).growX();
 

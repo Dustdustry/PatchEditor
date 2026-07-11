@@ -42,6 +42,8 @@ public class EUI{
     public static FavoritesDialog favorites;
     public static NotesDialog notes;
 
+    public static EditorSettings settings;
+
 
     public static void init(){
         EStyles.init();
@@ -59,19 +61,10 @@ public class EUI{
         favorites = new FavoritesDialog();
         notes = new NotesDialog();
 
+        settings = new EditorSettings();
+
         FieldFavorites.init();
         FieldNotes.init();
-    }
-
-    public static void mountEditor(){
-        BaseDialog paused = Vars.ui.paused;
-        paused.shown(() -> {
-            if(!Vars.net.client()){
-                paused.cont.row();
-                paused.cont.button("@patch-manager", Icon.edit, manager::show).padTop(8f).tooltip("@patch-editor.editInGame.info", true)
-                .disabled(e -> Vars.net.client());
-            }
-        });
     }
 
     public static TextField deboundTextField(String text, Cons<String> changed){

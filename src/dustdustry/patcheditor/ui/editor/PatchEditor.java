@@ -164,16 +164,20 @@ public class PatchEditor extends BaseDialog{
         title.setStyle(Styles.outlineLabel);
 
         titleTable.table(buttons -> {
-            buttons.defaults().size(150f, 48f).pad(8f).growY();
+            buttons.defaults().pad(8f).growY();
 
-            buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide);
-            buttons.button("@patch-editor.undo", Icon.undo, Styles.grayt, manager::undo)
-            .disabled(b -> !manager.canUndo());
-            buttons.button("@patch-editor.redo", Icon.redo, Styles.grayt, manager::redo)
-            .disabled(b -> !manager.canRedo());
-            if(Vars.mobile) buttons.button("@node-card.expandLast", Icon.downOpen, Styles.grayt, card::editLastData);
+            buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide).size(150f, 48f);
+            buttons.table(Styles.grayPanel, t -> {
+                t.defaults().width(64f).pad(4f).growY();
+                t.button(Icon.settings, Styles.cleari, () -> EUI.settings.show());
+                t.button(Icon.undo, Styles.cleari, manager::undo).disabled(b -> !manager.canUndo()).tooltip("@patch-editor.undo", true);
+                t.button(Icon.redo, Styles.cleari, manager::redo).disabled(b -> !manager.canRedo()).tooltip("@patch-editor.redo", true);
+                if(Vars.mobile) t.button(Icon.downOpen, Styles.cleari, card::editLastData).tooltip("@node-card.expandLast", true);
+            });
 
             buttons.add().expandX();
+
+            buttons.defaults().size(160f, 48f);
             buttons.button("@patch-editor.favorites", Icon.star, Styles.grayt, () -> EUI.favorites.show());
             buttons.button("@patch-editor.notes", Icon.book, Styles.grayt, () -> EUI.notes.show());
 
