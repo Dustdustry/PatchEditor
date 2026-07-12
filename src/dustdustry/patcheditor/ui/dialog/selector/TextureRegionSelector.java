@@ -11,8 +11,8 @@ import arc.struct.ObjectMap.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.graphics.*;
+import mindustry.mod.*;
 
-// TODO: specified UI for patch images
 public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
     public TextureRegionSelector(){
         super("@selector.texture-region");
@@ -23,19 +23,26 @@ public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
         float width = layoutWidth();
         int columns = (int)(width / 360f);
 
-        ObjectMap<Character, Seq<AtlasRegion>> map = new OrderedMap<>();
+        ObjectMap<String, Seq<AtlasRegion>> map = new OrderedMap<>();
+        Seq<AtlasRegion> dpRegions = new Seq<>();
+        map.put(Core.bundle.get("selector.texture-region.custom"), dpRegions);
         for(AtlasRegion item : getItems()){
-            char letter = item.name.charAt(0);
-            map.get(Character.toUpperCase(letter), Seq::new).add(item);
+            if(item.name.startsWith(DataImagePacker.regionPrefix)){
+                dpRegions.add(item);
+            }else{
+                map.get("" + Character.toUpperCase(item.name.charAt(0)), Seq::new).add(item);
+            }
         }
 
-        for(Entry<Character, Seq<AtlasRegion>> entry : map){
-            char letter = entry.key;
+        for(var entry : map){
+            String key = entry.key;
             Seq<AtlasRegion> regions = entry.value;
+
+            if(regions.isEmpty()) continue;
 
             cont.table(t -> {
                 t.image().color(Pal.darkerGray).size(32f, 6f);
-                t.add("" + letter).color(EPalettes.type).padLeft(16f).padRight(16f).left();
+                t.add(key).color(EPalettes.type).padLeft(16f).padRight(16f).left();
                 t.image().color(Pal.darkerGray).height(4f).growX();
             }).marginTop(16f).marginBottom(8f).growX();
             cont.row();
@@ -64,6 +71,8 @@ public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
                 }
             }
         }
+
+        map.clear();
     }
 
     @Override
