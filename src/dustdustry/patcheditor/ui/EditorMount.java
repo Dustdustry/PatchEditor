@@ -20,6 +20,7 @@ import mindustry.editor.data.*;
 import mindustry.gen.*;
 import mindustry.mod.data.*;
 import mindustry.ui.*;
+import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.*;
 
@@ -38,17 +39,33 @@ public class EditorMount{
         MapAssetsDialog assetsDialog = Reflect.get(infoDialog, "patches");
         Table assetList = Reflect.get(assetsDialog, "list");
 
+        BaseDialog paused = Vars.ui.paused;
+        paused.shown(() -> {
+            if(!Vars.net.client()){
+                paused.cont.row();
+                paused.cont.button("@asset-dialog", Icon.edit, () -> {
+                    ui.editor.build();
+                    assetsDialog.show();
+                }).padTop(8f).tooltip("@patch-editor.editInGame.info", true)
+                .disabled(e -> Vars.net.client());
+            }
+        });
+
         assetsDialog.cont.addAction(Actions.forever(Actions.run(() -> {
             if(assetList.find("patch-editor-hook") == null){
                 Element spyElement = new Element();
                 spyElement.name = "patch-editor-hook";
                 assetList.addChild(spyElement);
 
-                DataAssetType currentType = Reflect.get(assetsDialog, "currentType");
-                if(currentType == DataAssetType.patch){
-                    mountPatch(assetsDialog, assetList);
-                }else if(currentType == DataAssetType.content){
-                    mountContent(assetsDialog, assetList);
+                try{
+                    DataAssetType currentType = Reflect.get(assetsDialog, "currentType");
+                    if(currentType == DataAssetType.patch){
+                        mountPatch(assetsDialog, assetList);
+                    }else if(currentType == DataAssetType.content){
+                        mountContent(assetsDialog, assetList);
+                    }
+                }catch(Exception e){
+                    Vars.ui.showException(Core.bundle.get("patch-editor.mount.error"), e);
                 }
             }
         })));
@@ -77,7 +94,7 @@ public class EditorMount{
 
         assetList.row();
         if(editorPatches.any()) assetList.add();
-        assetList.button("### 添加空补丁包", Styles.cleart, () -> {
+        assetList.button("@patch-editor.addEmptyPatch", Icon.add, Styles.grayt, () -> {
             Seq<PatchAsset> assets = state.data.getPatches();
 
             String name = findPatchName(assets);
@@ -93,7 +110,6 @@ public class EditorMount{
     private static void mountContent(MapAssetsDialog assetsDialog, Table assetList){
         Seq<ContentAsset> assets = state.data.getContent();
 
-        // TODO: show info when error occurs
         Seq<Cell> cells = assetList.getCells().select(c -> c.get() instanceof ImageButton ib && ib.getImage().getDrawable() == Icon.refresh);
         if(cells.size != assets.size) return;
 
