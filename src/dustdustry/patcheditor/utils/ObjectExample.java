@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.utils;
 
+import arc.graphics.*;
 import dustdustry.patcheditor.node.*;
 import arc.struct.*;
 import arc.util.*;
@@ -29,6 +30,7 @@ public class ObjectExample{
         if(type == byte.class || type == Byte.class) return (byte)0;
         if(type == char.class || type == Character.class) return '\0';
         if(type.isArray()) return Array.newInstance(type.getComponentType(), 0);
+        if(type == Color.class) return Color.white;
 
         type = PatchJsonIO.resolveType(type);
 

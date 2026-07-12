@@ -191,6 +191,7 @@ public class ObjectResolver{
         objectNode = new ObjectNode("", ObjectExample.getExample(PatchJsonIO.resolveType(type), type), type);
         objectNode.strategy = strategy;
         cache.put(type, objectNode);
+        objectNode.addSign(ModifierSign.MODIFY);
         return objectNode;
     }
 
