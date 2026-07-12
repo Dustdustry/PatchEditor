@@ -69,6 +69,25 @@ public class EUI{
         FieldNotes.init();
     }
 
+    public static void showUsageInfo(Runnable onHide){
+        BaseDialog dialog = new BaseDialog("@patch-editor.usageHint.title");
+
+        dialog.setFillParent(false);
+        dialog.cont.margin(16f);
+
+        dialog.cont.defaults().expandX().left();
+
+        for(int i = 1;; i++){
+            String line = Core.bundle.get("patch-editor.usageHint" + "." + i, null);
+            if(line == null) break;
+            dialog.cont.add(line).padTop(4f).row();
+        }
+
+        dialog.hidden(onHide);
+        dialog.addCloseButton();
+        dialog.show();
+    }
+
     public static TextField deboundTextField(String text, Cons<String> changed){
         return deboundTextField(text, changed, 0.5f);
     }

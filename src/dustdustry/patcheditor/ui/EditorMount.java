@@ -51,6 +51,14 @@ public class EditorMount{
             }
         });
 
+        assetsDialog.shown(() -> {
+            if(!Core.settings.getBool("patch-editor.readUsageHint")){
+                Core.app.post(() -> EUI.showUsageInfo(() -> {
+                    Core.settings.put("patch-editor.readUsageHint", true);
+                }));
+            }
+        });
+
         assetsDialog.cont.addAction(Actions.forever(Actions.run(() -> {
             if(assetList.find("patch-editor-hook") == null){
                 Element spyElement = new Element();
