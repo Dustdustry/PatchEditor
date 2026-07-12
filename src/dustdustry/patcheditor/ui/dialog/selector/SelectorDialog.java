@@ -63,9 +63,7 @@ public abstract class SelectorDialog<T> extends BaseDialog{
             }, EStyles.cardButtoni, () -> {}).pad(8f).growX().get();
 
             EUI.backButtonClick(btn, () -> {
-                if(consumer.get(item)){
-                    hide();
-                }
+                if(consumer.get(item)) hide();
             });
 
             if(++index % columns == 0){

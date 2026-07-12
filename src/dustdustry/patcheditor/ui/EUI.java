@@ -36,6 +36,7 @@ public class EUI{
     public static TextureRegionSelector textureRegionSelector;
     public static StringItemSelector stringItemSelector;
     public static SoundSelector soundSelector;
+    public static BlockClassSelector blockClassSelector;
 
     public static EditNoteDialog noteEditor;
 
@@ -55,6 +56,7 @@ public class EUI{
         textureRegionSelector = new TextureRegionSelector();
         stringItemSelector = new StringItemSelector();
         soundSelector = new SoundSelector();
+        blockClassSelector = new BlockClassSelector();
 
         noteEditor = new EditNoteDialog();
 
