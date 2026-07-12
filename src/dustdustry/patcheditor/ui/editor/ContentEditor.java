@@ -25,6 +25,8 @@ public class ContentEditor extends PatchEditor{
     public ContentEditor(){
         super();
 
+        title.setText("@content-editor");
+
         card.forceOverride(true);
         hidden(this::resetEditor);
     }

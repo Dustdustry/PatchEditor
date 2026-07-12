@@ -32,8 +32,7 @@ public class SoundSelector extends SelectorDialog<Sound>{
 
     @Override
     protected void setupButtons(){
-        // TODO: i18n
-        buttons.button("##加载所有音效", Icon.download, () -> {
+        buttons.button("@selector.sound.loadAll", Icon.download, () -> {
             for(Sound item : getItems()){
                 long handle = Reflect.get(AudioSource.class, item, "handle");
                 if(handle == 0 && item.file != null){
@@ -41,7 +40,7 @@ public class SoundSelector extends SelectorDialog<Sound>{
                 }
             }
             rebuild();
-        }).tooltip("##音效在v159之后改成了懒加载，需要加载音效才能获取它的时长"); // TODO: i18n
+        }).tooltip("@selector.sound.loadAll.tooltip");
     }
 
     @Override

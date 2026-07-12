@@ -89,7 +89,7 @@ public class ContentAssetEditor extends BaseDialog{
 
         cont.row();
 
-        cont.add("内容类型：").padRight(10f); // TODO: i18n
+        cont.add("@patch-editor.asset.contentClass").padRight(10f);
         cont.table(t -> {
             t.left();
             t.table(Styles.grayPanel, c -> {
@@ -105,10 +105,9 @@ public class ContentAssetEditor extends BaseDialog{
         cont.label(() -> !nameField.isValid() ? "@asset.content.badname" : "@asset.content.exists").colspan(2).visible(() -> nameInvalid);
 
         buttons.defaults().height(64f);
-        buttons.button("##退出", Icon.exit, this::hide).width(200f).get();
+        buttons.button("@back", Icon.exit, this::hide).width(200f).get();
 
-        // TODO: i18n
-        buttons.button("##编辑器中打开", Icon.edit, () -> {
+        buttons.button("@patch-editor.asset.openInEditor", Icon.edit, () -> {
             editor.edit(asset, this::applyJson);
         }).width(200f);
 
