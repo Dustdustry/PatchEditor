@@ -2,6 +2,7 @@ package dustdustry.patcheditor.node.resolve;
 
 import arc.struct.*;
 import dustdustry.patcheditor.node.*;
+import mindustry.ctype.*;
 import mindustry.mod.*;
 import mindustry.world.*;
 
@@ -11,6 +12,12 @@ public class ContentResolution extends ResolutionStrategy{
     protected final ObjectMap<Class<?>, Seq<String>> allowPatchMap = ObjectMap.of(
         Block.class, Seq.with("size", "update")
     );
+
+    public ContentResolution(){
+        fieldBlacklist.putAll(
+        UnlockableContent.class, Seq.with("uiIcon", "fullIcon") // loadIcons() will override it.
+        );
+    }
 
     @Override
     public boolean isFieldResolvable(Field field){
