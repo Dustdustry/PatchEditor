@@ -5,15 +5,12 @@ import dustdustry.patcheditor.FieldNotes.*;
 import dustdustry.patcheditor.ui.*;
 import arc.*;
 import arc.graphics.*;
-import arc.net.*;
-import arc.scene.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
 import java.text.*;
-import java.util.*;
 
 import mindustry.*;
 import mindustry.gen.*;

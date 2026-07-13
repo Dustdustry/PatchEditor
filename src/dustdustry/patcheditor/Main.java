@@ -3,13 +3,9 @@ package dustdustry.patcheditor;
 import dustdustry.patcheditor.export.*;
 import dustdustry.patcheditor.ui.*;
 import arc.*;
-import arc.graphics.*;
-import arc.graphics.g2d.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.game.EventType.*;
-import mindustry.gen.*;
-import mindustry.graphics.*;
 import mindustry.mod.*;
 import rhino.*;
 

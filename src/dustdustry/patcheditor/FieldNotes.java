@@ -1,7 +1,6 @@
 package dustdustry.patcheditor;
 
 import dustdustry.patcheditor.node.*;
-import arc.*;
 import arc.files.*;
 import arc.struct.*;
 import arc.struct.ObjectMap.*;

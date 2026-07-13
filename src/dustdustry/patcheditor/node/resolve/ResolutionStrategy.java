@@ -18,7 +18,6 @@ import mindustry.gen.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.*;
-import mindustry.world.blocks.*;
 import mindustry.world.blocks.production.*;
 import mindustry.world.consumers.*;
 

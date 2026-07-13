@@ -1,21 +1,13 @@
 package dustdustry.patcheditor.ui.dialog.selector;
 
-import arc.graphics.*;
-import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.struct.ObjectMap.*;
 import arc.util.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.node.EditorList.*;
 import dustdustry.patcheditor.ui.*;
-import dustdustry.patcheditor.ui.dialog.selector.ColorSelector.*;
 import mindustry.*;
-import mindustry.graphics.*;
 import mindustry.ui.*;
-
-import java.lang.reflect.*;
-import java.util.*;
 
 public class ColorSelector extends SelectorDialog<ColorEntry>{
     public ColorSelector(){

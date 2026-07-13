@@ -1,6 +1,5 @@
 package dustdustry.patcheditor.ui.dialog;
 
-import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.TextButton.*;
 import dustdustry.patcheditor.export.ObjectExporter.*;
 import dustdustry.patcheditor.node.*;

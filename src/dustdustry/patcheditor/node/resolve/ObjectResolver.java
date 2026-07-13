@@ -7,8 +7,6 @@ import arc.util.*;
 import arc.util.serialization.Json.*;
 import mindustry.*;
 import mindustry.ctype.*;
-import mindustry.mod.*;
-import mindustry.world.*;
 import mindustry.world.blocks.*;
 import mindustry.world.meta.*;
 

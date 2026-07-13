@@ -3,7 +3,6 @@ package dustdustry.patcheditor.ui.dialog.selector;
 import arc.func.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.struct.ObjectMap.*;
 import arc.util.*;
 import dustdustry.patcheditor.utils.*;
 import mindustry.*;

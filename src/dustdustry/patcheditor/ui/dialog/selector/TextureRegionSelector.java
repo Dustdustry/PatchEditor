@@ -1,13 +1,11 @@
 package dustdustry.patcheditor.ui.dialog.selector;
 
 import arc.*;
-import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.ui.*;
 import arc.graphics.*;
 import arc.graphics.g2d.TextureAtlas.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
-import arc.struct.ObjectMap.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.graphics.*;

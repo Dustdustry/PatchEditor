@@ -1,7 +1,6 @@
 package dustdustry.patcheditor.node.resolve;
 
 import arc.struct.*;
-import dustdustry.patcheditor.node.*;
 import mindustry.ctype.*;
 import mindustry.mod.*;
 import mindustry.world.*;

@@ -1,6 +1,5 @@
 package dustdustry.patcheditor.ui.dialog.selector;
 
-import arc.struct.ObjectMap.*;
 import dustdustry.patcheditor.node.*;
 import arc.*;
 import arc.audio.*;

@@ -17,10 +17,8 @@ import arc.util.serialization.Jval.*;
 import mindustry.*;
 import mindustry.core.GameState.*;
 import mindustry.gen.*;
-import mindustry.mod.DataPatcher.*;
 import mindustry.mod.data.*;
 import mindustry.ui.*;
-import mindustry.ui.FileChooser.*;
 import mindustry.ui.dialogs.*;
 
 import static mindustry.Vars.state;

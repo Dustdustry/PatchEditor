@@ -2,20 +2,14 @@ package dustdustry.patcheditor.ui.dialog;
 
 import arc.*;
 import arc.graphics.*;
-import arc.math.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import arc.struct.*;
-import arc.struct.ObjectMap.*;
 import arc.util.*;
 import dustdustry.patcheditor.ui.*;
 import mindustry.*;
 import mindustry.gen.*;
-import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
-
-import java.lang.reflect.*;
 
 public class ColorPickerExt{
 

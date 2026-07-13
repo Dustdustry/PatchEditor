@@ -1,11 +1,7 @@
 package dustdustry.patcheditor.ui.editor;
 
 import arc.scene.ui.layout.*;
-import arc.util.serialization.*;
-import arc.util.serialization.JsonWriter.*;
 import dustdustry.patcheditor.node.*;
-import dustdustry.patcheditor.node.PatchJsonTransform.*;
-import dustdustry.patcheditor.node.patch.*;
 import dustdustry.patcheditor.node.patch.PatchOperator.*;
 import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.ui.*;

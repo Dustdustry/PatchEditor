@@ -1,14 +1,10 @@
 package dustdustry.patcheditor.node;
 
-import arc.*;
-import arc.audio.*;
 import arc.graphics.*;
-import arc.graphics.g2d.TextureAtlas.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
-import dustdustry.patcheditor.ui.dialog.selector.ColorSelector.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
