@@ -14,13 +14,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.scene.utils.*;
 import arc.util.*;
-import dustdustry.patcheditor.ui.editor.PatchManager.*;
-import dustdustry.patcheditor.utils.*;
 import mindustry.*;
-import mindustry.editor.*;
-import mindustry.editor.data.*;
-import mindustry.gen.*;
-import mindustry.mod.data.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
@@ -37,6 +31,7 @@ public class EUI{
     public static StringItemSelector stringItemSelector;
     public static SoundSelector soundSelector;
     public static BlockClassSelector blockClassSelector;
+    public static ColorSelector colorSelector;
 
     public static EditNoteDialog noteEditor;
 
@@ -44,7 +39,6 @@ public class EUI{
     public static NotesDialog notes;
 
     public static EditorSettings settings;
-
 
     public static void init(){
         EStyles.init();
@@ -57,6 +51,7 @@ public class EUI{
         stringItemSelector = new StringItemSelector();
         soundSelector = new SoundSelector();
         blockClassSelector = new BlockClassSelector();
+        colorSelector = new ColorSelector();
 
         noteEditor = new EditNoteDialog();
 
@@ -67,6 +62,8 @@ public class EUI{
 
         FieldFavorites.init();
         FieldNotes.init();
+
+        ColorPickerExt.init();
     }
 
     public static void showUsageInfo(Runnable onHide){

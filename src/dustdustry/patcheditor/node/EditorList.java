@@ -2,16 +2,22 @@ package dustdustry.patcheditor.node;
 
 import arc.*;
 import arc.audio.*;
+import arc.graphics.*;
 import arc.graphics.g2d.TextureAtlas.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
+import dustdustry.patcheditor.ui.dialog.selector.ColorSelector.*;
 import mindustry.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.meta.*;
+
+import java.lang.reflect.*;
+import java.util.*;
 
 public class EditorList{
     private static final ObjectMap<Class<?>, Seq<String>> subTypeMap = new ObjectMap<>();
@@ -20,6 +26,7 @@ public class EditorList{
     private static Seq<Weapon> weaponList;
 
     private static Seq<String> visibilityList, interpList, attributeList;
+    private static Seq<ColorEntry> colorList;
 
     public static Seq<Weapon> getWeapons(){
         if(weaponList == null){
@@ -70,6 +77,28 @@ public class EditorList{
         return attributeList;
     }
 
+    public static Seq<ColorEntry> getColorList(){
+        if(colorList == null){
+            ObjectMap<String, Color> map = new ObjectMap<>();
+
+            for(var entry : Colors.getColors()){
+                map.put(entry.key.toLowerCase(), entry.value);
+            }
+
+            for(Field field : Seq.with(Pal.class.getFields())){
+                map.put(field.getName().toLowerCase(), Reflect.get(field));
+            }
+
+            colorList = new Seq<>();
+            for(var entry : map){
+                colorList.add(new ColorEntry(entry.key, entry.value));
+            }
+
+            colorList.sortComparing(e -> e.name);
+        }
+        return colorList;
+    }
+
     public enum UnitConstructorType{
         flying(UnitEntity.class),
         mech(MechUnit.class),
@@ -86,6 +115,35 @@ public class EditorList{
 
         UnitConstructorType(Class<?> type){
             this.type = type;
+        }
+    }
+
+    public static class ColorEntry{
+        public String name;
+        public Color color;
+
+        public ColorEntry(String name, Color color){
+            this.name = name;
+            this.color = color;
+        }
+
+        @Override
+        public boolean equals(Object object){
+            if(!(object instanceof ColorEntry that)) return false;
+            return Objects.equals(name, that.name) && Objects.equals(color, that.color);
+        }
+
+        @Override
+        public int hashCode(){
+            return Objects.hash(name, color);
+        }
+
+        @Override
+        public String toString(){
+            return "ColorEntry{" +
+            "name='" + name + '\'' +
+            ", color=" + color +
+            '}';
         }
     }
 }

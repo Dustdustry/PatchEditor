@@ -18,6 +18,8 @@ public abstract class SelectorDialog<T> extends BaseDialog{
     private Table itemCont;
     private ScrollPane pane;
 
+    protected float itemWidth = 360f;
+
     public SelectorDialog(String title){
         super(title);
 
@@ -49,7 +51,7 @@ public abstract class SelectorDialog<T> extends BaseDialog{
     protected void setupCont(Table cont){
         float width = layoutWidth();
 
-        int index = 0, columns = Math.max(1, (int)(width / 360f));
+        int index = 0, columns = Math.max(1, (int)(width / itemWidth));
         for(T item : getItems()){
             if(!query.isEmpty() && !matchQuery(item)) continue;
 
