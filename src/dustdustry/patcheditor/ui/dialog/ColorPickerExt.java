@@ -34,7 +34,6 @@ public class ColorPickerExt{
                 hexField.setProgrammaticChangeEvents(lastChange);
                 return true;
             })).height(Vars.iconLarge).padTop(8f);
-            throw new RuntimeException("");
         }catch(Exception e){
             Vars.ui.showException("@patch-editor.colorPickerExt.failed", e);
             Log.err(e);
