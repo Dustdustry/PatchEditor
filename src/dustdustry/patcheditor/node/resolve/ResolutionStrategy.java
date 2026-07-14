@@ -12,11 +12,14 @@ import arc.util.*;
 import java.lang.reflect.*;
 import mindustry.ai.types.*;
 import mindustry.ctype.*;
+import mindustry.entities.bullet.*;
+import mindustry.entities.part.*;
 import mindustry.entities.part.DrawPart.*;
 import mindustry.entities.units.*;
 import mindustry.gen.*;
 import mindustry.mod.*;
 import mindustry.type.*;
+import mindustry.type.weapons.*;
 import mindustry.world.*;
 import mindustry.world.blocks.production.*;
 import mindustry.world.consumers.*;
@@ -28,7 +31,14 @@ public abstract class ResolutionStrategy{
     );
     protected ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(
     Drill.class, Seq.with("oreCount", "itemArray"),
-    UnitType.class, Seq.with("sample")
+    UnitType.class, Seq.with("sample"),
+    // Fields will be overridden after patched.
+    RegionPart.class, Seq.with("regions", "outlines"),
+    BasicBulletType.class, Seq.with("backRegion", "frontRegion"),
+    PointLaserBulletType.class, Seq.with("laser", "laserEnd"),
+    SapBulletType.class, Seq.with("laserRegion", "laserEndRegion"),
+    Weapon.class, Seq.with("region", "heatRegion", "cellRegion", "outlineRegion"),
+    RepairBeamWeapon.class, Seq.with("laser", "laserEnd", "laserTop", "laserTopEnd")
     );
 
     public void resolveRoot(ObjectNode node){
