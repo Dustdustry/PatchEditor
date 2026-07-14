@@ -34,7 +34,7 @@ public class ContentAssetEditor extends BaseDialog{
     protected @Nullable Runnable onDataChanged;
 
     public ContentAssetEditor(){
-        super("@patch-editor.content-asset");
+        super("@patch-editor.asset-editor.content");
 
         editor = new ContentEditor();
 
