@@ -208,6 +208,9 @@ public abstract class PatchOperator{
 
             // type changing base on overriding
             if(node.sign != ModifierSign.PLUS) node.sign = ModifierSign.MODIFY;
+            // clear leftover scalar value from simple-value form
+            node.value = null;
+            node.type = ValueType.object;
             node.getOrCreate("type").value = PatchJsonIO.getTypeName(type);
         }
     }

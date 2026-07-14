@@ -227,7 +227,7 @@ public class NodeCard extends Table{
                     addUnknownButton(cont, child);
                 }else{
                     DataModifier<?> modifier = NodeModifier.getModifier(child.getObjNode());
-                    if(modifier != null){
+                    if(modifier != null && !child.isObjectForm()){
                         modifier.setData(rootEditorNode, child.getPath());
                         addEditTable(cont, child, modifier);
                     }else{
@@ -466,10 +466,20 @@ public class NodeCard extends Table{
         }
 
         if(hasModifier && !child.isAppended()){
-            table.button(Icon.undo, Styles.clearNonei, () -> {
+            if(NodeModifier.isComplexType(child.getObjNode())){
+                table.button(Icon.wrench, Styles.clearNonei, () -> {
+                    EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
+                        child.changeType(clazz);
+                        return true;
+                    });
+                }).tooltip("@node.toObject");
+            }
+
+            Cell<?> undoCell = table.button(Icon.undo, Styles.clearNonei, () -> {
                 modifier.resetModify();
                 modifier.syncUI();
-            }).tooltip("@node-modifier.undo", true).grow().visible(child.hasValue()).visible(child::hasValue).get();
+            }).tooltip("@node-modifier.undo", true).grow();
+            TableUtils.collapseCell(undoCell, child::hasValue);
         }
     }
 

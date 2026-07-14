@@ -86,6 +86,13 @@ public class NodeModifier{
         return node != null && node.hasSign(ModifierSign.MODIFY);
     }
 
+    public static final Seq<Class<?>> valueToObjectTypes = Seq.with(Effect.class);
+
+    public static boolean isComplexType(ObjectNode node){
+        return node != null && PatchJsonIO.typeOverrideable(node.type)
+        && valueToObjectTypes.contains(c -> c.isAssignableFrom(node.type));
+    }
+
     public static class ModifierConfig{
         public final Seq<Class<?>> modifierTypes = new Seq<>();
         private final Prov<DataModifier<?>> prov;

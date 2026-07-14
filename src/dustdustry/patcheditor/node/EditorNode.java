@@ -180,6 +180,15 @@ public class EditorNode{
         return false;
     }
 
+    public boolean isObjectForm(){
+        PatchNode patchNode = getPatch();
+        if(patchNode == null) return false;
+        if(isChangedType()) return true;
+        if(isOverriding() && ClassHelper.isContainer(getTypeIn())) return true;
+        if(patchNode.value != null) return false;
+        return patchNode.children.size > 0;
+    }
+
     public boolean isChangedType(){
         if(!PatchJsonIO.typeOverrideable(getTypeIn())) return false;
 

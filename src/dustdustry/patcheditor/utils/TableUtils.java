@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.utils;
 
+import arc.*;
 import arc.func.*;
 import arc.scene.*;
 import arc.scene.ui.layout.*;
@@ -8,6 +9,25 @@ import arc.util.*;
 import arc.util.pooling.*;
 
 public class TableUtils{
+    public static void collapseCell(Cell<?> cell, Boolp shown){
+        Element element = cell.get();
+        if(element == null) return;
+
+        int colspan = Reflect.get(Cell.class, cell, "colspan");
+        element.visibility = () -> {
+            boolean visible = shown.get();
+            if(element.visible != visible){
+                if(visible){
+                    cell.colspan(colspan);
+                }else{
+                    cell.colspan(0);
+                }
+                Core.app.post(element::invalidateHierarchy);
+            }
+            return visible;
+        };
+    }
+
     public static void insertColumnAfter(Table table, int column, Cons<Table> tableCons){
         insertColumnAfter(table, column, new Table(tableCons));
     }
