@@ -413,84 +413,88 @@ public class NodeCard extends Table{
         if(readOnly) return;
 
         table.defaults().padLeft(4f).padRight(4f).grow();
-        EditorNode editorNode = getEditorNode();
 
-        boolean hasModifier = modifier != null;
-
-        // remove
-        if(child.getObjNode().hasSign(ModifierSign.REMOVE) && !child.isChangedType() &&  !child.isAppended()){
-            boolean undoMode = child.isRemoving();
-            table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
-                if(undoMode){
-                    child.clearJson();
-                }else{
-                    child.setRemoved();
-                }
-            }).tooltip(undoMode ? "@node.revertRemove" : "@node.removeKey");
-
-            // This key has been removed. Don't show any buttons or hint.
-            if(undoMode) return;
+        if(isRemovableKey(child)){
+            setupRemoveKeyButtons(table, child);
+            // When already removed, no other buttons are relevant.
+            if(child.isRemoving()) return;
         }
 
         if(child.isAppended()){
-            if(!hasModifier && PatchJsonIO.typeOverrideable(child.getTypeIn())){
-                table.button(Icon.wrench, Styles.clearNonei, () -> {
-                    EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
-                        child.changeType(clazz);
-                        return true;
-                    });
-                }).tooltip("@node.changeType");
-            }
+            setupAppendedButtons(table, child, modifier != null);
+        }else if(modifier != null){
+            setupValueButtons(table, child, modifier);
+        }else{
+            setupOverrideButtons(table, child);
+        }
+    }
 
-            table.button(Icon.cancel, Styles.clearNonei, child::clearJson).grow().tooltip("@node.remove");
-        }else if(!hasModifier && child.isOverriding()){
-            // overriding null object, array, map or field
+    private static boolean isRemovableKey(EditorNode child){
+        return child.getObjNode().hasSign(ModifierSign.REMOVE) && !child.isChangedType() && !child.isAppended();
+    }
+
+    private void setupRemoveKeyButtons(Table table, EditorNode child){
+        boolean undoMode = child.isRemoving();
+        table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
+            if(undoMode){
+                child.clearJson();
+            }else{
+                child.setRemoved();
+            }
+        }).tooltip(undoMode ? "@node.revertRemove" : "@node.removeKey");
+    }
+
+    private void setupAppendedButtons(Table table, EditorNode child, boolean hasModifier){
+        boolean canChangeType = hasModifier
+        ? NodeModifier.isComplexType(child.getObjNode())
+        : PatchJsonIO.typeOverrideable(child.getTypeIn());
+        if(canChangeType) addChangeTypeButton(table, child);
+
+        table.button(Icon.cancel, Styles.clearNonei, child::clearJson).grow().tooltip("@node.remove");
+    }
+
+    private void setupValueButtons(Table table, EditorNode child, DataModifier<?> modifier){
+        // A value with a complex form (e.g. Effect) can be switched to a full object.
+        if(NodeModifier.isComplexType(child.getObjNode())){
+            addChangeTypeButton(table, child);
+        }
+
+        Cell<?> undoCell = table.button(Icon.undo, Styles.clearNonei, () -> {
+            modifier.resetModify();
+            modifier.syncUI();
+        }).tooltip("@node-modifier.undo", true).grow();
+        TableUtils.collapseCell(undoCell, child::hasValue);
+    }
+
+    private void setupOverrideButtons(Table table, EditorNode child){
+        EditorNode editorNode = getEditorNode();
+
+        if(child.isOverriding()){
+            // overriding a null object, array, map or field
             if(PatchJsonIO.typeOverrideable(child.getTypeIn())){
-                table.button(Icon.wrench, Styles.clearNonei, () -> {
-                    EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
-                        child.changeType(clazz);
-                        return true;
-                    });
-                }).tooltip("@node.changeType");
+                addChangeTypeButton(table, child);
             }
-
             table.button(Icon.undo, Styles.clearNonei, child::clearJson).tooltip("@node.revertOverride");
-        }else if(!hasModifier && PatchJsonIO.overrideable(child.getTypeIn()) &&
-        (child.getObject() == null || child.getObjNode().field != null || editorNode.getObjNode().isMultiArrayLike())){
-            // override null object, field or element of multi-dimension array
+        }else if(PatchJsonIO.overrideable(child.getTypeIn())
+        && (child.getObject() == null || child.getObjNode().field != null || editorNode.getObjNode().isMultiArrayLike())){
+            // override a null object, field or element of a multi-dimension array
             PatchNode patchNode = child.getPatch();
             if(patchNode == null || patchNode.sign == null){
-                table.button(Icon.wrench, Styles.clearNonei, () -> {
-                    child.setSign(ModifierSign.MODIFY);
-                }).tooltip("@node.override");
+                table.button(Icon.wrench, Styles.clearNonei, () -> child.setSign(ModifierSign.MODIFY)).tooltip("@node.override");
             }
-        }else if(!hasModifier && ClassHelper.isContainer(editorNode.getTypeIn())
-        && PatchJsonIO.typeOverrideable(child.getTypeIn())){
-            // override array's element or map's key must change the type
-            table.button(Icon.wrench, Styles.clearNonei, () -> {
-                EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
-                    child.changeType(clazz);
-                    return true;
-                });
-            }).tooltip("@node.changeType");
+        }else if(ClassHelper.isContainer(editorNode.getTypeIn()) && PatchJsonIO.typeOverrideable(child.getTypeIn())){
+            // overriding an array element or map key requires choosing a concrete type
+            addChangeTypeButton(table, child);
         }
+    }
 
-        if(hasModifier && !child.isAppended()){
-            if(NodeModifier.isComplexType(child.getObjNode())){
-                table.button(Icon.wrench, Styles.clearNonei, () -> {
-                    EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
-                        child.changeType(clazz);
-                        return true;
-                    });
-                }).tooltip("@node.toObject");
-            }
-
-            Cell<?> undoCell = table.button(Icon.undo, Styles.clearNonei, () -> {
-                modifier.resetModify();
-                modifier.syncUI();
-            }).tooltip("@node-modifier.undo", true).grow();
-            TableUtils.collapseCell(undoCell, child::hasValue);
-        }
+    private void addChangeTypeButton(Table table, EditorNode child){
+        table.button(Icon.wrench, Styles.clearNonei, () -> {
+            EUI.classSelector.select(null, child.getTypeIn(), clazz -> {
+                child.changeType(clazz);
+                return true;
+            });
+        }).tooltip("@node.changeType");
     }
 
     private void setupTinyButton(Table table, EditorNode node){
