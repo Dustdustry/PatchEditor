@@ -26,7 +26,11 @@ public abstract class DataModifier<T> implements ModifyConsumer<T>{
     }
 
     public void build(Table table){
-        builder.buildTable(table);
+        builder.buildTable(table, false);
+    }
+
+    public void build(Table table, boolean readOnly){
+        builder.buildTable(table, readOnly);
     }
 
     public void syncUI(){

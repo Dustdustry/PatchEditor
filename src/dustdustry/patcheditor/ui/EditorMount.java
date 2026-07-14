@@ -25,14 +25,10 @@ import mindustry.ui.dialogs.*;
 import static mindustry.Vars.*;
 
 public class EditorMount{
-    private static PatchEditor patchEditor;
-    private static ContentAssetEditor contentAssetEditor;
     private static Seq<EditorPatch> editorPatches;
 
     // extremely hacky
     public static void mount(){
-        patchEditor = new PatchEditor();
-        contentAssetEditor = new ContentAssetEditor();
         editorPatches = new Seq<>();
 
         MapInfoDialog infoDialog = Reflect.get(Vars.ui.editor, "infoDialog");
@@ -78,7 +74,7 @@ public class EditorMount{
             }
         })));
 
-        patchEditor.hidden(() -> {
+        EUI.patchEditor.hidden(() -> {
             state.data.reloadPatches(editorPatches.map(e -> new PatchAsset(e.patch)));
             Reflect.invoke(assetsDialog, "rebuild");
         });
@@ -91,8 +87,8 @@ public class EditorMount{
             for(EditorPatch editorPatch : editorPatches){
                 t.button(Icon.edit, Styles.graySquarei, iconMed, () -> {
                     state.data.reloadPatches(new Seq<>());
-                    patchEditor.resetEditor();
-                    patchEditor.edit(editorPatch, () -> {
+                    EUI.patchEditor.resetEditor();
+                    EUI.patchEditor.edit(editorPatch, () -> {
                         state.data.reloadPatches(editorPatches.map(p -> new PatchAsset(p.patch)));
                         Reflect.invoke(assetsDialog, "rebuild");
                     });
@@ -128,7 +124,7 @@ public class EditorMount{
             ImageButton button = new ImageButton(Icon.edit, Styles.graySquarei);
             button.resizeImage(iconMed);
             button.clicked(() -> {
-                contentAssetEditor.show(asset, () -> Reflect.invoke(assetsDialog, "rebuild"));
+                EUI.contentAssetEditor.show(asset, () -> Reflect.invoke(assetsDialog, "rebuild"));
             });
 
             cell.setElement(button);

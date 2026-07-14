@@ -23,7 +23,6 @@ import mindustry.ui.dialogs.*;
  * Create by 2024/2/15
  */
 public class EUI{
-    public static PatchManager manager;
     public static ContentSelector selector;
     public static ClassSelector classSelector;
     public static WeaponSelector weaponSelector;
@@ -33,6 +32,8 @@ public class EUI{
     public static BlockClassSelector blockClassSelector;
     public static ColorSelector colorSelector;
 
+    public static PatchEditor patchEditor;
+    public static ContentAssetEditor contentAssetEditor;
     public static EditNoteDialog noteEditor;
 
     public static FavoritesDialog favorites;
@@ -43,7 +44,6 @@ public class EUI{
     public static void init(){
         EStyles.init();
 
-        manager = new PatchManager();
         selector = new ContentSelector();
         classSelector = new ClassSelector();
         weaponSelector = new WeaponSelector();
@@ -53,6 +53,8 @@ public class EUI{
         blockClassSelector = new BlockClassSelector();
         colorSelector = new ColorSelector();
 
+        patchEditor = new PatchEditor();
+        contentAssetEditor = new ContentAssetEditor();
         noteEditor = new EditNoteDialog();
 
         favorites = new FavoritesDialog();

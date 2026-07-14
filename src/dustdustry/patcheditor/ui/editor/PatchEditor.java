@@ -30,6 +30,8 @@ public class PatchEditor extends BaseDialog{
     public EditorPatch editPatch;
     protected @Nullable Runnable onSaved;
 
+    protected boolean readOnly;
+
     /**
      * <p>
      * ObjectTree、EditorTree、PatchTree
@@ -85,8 +87,9 @@ public class PatchEditor extends BaseDialog{
         });
         hidden(() -> {
             manager.clearStacks();
-            savePatch();
+            if(!readOnly) savePatch();
             pane = null;
+            readOnly = false;
 
             if(onSaved != null){
                 onSaved.run();
@@ -147,10 +150,6 @@ public class PatchEditor extends BaseDialog{
         editPatch.name = namePatch != null && namePatch.value != null ? namePatch.value : "";
     }
 
-    public void edit(EditorPatch patch){
-        edit(patch, null);
-    }
-
     protected void setup(){
         if(cont.hasChildren()) return;
 
@@ -188,19 +187,25 @@ public class PatchEditor extends BaseDialog{
     }
 
     protected void setupTinyButton(Table table){
-        table.defaults().width(64f).pad(4f).growY();
+        table.defaults().width(56f).pad(4f).growY();
         table.button(Icon.settings, Styles.cleari, () -> EUI.settings.show()).tooltip("@settings");
-        table.button(Icon.undo, Styles.cleari, manager::undo).disabled(b -> !manager.canUndo()).tooltip("@patch-editor.undo", true);
-        table.button(Icon.redo, Styles.cleari, manager::redo).disabled(b -> !manager.canRedo()).tooltip("@patch-editor.redo", true);
+        if(!readOnly) table.button(Icon.undo, Styles.cleari, manager::undo).disabled(b -> !manager.canUndo()).tooltip("@patch-editor.undo", true);
+        if(!readOnly) table.button(Icon.redo, Styles.cleari, manager::redo).disabled(b -> !manager.canRedo()).tooltip("@patch-editor.redo", true);
         if(Vars.mobile) table.button(Icon.downOpen, Styles.cleari, card::editLastData).tooltip("@node-card.expandLast", true);
+    }
+
+    public void edit(EditorPatch patch){
+        edit(patch, null);
     }
 
     public void edit(EditorPatch patch, Runnable onSaved){
         this.onSaved = onSaved;
 
         manager.reset();
+        if(objectTree == null) objectTree = ObjectNode.createRoot(ObjectResolver.patch);
         editorTree = new EditorNode(objectTree, manager);
         card.setRootEditorNode(editorTree);
+        card.setReadOnly(readOnly);
 
         try{
             PatchJsonIO.parseJson(objectTree, manager.getRoot(), patch.patch);
@@ -219,7 +224,15 @@ public class PatchEditor extends BaseDialog{
         show();
     }
 
+    public void showReadonly(){
+        readOnly = true;
+        resetEditor();
+        edit(new EditorPatch("", ""));
+    }
+
     protected void rebuild(){
+        title.setText(!readOnly ? "@patch-editor" : "@patch-editor.readOnly");
+
         cont.clearChildren();
 
         card.rebuild();

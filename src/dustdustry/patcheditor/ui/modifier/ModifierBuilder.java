@@ -24,11 +24,14 @@ public abstract class ModifierBuilder<T>{
     protected T value;
     protected final ModifyConsumer<T> consumer;
 
+    protected boolean readOnly = false;
+
     public ModifierBuilder(ModifyConsumer<T> consumer){
         this.consumer = consumer;
     }
 
-    public void buildTable(Table table){
+    public void buildTable(Table table, boolean readOnly){
+        this.readOnly = readOnly;
         value = consumer.getValue();
         build(table);
         updateUI();
@@ -38,8 +41,10 @@ public abstract class ModifierBuilder<T>{
 
     // Sync ui here
     protected void setValue(T value){
-        this.value = value;
-        consumer.onModify(value);
+        if(!readOnly){
+            this.value = value;
+            consumer.onModify(value);
+        }
 
         updateUI();
     }
@@ -61,8 +66,9 @@ public abstract class ModifierBuilder<T>{
 
         @Override
         public void build(Table table){
-            field = table.field(value, t -> setValue(UI.formatIcons(t)))
-            .valid(consumer::checkValue).pad(4f).growX().get();
+            field = table.field(value, t -> {
+                setValue(UI.formatIcons(t));
+            }).valid(consumer::checkValue).pad(4f).growX().get();
 
             if(consumer.getTypeMeta() == String.class){
                 table.button(Icon.pencil, Styles.clearNonei, () -> {

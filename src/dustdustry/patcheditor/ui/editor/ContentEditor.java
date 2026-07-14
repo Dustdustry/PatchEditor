@@ -52,6 +52,9 @@ public class ContentEditor extends PatchEditor{
     protected void setupTinyButton(Table table){
         super.setupTinyButton(table);
 
+        table.button(Icon.eyeSmall, Styles.cleari, () -> EUI.patchEditor.showReadonly())
+        .tooltip("@patch-editor.readOnly");
+
         table.button(Icon.wrench, Styles.cleari, () -> {
             if(asset.type == ContentType.block){
                 EUI.blockClassSelector.select(clazz -> {
@@ -68,7 +71,7 @@ public class ContentEditor extends PatchEditor{
                     return true;
                 });
             }
-        }).size(50f).pad(4f).tooltip("@node.changeType", true);
+        }).tooltip("@node.changeType", true);
     }
 
     @Deprecated

@@ -52,6 +52,8 @@ public class NodeCard extends Table{
     private boolean needRebuildNodes;
     private boolean forceOverride;
 
+    private boolean readOnly = false;
+
     public NodeCard(){
         nodesTable = new Table();
 
@@ -71,6 +73,10 @@ public class NodeCard extends Table{
 
     public void invalidNodes(){
         needRebuildNodes = true;
+    }
+
+    public void setReadOnly(boolean readOnly){
+        this.readOnly = readOnly;
     }
 
     @Override
@@ -271,7 +277,7 @@ public class NodeCard extends Table{
                 });
             }).pad(8f).fill();
 
-            t.table(modifier::build).pad(4).grow();
+            t.table((mt) -> modifier.build(mt, readOnly)).pad(4).grow();
             t.table(buttons -> {
                 buttons.defaults().growX();
                 buttons.table(top -> setupChildNodeButtons(top, node, modifier)).grow();
@@ -344,6 +350,8 @@ public class NodeCard extends Table{
     }
 
     private void addPlusButton(Table table, EditorNode editorNode){
+        if(readOnly) return;
+
         ObjectNode objNode = editorNode.getObjNode();
         if(objNode.elementType == null) return;
 
@@ -402,6 +410,8 @@ public class NodeCard extends Table{
     }
 
     private void setupChildNodeButtons(Table table, EditorNode child, DataModifier<?> modifier){
+        if(readOnly) return;
+
         table.defaults().padLeft(4f).padRight(4f).grow();
         EditorNode editorNode = getEditorNode();
 
@@ -543,12 +553,12 @@ public class NodeCard extends Table{
             buttons.defaults().size(64f).pad(8f);
 
             // Clear data
-            buttons.button(Icon.refresh, Styles.cleari, () -> {
+            if(!readOnly) buttons.button(Icon.refresh, Styles.cleari, () -> {
                 Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", node.getPath()), node::clearJson);
             }).tooltip("@node-card.clear-data", true);
 
             if(node != rootEditorNode){
-                buttons.button(Icon.download, Styles.cleari, () -> {
+                if(!readOnly) buttons.button(Icon.download, Styles.cleari, () -> {
                     try{
                         node.importPatch(Core.app.getClipboardText());
                     }catch(RuntimeException e){
@@ -559,7 +569,7 @@ public class NodeCard extends Table{
                 }).padLeft(16f).tooltip(Core.bundle.format("node-card.appendPatchNode", editorPath), true)
                 .disabled(b -> Core.app.getClipboardText() == null);
 
-                buttons.button(Icon.copy, Styles.cleari, () -> {
+                if(!readOnly) buttons.button(Icon.copy, Styles.cleari, () -> {
                     PatchNode patchNode = node.getPatch();
                     Core.app.setClipboardText(patchNode == null ? "" : PatchJsonIO.toPatch(node.getObjNode(), patchNode, EditorSettings.getPatchExportOptions()));
                     EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
