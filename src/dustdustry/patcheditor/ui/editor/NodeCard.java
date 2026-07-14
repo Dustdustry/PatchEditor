@@ -361,7 +361,7 @@ public class NodeCard extends Table{
             Class<?> keyType = objNode.keyType;
             if(keyType != null){
                 ContentType type = PatchJsonIO.classContentType(keyType);
-                if(type == null){
+                if(type == null && keyType != UnlockableContent.class){
                     // TODO: unsupported key type
                     Vars.ui.showErrorMessage("#Unsupported key type " + ClassHelper.getDisplayName(keyType));
                     return;
