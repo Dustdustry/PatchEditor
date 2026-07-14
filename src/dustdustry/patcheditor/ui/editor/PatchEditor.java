@@ -166,7 +166,7 @@ public class PatchEditor extends BaseDialog{
         titleTable.table(buttons -> {
             buttons.defaults().pad(8f).growY();
 
-            buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide).size(150f, 48f);
+            buttons.button("@quit", Icon.cancel, Styles.grayt, this::hide).width(150f);
             buttons.table(Styles.grayPanel, this::setupTinyButton);
 
             buttons.add().expandX();
@@ -225,6 +225,6 @@ public class PatchEditor extends BaseDialog{
         card.rebuild();
 
         if(pane == null) pane = new ScrollPane(card, Styles.noBarPane);
-        cont.add(pane).scrollX(false).pad(16f).padTop(8f).grow();
+        cont.add(pane).pad(16f).padTop(8f).grow();
     }
 }
