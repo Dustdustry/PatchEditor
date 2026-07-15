@@ -1,5 +1,7 @@
 package dustdustry.patcheditor.ui.dialog.selector;
 
+import arc.math.*;
+import arc.scene.ui.*;
 import dustdustry.patcheditor.node.*;
 import arc.*;
 import arc.audio.*;
@@ -46,9 +48,16 @@ public class SoundSelector extends SelectorDialog<Sound>{
     protected void setupItemTable(Table table, Sound item){
         String name = PatchJsonIO.getKeyEntryMap(Sound.class).findKey(item, true);
         table.add(name).pad(4f).expandX().left();
+
+        Label label = new Label(Strings.autoFixed(item.getLength(), 2) + "s");
         table.button(b -> {
             b.image(Icon.play).pad(4f);
-            b.add(Strings.autoFixed(item.getLength(), 2) + "s").width(64f);
+            b.add("@selector.sound.unloaded").width(64f).update(l -> {
+                if(!Mathf.zero(item.getLength())){
+                    l.setText(Strings.autoFixed(item.getLength(), 2) + "s");
+                    l.update(null);
+                }
+            });
         }, Styles.clearNonei, () -> {
             AudioBus lastBus = item.bus;
             item.setBus(Vars.control.sound.uiBus);
