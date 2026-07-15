@@ -561,25 +561,24 @@ public class NodeCard extends Table{
                 Vars.ui.showConfirm(Core.bundle.format("node-card.clear-data.confirm", node.getPath()), node::clearJson);
             }).tooltip("@node-card.clear-data", true);
 
-
-            if(!readOnly) buttons.button(Icon.download, Styles.cleari, () -> {
-                try{
-                    node.importPatch(Core.app.getClipboardText());
-                }catch(RuntimeException e){
-                    Vars.ui.showException("@node-card.appendPatchNode.failed", e);
-                    return;
-                }
-                EUI.infoToast(Core.bundle.format("node-card.appendPatchNode", editorPath));
-            }).padLeft(16f).tooltip(Core.bundle.format("node-card.appendPatchNode", editorPath), true)
-            .disabled(b -> Core.app.getClipboardText() == null);
-
-            if(!readOnly) buttons.button(Icon.copy, Styles.cleari, () -> {
-                PatchNode patchNode = node.getPatch();
-                Core.app.setClipboardText(patchNode == null ? "" : PatchJsonIO.toPatch(node.getObjNode(), patchNode, EditorSettings.getPatchExportOptions()));
-                EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
-            }).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
-
             if(node != rootEditorNode){
+                if(!readOnly) buttons.button(Icon.download, Styles.cleari, () -> {
+                    try{
+                        node.importPatch(Core.app.getClipboardText());
+                    }catch(RuntimeException e){
+                        Vars.ui.showException("@node-card.appendPatchNode.failed", e);
+                        return;
+                    }
+                    EUI.infoToast(Core.bundle.format("node-card.appendPatchNode", editorPath));
+                }).padLeft(16f).tooltip(Core.bundle.format("node-card.appendPatchNode", editorPath), true)
+                .disabled(b -> Core.app.getClipboardText() == null);
+
+                if(!readOnly) buttons.button(Icon.copy, Styles.cleari, () -> {
+                    PatchNode patchNode = node.getPatch();
+                    Core.app.setClipboardText(patchNode == null ? "" : PatchJsonIO.toPatch(node.getObjNode(), patchNode, EditorSettings.getPatchExportOptions()));
+                    EUI.infoToast(Core.bundle.format("node-card.exportPatchNode", editorPath));
+                }).tooltip(Core.bundle.format("node-card.exportPatchNode", editorPath), true);
+
                 buttons.button(Icon.effect, Styles.cleari, () -> {
                     String patch;
                     try{
