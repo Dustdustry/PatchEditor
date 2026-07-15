@@ -54,24 +54,6 @@ public class ContentEditor extends PatchEditor{
 
         table.button(Icon.eyeSmall, Styles.cleari, () -> EUI.patchEditor.showReadonly())
         .tooltip("@patch-editor.readOnly");
-
-        table.button(Icon.wrench, Styles.cleari, () -> {
-            if(asset.type == ContentType.block){
-                EUI.blockClassSelector.select(clazz -> {
-                    manager.applyOp(new ChangeTypeOp("", clazz));
-                    savePatch();
-                    edit(asset, onSaved);
-                    return true;
-                });
-            }else{
-                EUI.classSelector.select(asset.type.contentClass, (clazz) -> {
-                    manager.applyOp(new ChangeTypeOp("", clazz));
-                    savePatch();
-                    edit(asset, onSaved);
-                    return true;
-                });
-            }
-        }).tooltip("@node.changeType", true);
     }
 
     @Deprecated

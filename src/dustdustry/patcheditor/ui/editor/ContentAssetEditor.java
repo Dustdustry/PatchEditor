@@ -8,6 +8,7 @@ import arc.util.serialization.*;
 import arc.util.serialization.Jval.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.node.PatchExportOptions.*;
+import dustdustry.patcheditor.node.patch.PatchOperator.*;
 import dustdustry.patcheditor.ui.*;
 import dustdustry.patcheditor.ui.dialog.*;
 import dustdustry.patcheditor.utils.*;
@@ -71,14 +72,8 @@ public class ContentAssetEditor extends BaseDialog{
             for(ContentType type : ContentAsset.loadableContent){
                 t.button(new TextureRegionDrawable(NodeDisplay.getDisplayIcon(type)), Styles.grayTogglei, iconMed, () -> {
                     asset.type = type;
+                    setType(null);
                     contentClass = type.contentClass;
-
-                    Jval jval = Jval.read(asset.data);
-                    jval.remove("type");
-                    PatchExportOptions options = EditorSettings.getPatchExportOptions();
-                    asset.data = options.format == Format.hjson ? jval.toString(Jformat.hjson)
-                    : options.formatJson ? jval.toString(Jformat.formatted)
-                    : jval.toString(Jformat.plain);
                 }).checked(b -> asset.type == type).size(50f).pad(4f).tooltip("@content." + type.name());
             }
         });
@@ -94,6 +89,22 @@ public class ContentAssetEditor extends BaseDialog{
             }).size(260f, 50f).pad(4f).marginLeft(5f).marginRight(5f);
 
             t.image(Tex.whiteui, Pal.accent).width(4f).pad(4f).fillY();
+
+            t.button(Icon.edit, Styles.graySquarei, () -> {
+                if(asset.type == ContentType.block){
+                    EUI.blockClassSelector.select(clazz -> {
+                        setType(clazz);
+                        contentClass = clazz;
+                        return true;
+                    });
+                }else{
+                    EUI.classSelector.select(asset.type.contentClass, (clazz) -> {
+                        setType(clazz);
+                        contentClass = clazz;
+                        return true;
+                    });
+                }
+            }).tooltip("@node.changeType", true).padLeft(16f).size(50f);
         }).fillX();
 
         cont.row();
@@ -135,6 +146,19 @@ public class ContentAssetEditor extends BaseDialog{
             asset.data = oldJson;
             ui.showException("@patch.importerror", e);
         }
+    }
+
+    protected void setType(@Nullable Class<?> type){
+        Jval jval = Jval.read(asset.data);
+        if(type != null){
+            jval.put("type", PatchJsonIO.getTypeName(type));
+        }else{
+            jval.remove("type");
+        }
+        PatchExportOptions options = EditorSettings.getPatchExportOptions();
+        asset.data = options.format == Format.hjson ? jval.toString(Jformat.hjson)
+        : options.formatJson ? jval.toString(Jformat.formatted)
+        : jval.toString(Jformat.plain);
     }
 
     protected void readContentClass(){

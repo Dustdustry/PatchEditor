@@ -1,5 +1,7 @@
 package dustdustry.patcheditor.ui;
 
+import arc.scene.style.*;
+import arc.struct.ObjectMap.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.utils.*;
 import arc.*;
@@ -11,6 +13,7 @@ import arc.util.*;
 import mindustry.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
+import mindustry.editor.data.*;
 import mindustry.gen.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -22,19 +25,26 @@ import mindustry.ui.*;
 public class NodeDisplay{
     public static final float labelWidth = 100f;
     public static final float imageSize = Vars.iconLarge;
-    public static ObjectMap<ContentType, TextureRegion> contentSymbolMap;
+    public static ObjectMap<ContentType, TextureRegionDrawable> contentSymbolMap;
 
     private static Table table;
     private static EditorNode node;
 
     private static void initSymbol(){
+        try{
+            contentSymbolMap = Reflect.get(MapContentView.class, "contentIcons");
+            return;
+        }catch(Exception ignored){
+        }
+
         contentSymbolMap = ObjectMap.of(
-        ContentType.item, Items.copper.uiIcon,
-        ContentType.block, Blocks.sand.uiIcon,
-        ContentType.liquid, Liquids.water.uiIcon,
-        ContentType.status, StatusEffects.overclock.uiIcon,
-        ContentType.unit, UnitTypes.alpha.uiIcon,
-        ContentType.planet, Icon.icons.get(Planets.serpulo.icon).getRegion()
+        ContentType.item, Icon.box,
+        ContentType.liquid, Icon.liquid,
+        ContentType.unit, Icon.units,
+        ContentType.block, Icon.distribution,
+        ContentType.planet, Icon.planet,
+        ContentType.weather, Icon.drizzle,
+        ContentType.status, Icon.power
         );
     }
 
@@ -54,7 +64,7 @@ public class NodeDisplay{
         TextureRegion region = null;
         if(object instanceof ContentType type){
             if(contentSymbolMap == null) initSymbol();
-            region = contentSymbolMap.get(type, Icon.effect.getRegion());
+            region = contentSymbolMap.get(type, Icon.effect).getRegion();
         }
         else if(object instanceof UnlockableContent unlockable) region = unlockable.uiIcon;
         else if(object instanceof Weapon weapon) region = Core.atlas.find(weapon.name, Icon.none.getRegion());
