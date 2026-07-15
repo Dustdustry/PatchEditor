@@ -14,7 +14,7 @@ main: "dustdustry.patcheditor.Main"
 description: "Provide an in-game GUI for DataPatcher."
 
 #the mod version
-version: 1.11.0
+version: 1.12.0
 
 #the minimum game build required to run this mod
 minGameVersion: 159
