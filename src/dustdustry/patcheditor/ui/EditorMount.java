@@ -14,6 +14,7 @@ import dustdustry.patcheditor.ui.editor.*;
 import dustdustry.patcheditor.ui.editor.PatchManager.*;
 import dustdustry.patcheditor.utils.*;
 import mindustry.*;
+import mindustry.core.GameState.*;
 import mindustry.ctype.*;
 import mindustry.editor.*;
 import mindustry.editor.data.*;
@@ -87,10 +88,23 @@ public class EditorMount{
             for(EditorPatch editorPatch : editorPatches){
                 t.button(Icon.edit, Styles.graySquarei, iconMed, () -> {
                     state.data.reloadPatches(new Seq<>());
-                    EUI.patchEditor.resetEditor();
                     EUI.patchEditor.edit(editorPatch, () -> {
-                        state.data.reloadPatches(editorPatches.map(p -> new PatchAsset(p.patch)));
-                        Reflect.invoke(assetsDialog, "rebuild");
+                        try{
+                            state.data.reloadPatches(editorPatches.map(e -> new PatchAsset(e.patch)));
+                            Reflect.invoke(assetsDialog, "rebuild");
+                        }catch(Exception e){
+                            Vars.ui.showException(e);
+                        }
+
+                        EUI.patchEditor.resetEditor();
+                        if(state.isGame()){
+                            try{
+                                Vars.logic.update();
+                            }catch(Exception e){
+                                state.set(State.paused);
+                                Vars.ui.showException("@patch-editor.editInGame.error", e);
+                            }
+                        }
                     });
                 });
             }
