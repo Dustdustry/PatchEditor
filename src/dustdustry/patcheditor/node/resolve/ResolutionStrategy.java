@@ -49,7 +49,7 @@ public abstract class ResolutionStrategy{
             }
         }
 
-        node.addChild("name", "Patch0").addSign(ModifierSign.MODIFY);
+        node.addChild("name", "<unnamed>").addSign(ModifierSign.MODIFY);
     }
 
     public boolean shouldAddPlusSign(ObjectNode node, Class<?> objectType){
