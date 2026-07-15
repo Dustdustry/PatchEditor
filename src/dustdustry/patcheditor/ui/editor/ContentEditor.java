@@ -101,5 +101,7 @@ public class ContentEditor extends PatchEditor{
         }
 
         super.edit(editPatch, onSaved);
+
+        card.setEditPath("");
     }
 }
