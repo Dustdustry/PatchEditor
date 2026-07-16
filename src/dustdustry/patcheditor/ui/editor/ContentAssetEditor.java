@@ -31,6 +31,8 @@ public class ContentAssetEditor extends BaseDialog{
     protected ContentAsset asset;
     protected Class<?> contentClass;
 
+    protected boolean dirty;
+
     protected boolean nameInvalid;
     protected @Nullable Runnable onDataChanged;
 
@@ -115,6 +117,7 @@ public class ContentAssetEditor extends BaseDialog{
         buttons.button("@back", Icon.exit, this::hide).width(200f).get();
 
         buttons.button("@patch-editor.asset.openInEditor", Icon.edit, () -> {
+            if(dirty) applyJson();
             editor.edit(asset, this::applyJson);
         }).width(200f);
 
@@ -159,6 +162,8 @@ public class ContentAssetEditor extends BaseDialog{
         asset.data = options.format == Format.hjson ? jval.toString(Jformat.hjson)
         : options.formatJson ? jval.toString(Jformat.formatted)
         : jval.toString(Jformat.plain);
+
+        dirty = true;
     }
 
     protected void readContentClass(){
@@ -174,6 +179,8 @@ public class ContentAssetEditor extends BaseDialog{
             onDataChanged.run();
             onDataChanged = null;
         }
+
+        dirty = false;
     }
 
     public static boolean isSafeContentName(String name){
