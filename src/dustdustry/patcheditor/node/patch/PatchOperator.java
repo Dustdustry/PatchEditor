@@ -64,7 +64,7 @@ public abstract class PatchOperator{
         PatchNode parent = node.getParent();
         node.remove();
 
-        PatchJsonTransform.cleanEmptyParents(parent);
+        JsonTransform.cleanEmptyParents(parent);
     }
 
     public static class SetOp extends PatchOperator{

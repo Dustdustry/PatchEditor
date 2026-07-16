@@ -29,8 +29,7 @@ public class ContentEditor extends PatchEditor{
 
     @Override
     protected void savePatch(){
-        String patch = PatchJsonIO.toPatch(objectTree, manager.getRoot(), EditorSettings.getPatchExportOptions());
-        asset.data = PatchJsonTransform.toModJson(patch);
+        asset.data = new JsonProcessor(objectTree, manager.getRoot()).options(EditorSettings.getPatchExportOptions()).toModJson();
         state.data.reloadContent(false);
         state.data.regenerateContentSprites(false);
     }

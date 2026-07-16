@@ -5,6 +5,7 @@ import dustdustry.patcheditor.export.ObjectExporter.*;
 import dustdustry.patcheditor.node.*;
 import arc.*;
 import arc.struct.*;
+import dustdustry.patcheditor.node.JsonProcessor.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
@@ -68,7 +69,7 @@ public class EditorSettings extends BaseDialog{
 
     public static PatchExportOptions getPatchExportOptions(){
         String exportType = settings.getString("patch-editor.exportType");
-        PatchExportOptions.Format format = ExportType.hjson.is(exportType) ? PatchExportOptions.Format.hjson : PatchExportOptions.Format.json;
+        OutputFormat format = ExportType.hjson.is(exportType) ? OutputFormat.hjson : OutputFormat.json;
         return new PatchExportOptions(
         settings.getBool("patch-editor.sugar.stacks"),
         settings.getBool("patch-editor.simplifyPath"),

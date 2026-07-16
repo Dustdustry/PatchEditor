@@ -1,13 +1,14 @@
 package dustdustry.patcheditor.node;
 
+import arc.util.serialization.*;
+import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.Jval.*;
+import dustdustry.patcheditor.node.JsonProcessor.*;
 import dustdustry.patcheditor.node.patch.*;
 import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.utils.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
-import arc.util.serialization.Jval.*;
 import mindustry.entities.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.effect.*;
@@ -15,64 +16,39 @@ import mindustry.type.*;
 import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
 
-public class PatchJsonTransform{
+public class JsonTransform{
 
-    /** jsonTree to patchJsonTree. */
-    public static JsonValue processJson(ObjectNode objectNode, JsonValue value){
-        if(value.isValue()) return value;
+    /** patchTree to jsonTree */
+    public static JsonValue toJsonValue(PatchNode patchNode){
+        return toJsonValue(patchNode, new JsonValue(patchNode.type));
+    }
 
-        for(JsonValue child : value){
-            ObjectNode childNode = child.name != null ? objectNode.getOrResolve(child.name) : null;
-            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
-            if(childNode != null) processJson(childNode, child);
-        }
-
-        Seq<JsonValue> result = new Seq<>();
-        for(JsonValue childValue : value){
-            ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
-            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
-
-            if(childNode == null){
-                result.add(childValue);
-                continue;
-            }
-
-            if(childNode.isMultiArrayLike()){
-                for(JsonValue indexValue : childValue){
-                    JsonHelper.remove(indexValue);
-                    indexValue.setName(childValue.name + "." + indexValue.name);
-                    result.add(indexValue);
-                }
-            }else if(childNode.isArrayLike() && childValue.has(ModifierSign.PLUS.sign)){
-                JsonValue plusValue = childValue.remove(ModifierSign.PLUS.sign);
-                if(childValue.child != null){
-                    result.add(childValue);
-                }
-                plusValue.setName(childValue.name + "." + plusValue.name);
-                result.add(plusValue);
-            }else if(childNode.type == Consume.class && childNode.name.equals("remove")){
-                // remove: {item: -, liquid: -} -> remove: [item, liquid]
-                childValue.setType(ValueType.array);
-                for(JsonValue removed : childValue){
-                    removed.set(removed.name());
-                }
-                result.insert(0, childValue);
+    private static JsonValue toJsonValue(PatchNode patchNode, JsonValue value){
+        value.setName(patchNode.key);
+        if(patchNode.value != null){
+            if(patchNode.type == ValueType.doubleValue || patchNode.type == ValueType.longValue){
+                value.set(Double.parseDouble(patchNode.value), patchNode.value);
             }else{
-                result.add(childValue);
+                value.set(patchNode.value);
             }
         }
 
-        // mount again
-        value.child = result.size > 0 ? result.get(0) : null;
-        value.size = result.size;
-        JsonValue prev = null;
-        for(JsonValue jsonValue : result){
-            jsonValue.parent = value;
-            jsonValue.prev = prev;
-            jsonValue.next = null;
-            if(prev != null) prev.next = jsonValue;
+        JsonValue appendValue = null;
+        for(PatchNode childNode : patchNode.children.values()){
+            JsonValue childValue = new JsonValue(childNode.type);
 
-            prev = jsonValue;
+            if(childNode.key.startsWith(PatchJsonIO.appendPrefix)){
+                if(appendValue == null){
+                    appendValue = new JsonValue(ValueType.array);
+                    value.addChild(ModifierSign.PLUS.sign, appendValue);
+                }
+
+                appendValue.addChild(childValue.name, childValue);
+            }else{
+                value.addChild(childNode.key, childValue);
+            }
+
+            toJsonValue(childNode, childValue);
         }
 
         return value;
@@ -227,7 +203,139 @@ public class PatchJsonTransform{
         }
     }
 
-    public static void clearRedundantPatch(ObjectNode objectNode, PatchNode patchNode){
+    /** jsonTree to patchJsonTree. */
+    public static JsonValue processJson(ObjectNode objectNode, JsonValue value){
+        return processJson(objectNode, value, true);
+    }
+
+    public static JsonValue processJson(ObjectNode objectNode, JsonValue value, boolean flattenMultiArray){
+        if(value.isValue()) return value;
+
+        for(JsonValue child : value){
+            ObjectNode childNode = child.name != null ? objectNode.getOrResolve(child.name) : null;
+            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
+            if(childNode != null) processJson(childNode, child, flattenMultiArray);
+        }
+
+        Seq<JsonValue> result = new Seq<>();
+        for(JsonValue childValue : value){
+            ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
+            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
+
+            if(childNode == null){
+                result.add(childValue);
+                continue;
+            }
+
+            if(flattenMultiArray && childNode.isMultiArrayLike()){
+                for(JsonValue indexValue : childValue){
+                    JsonHelper.remove(indexValue);
+                    indexValue.setName(childValue.name + "." + indexValue.name);
+                    result.add(indexValue);
+                }
+            }else if(flattenMultiArray && childNode.isArrayLike() && childValue.has(ModifierSign.PLUS.sign)){
+                JsonValue plusValue = childValue.remove(ModifierSign.PLUS.sign);
+                if(childValue.child != null){
+                    result.add(childValue);
+                }
+                plusValue.setName(childValue.name + "." + plusValue.name);
+                result.add(plusValue);
+            }else if(childNode.type == Consume.class && childNode.name.equals("remove")){
+                childValue.setType(ValueType.array);
+                for(JsonValue removed : childValue){
+                    removed.set(removed.name());
+                }
+                result.insert(0, childValue);
+            }else{
+                result.add(childValue);
+            }
+        }
+
+        value.child = result.size > 0 ? result.get(0) : null;
+        value.size = result.size;
+        JsonValue prev = null;
+        for(JsonValue jv : result){
+            jv.parent = value;
+            jv.prev = prev;
+            jv.next = null;
+            if(prev != null) prev.next = jv;
+
+            prev = jv;
+        }
+
+        return value;
+    }
+
+    public static void sugarPatch(ObjectNode objectNode, JsonValue value, SugarJsonConfig config){
+        if(objectNode == null || config == null) return;
+
+        if(value.isObject()){
+            Class<?> type = objectNode.type;
+            if(config.sugarStacks && (type == ItemStack.class || type == PayloadStack.class)){
+                if(value.has("item") && value.has("amount")){
+                    value.set(value.get("item").asString() + "/" + value.get("amount").asString());
+                    return;
+                }
+            }else if(config.sugarStacks && type == LiquidStack.class){
+                if(value.has("liquid") && value.has("amount")){
+                    value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
+                    return;
+                }
+            }
+        }
+
+        if(value.isValue()) return;
+
+        for(JsonValue childValue : value){
+            ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
+            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
+            sugarPatch(childNode, childValue, config);
+        }
+    }
+
+    public static void simplifyPath(JsonValue value){
+        if(value.parent == null){
+            for(JsonValue childValue : value){
+                simplifyPath(childValue);
+            }
+            return;
+        }
+
+        if(!value.parent.isArray()){
+            int singleCount = 1;
+            JsonValue singleEnd = value;
+            while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null){
+                if(!dotSimplifiable(singleEnd)) break;
+                singleEnd = singleEnd.child;
+                singleCount++;
+            }
+
+            if(singleCount >= PatchJsonIO.simplifySingleCount){
+                StringBuilder name = new StringBuilder();
+                JsonValue current = value;
+                while(true){
+                    name.append(current.name);
+                    current = current.child;
+                    if(current != singleEnd.child) name.append(".");
+                    else break;
+                }
+
+                singleEnd.setName(name.toString());
+                JsonHelper.replace(value, singleEnd);
+                value = singleEnd;
+            }
+        }
+
+        for(JsonValue childValue : value){
+            simplifyPath(childValue);
+        }
+    }
+
+    private static boolean dotSimplifiable(JsonValue singleEnd){
+        return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
+    }
+
+    public static void clearRedundant(ObjectNode objectNode, PatchNode patchNode){
         if(patchNode == null || objectNode == null) return;
 
         PatchNode typeNode = patchNode.getOrNull("type");
@@ -245,7 +353,7 @@ public class PatchJsonTransform{
                 childObj = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
             }
 
-            clearRedundantPatch(childObj, childPatch);
+            clearRedundant(childObj, childPatch);
 
             if(isRedundantPatch(childObj, childPatch)){
                 toRemove.add(childPatch);
@@ -278,80 +386,6 @@ public class PatchJsonTransform{
         }
     }
 
-    // fold path with dot syntax
-    public static void simplifyPath(JsonValue value){
-        if(value.parent == null){
-            for(JsonValue childValue : value){
-                simplifyPath(childValue);
-            }
-            return;
-        }
-
-        if(!value.parent.isArray()){
-            int singleCount = 1;
-            JsonValue singleEnd = value;
-            while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null){
-                if(!dotSimplifiable(singleEnd)) break;
-                singleEnd = singleEnd.child;
-                singleCount++;
-            }
-
-            if(singleCount >= PatchJsonIO.simplifySingleCount){
-                StringBuilder name = new StringBuilder();
-                JsonValue current = value;
-                while(true){
-                    name.append(current.name);
-                    current = current.child;
-                    if(current != singleEnd.child) name.append("."); // dot syntax
-                    else break;
-                }
-
-                singleEnd.setName(name.toString());
-                JsonHelper.replace(value, singleEnd);
-                value = singleEnd;
-            }
-        }
-
-        for(JsonValue childValue : value){
-            simplifyPath(childValue);
-        }
-    }
-
-    public static void sugarPatch(ObjectNode objectNode, JsonValue value, SugarJsonConfig config){
-        if(objectNode == null || config == null) return;
-
-        if(value.isObject()){
-            Class<?> type = objectNode.type;
-            if(config.sugarStacks && (type == ItemStack.class || type == PayloadStack.class)){
-                if(value.has("item") && value.has("amount")){
-                    value.set(value.get("item").asString() + "/" + value.get("amount").asString());
-                    return;
-                }
-            }else if(config.sugarStacks && type == LiquidStack.class){
-                if(value.has("liquid") && value.has("amount")){
-                    value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
-                    return;
-                }
-            }
-        }
-
-        if(value.isValue()) return;
-
-        for(JsonValue childValue : value){
-            ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
-            if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
-            sugarPatch(childNode, childValue, config);
-        }
-    }
-
-    private static boolean dotSimplifiable(JsonValue singleEnd){
-        return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
-    }
-
-    public static String toModJson(String patch){
-        return patch;
-    }
-
     public static JsonValue migrateTweaker(String patch){
         JsonValue tweakerJson = PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
         return migrateTweaker(tweakerJson);
@@ -379,14 +413,5 @@ public class PatchJsonTransform{
             migrateTweaker(childValue);
         }
         return json;
-    }
-
-    public static class SugarJsonConfig{
-        public boolean sugarStacks = true;
-
-        public SugarJsonConfig sugarStacks(boolean sugarStacks){
-            this.sugarStacks = sugarStacks;
-            return this;
-        }
     }
 }

@@ -146,7 +146,7 @@ public class PatchEditor extends BaseDialog{
 
     protected void savePatch(){
         PatchNode namePatch = manager.getRoot().getOrNull("name");
-        editPatch.patch = PatchJsonIO.toPatch(objectTree, manager.getRoot(), EditorSettings.getPatchExportOptions());
+        editPatch.patch = new JsonProcessor(objectTree, manager.getRoot()).options(EditorSettings.getPatchExportOptions()).toPatch();
         editPatch.name = namePatch != null && namePatch.value != null ? namePatch.value : "";
     }
 

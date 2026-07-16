@@ -1,23 +1,21 @@
 package dustdustry.patcheditor.node;
 
-public class PatchExportOptions{
-    public enum Format{
-        hjson, json
-    }
+import dustdustry.patcheditor.node.JsonProcessor.OutputFormat;
 
+public class PatchExportOptions{
     public boolean sugarStacks;
     public boolean simplifyPath;
     public boolean formatJson;
-    public final Format format;
+    public final OutputFormat format;
 
-    public PatchExportOptions(boolean sugarStacks, boolean simplifyPath, boolean formatJson, Format format){
+    public PatchExportOptions(boolean sugarStacks, boolean simplifyPath, boolean formatJson, OutputFormat format){
         this.sugarStacks = sugarStacks;
         this.simplifyPath = simplifyPath;
         this.formatJson = formatJson;
-        this.format = format == null ? Format.hjson : format;
+        this.format = format == null ? OutputFormat.hjson : format;
     }
 
     public static PatchExportOptions defaults(){
-        return new PatchExportOptions(true, true, true, Format.hjson);
+        return new PatchExportOptions(true, true, true, OutputFormat.hjson);
     }
 }

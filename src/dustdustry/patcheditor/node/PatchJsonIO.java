@@ -1,7 +1,5 @@
 package dustdustry.patcheditor.node;
 
-import dustdustry.patcheditor.node.PatchExportOptions.*;
-import dustdustry.patcheditor.node.PatchJsonTransform.*;
 import dustdustry.patcheditor.node.patch.*;
 
 import dustdustry.patcheditor.node.resolve.*;
@@ -16,7 +14,6 @@ import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
 import arc.util.serialization.JsonValue.*;
-import arc.util.serialization.JsonWriter.*;
 import arc.util.serialization.Jval.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
@@ -195,7 +192,7 @@ public class PatchJsonIO{
                 if(resolvedType != null) return resolvedType;
             }
 
-            JsonValue value = PatchJsonIO.toJson(patchNode);
+            JsonValue value = JsonTransform.toJsonValue(patchNode);
             if(patchNode.value != null) return json.readValue(type, objectNode.elementType, value);
 
             Object copied = PatchJsonIO.cloneObject(original);
@@ -211,8 +208,8 @@ public class PatchJsonIO{
 
     public static void parseJson(ObjectNode objectNode, PatchNode patchNode, String patch){
         JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
-        PatchJsonTransform.extractDotSyntax(value);
-        PatchJsonTransform.desugarJson(objectNode, value);
+        JsonTransform.extractDotSyntax(value);
+        JsonTransform.desugarJson(objectNode, value);
         parseJson(objectNode, patchNode, value);
     }
 
@@ -302,93 +299,5 @@ public class PatchJsonIO{
             // patchNode('array': {}) -> normal modify(override) do nothing
             parseJson(childObj, childNode, childValue);
         }
-    }
-
-    /** utils */
-    public static Jval valueToJval(JsonValue value){
-        return switch(value.type()){
-            case stringValue -> Jval.valueOf(value.asString());
-            case doubleValue -> Jval.valueOf(value.asDouble());
-            case longValue -> Jval.valueOf(value.asLong());
-            case booleanValue -> Jval.valueOf(value.asBoolean());
-            case nullValue -> Jval.valueOf(null);
-            case object -> {
-                Jval object = Jval.newObject();
-                for(JsonValue childValue : value){
-                    object.put(childValue.name, valueToJval(childValue));
-                }
-                yield object;
-            }
-            case array -> {
-                Jval array = Jval.newArray();
-                for(JsonValue childValue : value){
-                    array.add(valueToJval(childValue));
-                }
-                yield array;
-            }
-        };
-    }
-
-    /** patchTree to jsonTree */
-    public static JsonValue toJson(PatchNode patchNode){
-        return toJson(patchNode, new JsonValue(patchNode.type));
-    }
-
-    private static JsonValue toJson(PatchNode patchNode, JsonValue value){
-        value.setName(patchNode.key);
-        if(patchNode.value != null){
-            if(patchNode.type == ValueType.doubleValue || patchNode.type == ValueType.longValue){
-                value.set(Double.parseDouble(patchNode.value), patchNode.value);
-            }else{
-                value.set(patchNode.value);
-            }
-        }
-
-        JsonValue appendValue = null;
-        for(PatchNode childNode : patchNode.children.values()){
-            JsonValue childValue = new JsonValue(childNode.type);
-
-            if(childNode.key.startsWith(appendPrefix)){
-                if(appendValue == null){
-                    appendValue = new JsonValue(ValueType.array);
-                    value.addChild(ModifierSign.PLUS.sign, appendValue);
-                }
-
-                appendValue.addChild(childValue.name, childValue);
-            }else{
-                value.addChild(childNode.key, childValue);
-            }
-
-            toJson(childNode, childValue);
-        }
-
-        return value;
-    }
-
-    public static String toPatch(ObjectNode objectNode, JsonValue value, PatchExportOptions options){
-        // sugar
-        SugarJsonConfig sugarJsonConfig = new SugarJsonConfig()
-        .sugarStacks(options.sugarStacks);
-
-        PatchJsonTransform.sugarPatch(objectNode, value, sugarJsonConfig);
-
-        // process
-        PatchJsonTransform.processJson(objectNode, value);
-
-        // simplify
-        if(options.simplifyPath){
-            PatchJsonTransform.simplifyPath(value);
-        }
-
-        // to string
-        if(options.format == Format.hjson){
-            return valueToJval(value).toString(Jformat.hjson);
-        }else{
-            return options.formatJson ? valueToJval(value).toString(Jformat.formatted) : value.toJson(OutputType.json);
-        }
-    }
-
-    public static String toPatch(ObjectNode objectNode, PatchNode patchNode, PatchExportOptions options){
-        return toPatch(objectNode, toJson(patchNode), options);
     }
 }

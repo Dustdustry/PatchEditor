@@ -32,6 +32,6 @@ public class PatchExporter{
         }else{
             ObjectExporter.exportObject(objectNode, value, config);
         }
-        return PatchJsonIO.toPatch(objectNode, value, options);
+        return new JsonProcessor(objectNode, value).options(options).toPatch();
     }
 }

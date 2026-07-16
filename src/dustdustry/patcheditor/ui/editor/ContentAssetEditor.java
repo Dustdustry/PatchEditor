@@ -7,8 +7,7 @@ import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Jval.*;
 import dustdustry.patcheditor.node.*;
-import dustdustry.patcheditor.node.PatchExportOptions.*;
-import dustdustry.patcheditor.node.patch.PatchOperator.*;
+import dustdustry.patcheditor.node.JsonProcessor.OutputFormat;
 import dustdustry.patcheditor.ui.*;
 import dustdustry.patcheditor.ui.dialog.*;
 import dustdustry.patcheditor.utils.*;
@@ -159,7 +158,7 @@ public class ContentAssetEditor extends BaseDialog{
             jval.remove("type");
         }
         PatchExportOptions options = EditorSettings.getPatchExportOptions();
-        asset.data = options.format == Format.hjson ? jval.toString(Jformat.hjson)
+        asset.data = options.format == OutputFormat.hjson ? jval.toString(Jformat.hjson)
         : options.formatJson ? jval.toString(Jformat.formatted)
         : jval.toString(Jformat.plain);
 
