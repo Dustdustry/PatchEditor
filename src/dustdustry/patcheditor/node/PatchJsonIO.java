@@ -249,8 +249,8 @@ public class PatchJsonIO{
             ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
             for(JsonValue childValue : value){
                 PatchNode childNode = patchNode.getOrCreate("" + i++);
-                childNode.sign = ModifierSign.PLUS;
                 parseJson(template, childNode, childValue);
+                childNode.sign = ModifierSign.PLUS;
             }
             patchNode.type = ValueType.array;
             patchNode.sign = ModifierSign.MODIFY;
