@@ -33,8 +33,15 @@ jobs:
         id: prepare_file
         run: |
           TAG_NAME=${{ github.event.release.tag_name }}
+          REPO_NAME=${{ github.event.repository.name }}
 
-          ORIGINAL_PATH=$(find build/libs -name "*.jar" | head -n 1)
+          NAMED_JAR="build/libs/${REPO_NAME}.jar"
+          if [ -f "$NAMED_JAR" ]; then
+            ORIGINAL_PATH="$NAMED_JAR"
+          else
+            ORIGINAL_PATH=$(find build/libs -name "*.jar" | head -n 1)
+          fi
+
           FILENAME=$(basename "$ORIGINAL_PATH" .jar)
           
           NEW_NAME="${FILENAME}-${TAG_NAME}.jar"
