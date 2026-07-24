@@ -1,5 +1,8 @@
 package dustdustry.patcheditor;
 
+import arc.util.serialization.*;
+import arc.util.serialization.JsonWriter.*;
+import arc.util.serialization.Jval.*;
 import dustdustry.patcheditor.node.*;
 import arc.files.*;
 import arc.struct.*;
@@ -38,7 +41,7 @@ public class FieldNotes{
 
         try{
             if(userNotesFi.exists()){
-                userNotes.putAll(parseNotesJson(userNotesFi.readString()));
+                userNotes.putAll((ObjectMap<? extends String, ? extends String>)parseNotesJson(userNotesFi.readString()));
             }
         }catch(Exception e){
             Log.err("Failed to load user notes", e);
@@ -131,11 +134,13 @@ public class FieldNotes{
     }
 
     public static String exportUserNotesJson(){
-        return notesToJson(userNotes);
+        JsonValue value = JsonIO.json.fromJson(null, notesToJson(userNotes));
+        return value.toJson(OutputType.json);
     }
 
     public static String exportWikiNotesJson(){
-        return JsonIO.json.toJson(wikiNotesData);
+        JsonValue value = JsonIO.json.fromJson(null, JsonIO.json.toJson(wikiNotesData));
+        return value.toJson(OutputType.json);
     }
 
     public static void importUserNotesClipboard(String text, boolean replace){
@@ -178,7 +183,9 @@ public class FieldNotes{
         if(incoming == null) return;
 
         wikiNotesData.clear();
-        if(incoming.notes != null) wikiNotesData.notes.putAll(incoming.notes);
+        if(incoming.notes != null){
+            wikiNotesData.notes.putAll((ObjectMap<? extends String, ? extends OrderedMap<String, String>>)incoming.notes);
+        }
         invalidateWikiCache();
     }
 
@@ -197,7 +204,7 @@ public class FieldNotes{
     public static void saveWikiNotes(){
         try{
             if(wikiNotesFi != null){
-                wikiNotesFi.writeString(JsonIO.json.toJson(wikiNotesData), false);
+                wikiNotesFi.writeString(exportWikiNotesJson(), false);
             }
         }catch(Exception e){
             Log.err("Failed to save wiki notes", e);
@@ -207,7 +214,7 @@ public class FieldNotes{
     private static void saveUserNotes(){
         try{
             if(userNotesFi != null){
-                userNotesFi.writeString(notesToJson(userNotes), false);
+                userNotesFi.writeString(exportUserNotesJson(), false);
             }
         }catch(Exception e){
             Log.err("Failed to save user notes", e);

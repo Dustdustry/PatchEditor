@@ -169,7 +169,12 @@ public class NotesDialog extends BaseDialog{
 
                 buttons.row();
                 buttons.button("@notes.wiki.export", Icon.copy, Styles.cleart, () -> {
-                    Core.app.setClipboardText(FieldNotes.exportWikiNotesJson());
+                    try{
+                        Core.app.setClipboardText(FieldNotes.exportWikiNotesJson());
+                    }catch(Exception e){
+                        Vars.ui.showException(e);
+                        return;
+                    }
                     EUI.infoToast("@notes.export.succeed");
                 });
                 buttons.button("@notes.wiki.clear", Icon.cancel, Styles.cleart, () -> {
@@ -200,7 +205,12 @@ public class NotesDialog extends BaseDialog{
 
                 buttons.row();
                 buttons.button("@notes.export", Icon.copy, Styles.cleart, () -> {
-                    Core.app.setClipboardText(FieldNotes.exportUserNotesJson());
+                    try{
+                        Core.app.setClipboardText(FieldNotes.exportUserNotesJson());
+                    }catch(Exception e){
+                        Vars.ui.showException(e);
+                        return;
+                    }
                     EUI.infoToast("@notes.export.succeed");
                 });
 
