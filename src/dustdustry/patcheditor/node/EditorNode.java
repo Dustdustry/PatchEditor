@@ -123,7 +123,8 @@ public class EditorNode{
         Object object = getObject();
         if(patchNode == null || isRemoving()) return object;
         if(PatchJsonIO.overrideable(getTypeIn()) && !(isOverriding() || isAppended() || patchNode.value != null)) return object;
-        return PatchJsonIO.parseJsonObject(patchNode, getObjNode(), getObject());
+        Object parsed = PatchJsonIO.parseJsonObject(patchNode, getObjNode(), getObject());
+        return parsed == null ? getObject() : parsed;
     }
 
     public boolean hasValue(){

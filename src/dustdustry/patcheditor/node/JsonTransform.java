@@ -33,6 +33,7 @@ public class JsonTransform{
             }
         }
 
+        int size = 0;
         JsonValue appendValue = null;
         for(PatchNode childNode : patchNode.children.values()){
             JsonValue childValue = new JsonValue(childNode.type);
@@ -41,16 +42,19 @@ public class JsonTransform{
                 if(appendValue == null){
                     appendValue = new JsonValue(ValueType.array);
                     value.addChild(ModifierSign.PLUS.sign, appendValue);
+                    size++;
                 }
 
                 appendValue.addChild(childValue.name, childValue);
             }else{
                 value.addChild(childNode.key, childValue);
+                size++;
             }
 
             toJsonValue(childNode, childValue);
         }
 
+        value.size = size;
         return value;
     }
 
@@ -336,39 +340,47 @@ public class JsonTransform{
     }
 
     public static void clearRedundant(ObjectNode objectNode, PatchNode patchNode){
+        ObjectSet<PatchNode> toRemoved = new ObjectSet<>();
+        getRedundant(objectNode, patchNode, toRemoved);
+
+        if(!toRemoved.isEmpty()){
+            for(PatchNode childNode : toRemoved){
+                PatchNode parent = childNode.getParent();
+                childNode.remove();
+                cleanEmptyParents(parent); // childNode must be a leaf node so parent won't be null.
+            }
+        }
+    }
+
+    private static void getRedundant(ObjectNode objectNode, PatchNode patchNode, ObjectSet<PatchNode> out){
         if(patchNode == null || objectNode == null) return;
 
         PatchNode typeNode = patchNode.getOrNull("type");
         if(typeNode != null && typeNode.value != null){
-            Class<?> typOverride = PatchJsonIO.resolveType(typeNode.value);
-            if(typOverride != null && objectNode.type.isAssignableFrom(typOverride)){
-                objectNode = ObjectResolver.getTemplate(typOverride, objectNode.getResolutionStrategy());
+            Class<?> typeOverride = PatchJsonIO.resolveType(typeNode.value);
+            if(typeOverride != null && objectNode.type != typeOverride && objectNode.type.isAssignableFrom(typeOverride)){
+                objectNode = ObjectResolver.getTemplate(typeOverride, objectNode.getResolutionStrategy());
             }
         }
 
-        Seq<PatchNode> toRemove = new Seq<>();
-        for(PatchNode childPatch : patchNode.children.values()){
-            ObjectNode childObj = objectNode.getOrResolve(childPatch.key);
+        for(PatchNode childNode : patchNode.children.values()){
+            ObjectNode childObj = objectNode.getOrResolve(childNode.key);
             if(childObj == null && objectNode.elementType != null){
                 childObj = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
             }
 
-            clearRedundant(childObj, childPatch);
-
-            if(isRedundantPatch(childObj, childPatch)){
-                toRemove.add(childPatch);
+            // see array and value node as leaf nodes
+            if(childNode.type == ValueType.object){
+                getRedundant(childObj, childNode, out);
+            }else if(isRedundantPatch(childObj, childNode)){
+                out.add(childNode);
             }
-        }
-
-        for(PatchNode childPatch : toRemove){
-            PatchNode parent = childPatch.getParent();
-            childPatch.remove();
-            cleanEmptyParents(parent);
         }
     }
 
     private static boolean isRedundantPatch(ObjectNode objectNode, PatchNode patchNode){
-        if(objectNode == null || patchNode.sign != null || patchNode.value == null) return false;
+        if(objectNode == null || patchNode.type == ValueType.object) return false;
+        if(patchNode.type != ValueType.array && (patchNode.value == null || patchNode.sign != null)) return false;
 
         Object original = objectNode.object;
         if(original instanceof MapEntry<?,?> entry) original = entry.value;

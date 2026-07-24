@@ -202,7 +202,7 @@ public class PatchJsonIO{
             json.readFields(copied, value);
             return copied;
         }catch(Exception e){
-            return original;
+            return null;
         }
     }
 
