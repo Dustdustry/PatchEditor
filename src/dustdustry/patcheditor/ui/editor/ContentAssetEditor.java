@@ -153,7 +153,11 @@ public class ContentAssetEditor extends BaseDialog{
     protected void setType(@Nullable Class<?> type){
         Jval jval = Jval.read(asset.data);
         if(type != null){
-            jval.put("type", PatchJsonIO.getTypeName(type));
+            if(asset.type == ContentType.unit){
+                jval.put("template", PatchJsonIO.getTypeName(type));
+            }else{
+                jval.put("type", PatchJsonIO.getTypeName(type));
+            }
         }else{
             jval.remove("type");
         }
