@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.node;
 
+import arc.func.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.Jval.*;
@@ -298,18 +299,16 @@ public class JsonTransform{
     }
 
     public static void simplifyPath(JsonValue value){
-        if(value.parent == null){
-            for(JsonValue childValue : value){
-                simplifyPath(childValue);
-            }
-            return;
+        if(value == null) return;
+
+        for(JsonValue childValue : value){
+            simplifyPath(childValue);
         }
 
-        if(!value.parent.isArray()){
+        if(dotSimplifiable(value)){
             int singleCount = 1;
             JsonValue singleEnd = value;
-            while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null){
-                if(!dotSimplifiable(singleEnd)) break;
+            while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null && dotSimplifiable(singleEnd.child)){
                 singleEnd = singleEnd.child;
                 singleCount++;
             }
@@ -317,26 +316,22 @@ public class JsonTransform{
             if(singleCount >= PatchJsonIO.simplifySingleCount){
                 StringBuilder name = new StringBuilder();
                 JsonValue current = value;
-                while(true){
-                    name.append(current.name);
+                while(current != singleEnd){
+                    name.append(current.name).append('.');
                     current = current.child;
-                    if(current != singleEnd.child) name.append(".");
-                    else break;
                 }
+                name.append(singleEnd.name);
 
                 singleEnd.setName(name.toString());
                 JsonHelper.replace(value, singleEnd);
-                value = singleEnd;
             }
-        }
-
-        for(JsonValue childValue : value){
-            simplifyPath(childValue);
         }
     }
 
-    private static boolean dotSimplifiable(JsonValue singleEnd){
-        return !(singleEnd.isArray() || singleEnd.has("type") || singleEnd.name.equals("consumes"));
+    private static boolean dotSimplifiable(JsonValue node){
+        if(node.isArray() || node.has("type")) return false;
+        JsonValue parent = node.parent;
+        return parent != null && !parent.isArray() && !"consumes".equals(parent.name);
     }
 
     public static void clearRedundant(ObjectNode objectNode, PatchNode patchNode){
