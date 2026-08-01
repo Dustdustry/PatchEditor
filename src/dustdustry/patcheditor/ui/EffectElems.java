@@ -7,8 +7,10 @@ import arc.scene.event.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.entities.*;
+import mindustry.entities.effect.*;
 import mindustry.gen.*;
 import mindustry.logic.LogicFx.*;
+import mindustry.type.*;
 import mindustry.ui.dialogs.*;
 
 import java.lang.reflect.*;
@@ -57,8 +59,8 @@ public class EffectElems{
 
     /** copy from {@link mindustry.ui.dialogs.EffectsDialog} */
     public static class EffectCell extends Element{
-
         EffectEntry effect;
+        Effect renderEffect;
         float size = -1f;
 
         int id = 1;
@@ -73,16 +75,21 @@ public class EffectElems{
             this.lifetime = effect.effect.lifetime;
             this.cl = cl;
 
+            renderEffect = effect.effect;
+            if(renderEffect instanceof WrapEffect wrapEffect){
+                renderEffect = wrapEffect.effect;
+            }else if(renderEffect instanceof SoundEffect soundEffect){
+                renderEffect = soundEffect.effect;
+            }
+
             data = getData(effect.data);
         }
 
         @Override
         public void draw(){
             if(size < 0){
-                size = calculateSize(effect) + 1f;
+                size = calculateSize(new EffectEntry(renderEffect)) + 1f;
             }
-
-            color.fromHsv((Time.globalTime * 2f) % 360f, 1f, 1f);
 
             if(clipBegin(x, y, width, height)){
                 Draw.colorl(cl.isOver() ? 0.4f : 0.5f);
@@ -95,7 +102,13 @@ public class EffectElems{
                 Tmp.m1.set(Draw.trans());
                 Draw.trans().translate(x + width/2f, y + height/2f).scale(scale, scale);
                 Draw.flush();
-                this.lifetime = effect.effect.render(id, color, time, lifetime, rotation, 0f, 0f, data);
+
+                if(effect.effect instanceof WrapEffect wrapEffect){
+                    this.lifetime = renderEffect.render(id, wrapEffect.color, time, lifetime, wrapEffect.rotation, 0f, 0f, data);
+                }else{
+                    color.fromHsv((Time.globalTime * 2f) % 360f, 1f, 1f);
+                    this.lifetime = renderEffect.render(id, color, time, lifetime, rotation, 0f, 0f, data);
+                }
 
                 Draw.flush();
                 Draw.trans().set(Tmp.m1);
