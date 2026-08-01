@@ -1,5 +1,7 @@
 package dustdustry.patcheditor.ui;
 
+import arc.scene.*;
+import arc.scene.event.*;
 import arc.scene.style.*;
 import arc.struct.ObjectMap.*;
 import dustdustry.patcheditor.node.*;
@@ -14,7 +16,10 @@ import mindustry.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.editor.data.*;
+import mindustry.entities.*;
 import mindustry.gen.*;
+import mindustry.logic.*;
+import mindustry.logic.LogicFx.*;
 import mindustry.type.*;
 import mindustry.ui.*;
 
@@ -61,6 +66,7 @@ public class NodeDisplay{
     public static TextureRegion getDisplayIcon(Object object){
         if(object == null) return Icon.none.getRegion();
 
+        // when Kotlin...
         TextureRegion region = null;
         if(object instanceof ContentType type){
             if(contentSymbolMap == null) initSymbol();
@@ -122,6 +128,10 @@ public class NodeDisplay{
             displayNameType(object);
             table.add().expandX();
             displayStack(object);
+        }else if(object instanceof Effect effect){
+            displayNameType(object);
+            table.add().expandX();
+            displayEffect(effect);
         }else{
             displayNameType(object);
         }
@@ -162,6 +172,19 @@ public class NodeDisplay{
                 t.right().bottom();
                 t.add(Strings.autoFixed(displayAmount, 2)).fontScale(0.9f).style(Styles.outlineLabel);
             })).size(imageSize);
+        });
+    }
+
+    private static void displayEffect(Effect effect){
+        table.table(valueTable -> {
+            valueTable.defaults().right();
+
+            ClickListener listener = new ClickListener();
+            EffectEntry entry = new EffectEntry(effect).name(PatchJsonIO.getKeyName(effect));
+            valueTable.add(EffectElems.getEffectElem(entry, listener)).size(imageSize).tooltip(t -> {
+                t.background(Styles.black3).margin(8f);
+                t.add(EffectElems.getEffectElem(entry, listener)).minSize(imageSize * 5f);
+            }).get().addListener(listener);
         });
     }
 }
