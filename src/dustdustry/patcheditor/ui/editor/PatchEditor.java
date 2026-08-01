@@ -225,9 +225,13 @@ public class PatchEditor extends BaseDialog{
     }
 
     public void showReadonly(){
+        showReadonly(null);
+    }
+
+    public void showReadonly(Runnable onHidden){
         readOnly = true;
         resetEditor();
-        edit(new EditorPatch("", ""));
+        edit(new EditorPatch("", ""), onHidden);
     }
 
     protected void rebuild(){

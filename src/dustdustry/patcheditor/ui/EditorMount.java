@@ -10,7 +10,6 @@ import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.JsonWriter.*;
-import dustdustry.patcheditor.ui.editor.*;
 import dustdustry.patcheditor.ui.editor.PatchManager.*;
 import dustdustry.patcheditor.utils.*;
 import mindustry.*;
@@ -115,7 +114,7 @@ public class EditorMount{
         assetList.button("@patch-editor.addEmptyPatch", Icon.add, Styles.grayt, () -> {
             Seq<PatchAsset> assets = state.data.getPatches();
 
-            String name = findPatchName(assets);
+            String name = findAssetName("Patch", assets);
             JsonValue json = new JsonValue(ValueType.object);
             json.addChild("name", new JsonValue(name));
             assets.add(new PatchAsset(json.toJson(OutputType.json)));
@@ -153,7 +152,8 @@ public class EditorMount{
             add(new Image(Icon.add)).size(Icon.add.imageSize());
             getCells().reverse();
             clicked(() -> {
-                state.data.getContent().add(new ContentAsset("item1.json", ContentType.item, "{}"));
+                String assetName = findAssetName("item", state.data.getContent()) + ".json";
+                state.data.getContent().add(new ContentAsset( assetName, ContentType.item, "{}"));
                 state.data.reloadContent(false);
                 state.data.regenerateContentSprites(false);
                 Reflect.invoke(assetsDialog, "rebuild");
@@ -161,17 +161,11 @@ public class EditorMount{
         }});
     }
 
-    private static String findPatchName(Seq<PatchAsset> patchAssets){
-        String base = "Patch";
-
-        int index = 0;
-        while(true){
+    private static String findAssetName(String base, Seq<? extends DataAsset> assets){
+        ObjectSet<String> set = ObjectSet.with(assets.map(a -> a.name));
+        for(int index = 0; ; index++){
             String name = base + index;
-            if(patchAssets.contains(p -> name.equals(p.name))){
-                index++;
-            }else{
-                return name;
-            }
+            if(set.add(name)) return name;
         }
     }
 }

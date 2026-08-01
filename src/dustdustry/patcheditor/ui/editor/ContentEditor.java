@@ -51,8 +51,9 @@ public class ContentEditor extends PatchEditor{
     protected void setupTinyButton(Table table){
         super.setupTinyButton(table);
 
-        table.button(Icon.eyeSmall, Styles.cleari, () -> EUI.patchEditor.showReadonly())
-        .tooltip("@patch-editor.readOnly");
+        table.button(Icon.eyeSmall, Styles.cleari, () -> {
+            EUI.patchEditor.showReadonly(() -> EUI.patchEditor.resetEditor());
+        }).tooltip("@patch-editor.readOnly");
     }
 
     @Deprecated
