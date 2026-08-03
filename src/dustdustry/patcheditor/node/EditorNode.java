@@ -9,6 +9,7 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.JsonValue.*;
 import mindustry.ctype.*;
+import mindustry.type.*;
 import mindustry.world.consumers.*;
 
 import java.lang.reflect.*;
@@ -88,7 +89,10 @@ public class EditorNode{
                         }catch(Exception e){
                             Log.err(e);
                         }
-                    }else if(!children.containsKey(childPatch.key) && !"type".equals(childPatch.key)){
+                        continue;
+                    }
+
+                    if(isInvalidNode(children, childPatch)){
                         EditorNode child = new InvalidEditorNode(childPatch.key, manager, getObjNode().getResolutionStrategy());
                         child.parent = this;
                         children.put(childPatch.key, child);
@@ -98,6 +102,12 @@ public class EditorNode{
         }
 
         return children;
+    }
+
+    protected boolean isInvalidNode(OrderedMap<String, EditorNode> children, PatchNode childPatch){
+        String key = childPatch.key;
+        if(children.containsKey(key) || "type".equals(key)) return false;
+        return !UnitType.class.isAssignableFrom(getTypeIn()) || !"template".equals(key);
     }
 
     public ObjectNode getObjNode(){
