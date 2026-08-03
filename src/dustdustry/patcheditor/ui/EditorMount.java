@@ -56,6 +56,17 @@ public class EditorMount{
         });
 
         assetsDialog.cont.addAction(Actions.forever(Actions.run(() -> {
+            Table buttons = assetsDialog.buttons;
+            if(buttons.find("patch-editor-missing-regions-hook") == null){
+                Element spyElement = new Element();
+                spyElement.name = "patch-editor-missing-regions-hook";
+                buttons.addChild(spyElement);
+
+                buttons.button("@patch-editor.missingRegions.title", Icon.zoom, () -> {
+                    EUI.missingRegions.show();
+                });
+            }
+
             if(assetList.find("patch-editor-hook") == null){
                 Element spyElement = new Element();
                 spyElement.name = "patch-editor-hook";

@@ -39,6 +39,8 @@ public class EUI{
     public static FavoritesDialog favorites;
     public static NotesDialog notes;
 
+    public static MissingRegionsDialog missingRegions;
+
     public static EditorSettings settings;
 
     public static void init(){
@@ -59,6 +61,8 @@ public class EUI{
 
         favorites = new FavoritesDialog();
         notes = new NotesDialog();
+
+        missingRegions = new MissingRegionsDialog();
 
         settings = new EditorSettings();
 
