@@ -210,10 +210,10 @@ public class PatchJsonIO{
         JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
         JsonTransform.extractDotSyntax(value);
         JsonTransform.desugarJson(objectNode, value);
-        parseJson(objectNode, patchNode, value);
+        parseJson(objectNode, patchNode, value, objectNode.getResolutionStrategy());
     }
 
-    public static void parseJson(ObjectNode objectNode, PatchNode patchNode, JsonValue value){
+    public static void parseJson(ObjectNode objectNode, PatchNode patchNode, JsonValue value, ResolutionStrategy strategy){
         // sign is seen as attribute in PatchNode, not a node
         if(!value.isValue() && value.has(ModifierSign.PLUS.sign)){
             JsonValue plusValue = value.remove(ModifierSign.PLUS.sign);
@@ -225,7 +225,7 @@ public class PatchJsonIO{
                 for(JsonValue childValue : plusValue){
                     PatchNode childNode = patchNode.getOrCreate(appendPrefix + i++);
                     if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
-                    parseJson(template, childNode, childValue);
+                    parseJson(template, childNode, childValue, strategy);
                     childNode.sign = ModifierSign.PLUS;
                 }
             }else if(plusValue.isObject()){
@@ -234,7 +234,7 @@ public class PatchJsonIO{
                 childNode.sign = ModifierSign.PLUS;
                 if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
                 ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
-                parseJson(template, childNode, plusValue);
+                parseJson(template, childNode, plusValue, strategy);
             }
 
             if(value.child == null){
@@ -249,7 +249,7 @@ public class PatchJsonIO{
             ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
             for(JsonValue childValue : value){
                 PatchNode childNode = patchNode.getOrCreate("" + i++);
-                parseJson(template, childNode, childValue);
+                parseJson(template, childNode, childValue, strategy);
                 childNode.sign = ModifierSign.PLUS;
             }
             patchNode.type = ValueType.array;
@@ -271,7 +271,7 @@ public class PatchJsonIO{
             if(childValue.has("type") && (childObj == null || overrideable(childObj.type))){
                 Class<?> type = resolveType(childValue.getString("type"));
                 if(type != null && (childObj == null || childObj.type.isAssignableFrom(type)) && typeOverrideable(type)){
-                    childObj = ObjectResolver.getTemplate(type, objectNode.getResolutionStrategy());
+                    childObj = ObjectResolver.getTemplate(type, strategy);
                 }
             }
 
@@ -297,7 +297,7 @@ public class PatchJsonIO{
             }
 
             // patchNode('array': {}) -> normal modify(override) do nothing
-            parseJson(childObj, childNode, childValue);
+            parseJson(childObj, childNode, childValue, strategy);
         }
     }
 }
