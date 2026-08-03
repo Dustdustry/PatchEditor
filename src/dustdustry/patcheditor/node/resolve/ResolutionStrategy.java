@@ -12,6 +12,7 @@ import arc.util.*;
 import java.lang.reflect.*;
 import mindustry.ai.types.*;
 import mindustry.ctype.*;
+import mindustry.entities.Units.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.part.*;
 import mindustry.entities.part.DrawPart.*;
@@ -29,6 +30,7 @@ public abstract class ResolutionStrategy{
     protected Seq<Class<?>> classBlacklist = Seq.with(
     Class.class, Texture.class, Fi.class, KeyBind.class, UnitEntity.class, PartParams.class
     );
+    protected Seq<Class<?>> editableInterfaces = Seq.with(Interp.class, Sortf.class);
     protected ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(
     Drill.class, Seq.with("oreCount", "itemArray"),
     UnitType.class, Seq.with("sample"),
@@ -116,7 +118,7 @@ public abstract class ResolutionStrategy{
     }
 
     public boolean isTypeEditable(Class<?> clazz){
-        return clazz != null && (!clazz.isInterface() || clazz == Interp.class)
+        return clazz != null && (!clazz.isInterface() || editableInterfaces.contains(clazz, true))
         && !(clazz.isSynthetic() || classBlacklist.contains(black -> black.isAssignableFrom(clazz)));
     }
 

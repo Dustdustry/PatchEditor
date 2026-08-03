@@ -58,7 +58,7 @@ public class PatchJsonIO{
     BuildVisibility.class, BuildVisibility.class,
     Sound.class, Sounds.class,
 
-    Sortf.class, Sortf.class,
+    Sortf.class, UnitSorts.class,
     Interp.class, Interp.class,
     Blending.class, Blending.class,
     CacheLayer.class, CacheLayer.class
@@ -95,7 +95,7 @@ public class PatchJsonIO{
         ObjectMap<String, Object> map = objectNameMap.get(declare);
         if(map != null) return (ObjectMap<String, T>)map;
 
-        map = Seq.select(declare.getFields(), f -> f.getType() == type).asMap(Field::getName, Reflect::get);
+        map = Seq.select(declare.getFields(), f -> type.isAssignableFrom(f.getType())).asMap(Field::getName, Reflect::get);
         objectNameMap.put(declare, map);
         return (ObjectMap<String, T>)map;
     }

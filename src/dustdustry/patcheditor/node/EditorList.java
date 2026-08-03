@@ -6,6 +6,7 @@ import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.entities.Units.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
 import mindustry.mod.*;
@@ -21,7 +22,7 @@ public class EditorList{
     // Read only. Do not hold the reference.
     private static Seq<Weapon> weaponList;
 
-    private static Seq<String> visibilityList, interpList, attributeList;
+    private static Seq<String> visibilityList, interpList, attributeList, sortfList;
     private static Seq<ColorEntry> colorList;
 
     public static Seq<Weapon> getWeapons(){
@@ -63,6 +64,13 @@ public class EditorList{
             interpList = PatchJsonIO.getKeyEntryMap(Interp.class).keys().toSeq();
         }
         return interpList;
+    }
+
+    public static Seq<String> getSortfList(){
+        if(sortfList == null){
+            sortfList = PatchJsonIO.getKeyEntryMap(Sortf.class).keys().toSeq();
+        }
+        return sortfList;
     }
 
     public static Seq<String> getAttributeList(){

@@ -12,6 +12,7 @@ import arc.struct.*;
 import arc.util.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
+import mindustry.entities.Units.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.units.*;
 import mindustry.type.*;
@@ -44,6 +45,7 @@ public class NodeModifier{
         new ModifierConfig(() -> new EnumModifier(EditorList.getVisibilityList()), BuildVisibility.class),
         new ModifierConfig(() -> new EnumModifier(EditorList.getInterpList()), Interp.class),
         new ModifierConfig(() -> new EnumModifier(EditorList.getAttributeList()), Attribute.class),
+        new ModifierConfig(() -> new EnumModifier(EditorList.getSortfList()), Sortf.class),
         new ModifierConfig(() -> new EnumModifier(Category.values()), Category.class),
 
         new ModifierConfig(EffectModifier::new, Effect.class),
