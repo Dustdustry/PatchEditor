@@ -77,9 +77,9 @@ public class EffectElems{
 
             renderEffect = effect.effect;
             if(renderEffect instanceof WrapEffect wrapEffect){
-                renderEffect = wrapEffect.effect;
+                renderEffect = wrapEffect.effect == null ? wrapEffect : wrapEffect.effect;
             }else if(renderEffect instanceof SoundEffect soundEffect){
-                renderEffect = soundEffect.effect;
+                renderEffect = soundEffect.effect == null ? soundEffect : soundEffect.effect;
             }
 
             data = getData(effect.data);
