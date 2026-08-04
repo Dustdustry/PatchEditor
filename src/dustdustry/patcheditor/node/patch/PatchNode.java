@@ -73,7 +73,7 @@ public class PatchNode{
     public String getPath(){
         if(parent == null) return "";
         String parentPath = parent.getPath();
-        return (parentPath.isEmpty() ? "" : parentPath + ".") + key;
+        return (parentPath.isEmpty() ? "" : parentPath + NodeManager.pathComp) + key;
     }
 
     public PatchNode navigateChild(String path){

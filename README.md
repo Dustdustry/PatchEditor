@@ -83,8 +83,3 @@ This mod helps you create patches faster and more intuitively:
 | `Mouse Forward` / `Mouse Back` | Next / Previous page |
 
 ---
-
-## TODO
-
-- [ ] Effect editing and previewer
-- [ ] Patch to JSON conversion utility

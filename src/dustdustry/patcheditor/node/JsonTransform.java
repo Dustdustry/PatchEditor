@@ -235,7 +235,7 @@ public class JsonTransform{
             if(flattenMultiArray && childNode.isMultiArrayLike()){
                 for(JsonValue indexValue : childValue){
                     JsonHelper.remove(indexValue);
-                    indexValue.setName(childValue.name + "." + indexValue.name);
+                    indexValue.setName(childValue.name + NodeManager.pathComp + indexValue.name);
                     result.add(indexValue);
                 }
             }else if(flattenMultiArray && childNode.isArrayLike() && childValue.has(ModifierSign.PLUS.sign)){
@@ -243,7 +243,7 @@ public class JsonTransform{
                 if(childValue.child != null){
                     result.add(childValue);
                 }
-                plusValue.setName(childValue.name + "." + plusValue.name);
+                plusValue.setName(childValue.name + NodeManager.pathComp + plusValue.name);
                 result.add(plusValue);
             }else if(childNode.type == Consume.class && childNode.name.equals("remove")){
                 childValue.setType(ValueType.array);
@@ -317,7 +317,7 @@ public class JsonTransform{
                 StringBuilder name = new StringBuilder();
                 JsonValue current = value;
                 while(current != singleEnd){
-                    name.append(current.name).append('.');
+                    name.append(current.name).append(NodeManager.pathComp);
                     current = current.child;
                 }
                 name.append(singleEnd.name);
