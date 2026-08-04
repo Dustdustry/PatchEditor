@@ -29,10 +29,12 @@ import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
 
+import java.math.*;
+
 public class ObjectExporter{
     private static final ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(
     Block.class, Seq.with("teamRegion", "teamRegions", "consumes"),
-    UnitType.class, Seq.with("sample", "aiController", "controller", "cachedRequirements"),
+    UnitType.class, Seq.with("sample", "aiController", "controller", "cachedRequirements", "dpsEstimate"),
     BulletType.class, Seq.with("cachedDps")
     );
 
@@ -197,19 +199,26 @@ public class ObjectExporter{
 
     private static void exportPrimitive(Object value, Class<?> type, JsonValue result){
         if(type == float.class || type == Float.class){
-            result.set(value == null ? 0f : (Float)value, null);
+            result.setType(ValueType.doubleValue);
+            result.set(value == null ? 0F : Double.parseDouble(Float.toString((float)value)), null);
         }else if(type == double.class || type == Double.class){
-            result.set(value == null ? 0.0D : (Double)value, null);
+            result.setType(ValueType.doubleValue);
+            result.set(value == null ? 0D : Double.parseDouble(Double.toString((double)value)), null);
         }else if(type == int.class || type == Integer.class){
-            result.set(value == null ? 0 : (Integer)value, null);
+            result.setType(ValueType.longValue);
+            result.set(value == null ? 0 : (int)value, null);
         }else if(type == long.class || type == Long.class){
-            result.set(value == null ? 0L : (Long)value, null);
+            result.setType(ValueType.longValue);
+            result.set(value == null ? 0L : (long)value, null);
         }else if(type == boolean.class || type == Boolean.class){
-            result.set(value != null && (Boolean)value);
+            result.setType(ValueType.booleanValue);
+            result.set(value != null && (boolean)value);
         }else if(type == short.class || type == Short.class){
-            result.set(value == null ? 0 : (Short)value, null);
+            result.setType(ValueType.longValue);
+            result.set(value == null ? 0 : (short)value, null);
         }else if(type == byte.class || type == Byte.class){
-            result.set(value == null ? 0 : (Byte)value, null);
+            result.setType(ValueType.longValue);
+            result.set(value == null ? 0 : (byte)value, null);
         }
     }
 
