@@ -68,11 +68,9 @@ public abstract class ResolutionStrategy{
 
     public void addSpecialChildren(ObjectNode node, Object object){
         if(object instanceof UnitType type){
-            if(type.constructor != null){
-                node.addChild("type", EditorList.getUnitTypeName(type.constructor.get().getClass()), UnitConstructorType.class).addSign(ModifierSign.MODIFY);
-            }
+            node.addChild("type", EditorList.getUnitTypeName(type.constructor.get().getClass()), UnitConstructorType.class).addSign(ModifierSign.MODIFY);
             node.addChild("aiController", PatchJsonIO.getTypeName(type.aiController.get().getClass()), AIController.class).addSign(ModifierSign.MODIFY);
-            node.addChild("controller", PatchJsonIO.getTypeName(CommandAI.class), AIController.class).addSign(ModifierSign.MODIFY);
+            node.addChild("controller", PatchJsonIO.getTypeName(type.controller.get(type.constructor.get()).getClass()), AIController.class).addSign(ModifierSign.MODIFY);
         }
 
         if(object instanceof Block block){
