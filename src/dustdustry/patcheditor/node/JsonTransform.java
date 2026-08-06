@@ -210,6 +210,11 @@ public class JsonTransform{
                 value.get(1).setName("y");
                 value.get(2).setName("width");
                 value.get(3).setName("height");
+            }else if(type == Vec3.class && value.size == 3){
+                value.setType(ValueType.object);
+                value.get(0).setName("x");
+                value.get(1).setName("y");
+                value.get(2).setName("z");
             }
         }
     }
@@ -299,6 +304,13 @@ public class JsonTransform{
                     value.get("y").setName("1");
                     value.get("width").setName("2");
                     value.get("height").setName("3");
+                }
+            }else if(type == Vec3.class && value.size == 3){
+                if(value.has("x") && value.has("y") && value.has("z")){
+                    value.setType(ValueType.array);
+                    value.get("x").setName("0");
+                    value.get("y").setName("1");
+                    value.get("z").setName("2");
                 }
             }
         }

@@ -76,11 +76,11 @@ public class ObjectExporter{
             result.addChild(new JsonValue(vec.x));
             result.addChild(new JsonValue(vec.y));
         }else if(object instanceof Rect rect){
-            result.setType(ValueType.object);
-            result.addChild("x", new JsonValue(rect.x));
-            result.addChild("y", new JsonValue(rect.y));
-            result.addChild("width", new JsonValue(rect.width));
-            result.addChild("height", new JsonValue(rect.height));
+            result.setType(ValueType.array);
+            result.addChild(new JsonValue(rect.x));
+            result.addChild(new JsonValue(rect.y));
+            result.addChild(new JsonValue(rect.width));
+            result.addChild(new JsonValue(rect.height));
         }else if(object instanceof Team team){
             if(team.id < Team.baseTeams.length){
                 result.set(team.name);
