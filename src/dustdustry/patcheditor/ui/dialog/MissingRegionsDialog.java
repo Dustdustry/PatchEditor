@@ -162,7 +162,7 @@ public class MissingRegionsDialog extends BaseDialog{
                 name = Strings.sanitizeFilename(name);
                 final String importName = name;
 
-                String path = "regions/" + importName + ".png";
+                String path = importName + ".png";
                 Vars.state.data.getImages().removeAll(i -> i.name.equals(importName) || i.path.equals(path));
 
                 ImageAsset image = new ImageAsset();
