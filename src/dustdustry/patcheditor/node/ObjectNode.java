@@ -92,6 +92,10 @@ public class ObjectNode{
         return false;
     }
 
+    public boolean isSign(ModifierSign sign){
+        return sign.sign.equals(name);
+    }
+
     public boolean isRoot(){
         return isRoot;
     }

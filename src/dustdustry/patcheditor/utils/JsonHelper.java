@@ -5,6 +5,7 @@ import arc.util.serialization.*;
 public class JsonHelper{
 
     public static void addFront(JsonValue parent, JsonValue value){
+        parent.size++;
         JsonValue child = parent.child;
         if(child == null){
             parent.child = value;
@@ -28,11 +29,15 @@ public class JsonHelper{
 
         if(next != null) next.prev = prev;
         value.parent = value.prev = value.next = null;
+
+        if(parent != null) parent.size--;
     }
 
     public static void moveChild(JsonValue source, JsonValue target){
         JsonValue child = source.child;
         if(child == null) return;
+
+        int sourceSize = source.size;
 
         source.child = null;
         target.child = child;
@@ -42,6 +47,8 @@ public class JsonHelper{
             next = next.next;
         }
 
+        source.size = 0;
+        target.size += sourceSize;
     }
 
     public static void replace(JsonValue replaced, JsonValue value){

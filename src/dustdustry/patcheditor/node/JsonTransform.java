@@ -1,6 +1,7 @@
 package dustdustry.patcheditor.node;
 
 import arc.func.*;
+import arc.math.geom.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.Jval.*;
@@ -89,7 +90,7 @@ public class JsonTransform{
             // desugarJson may change the value type so cache it
             if(isValue) return;
 
-            if(ClassHelper.isArrayLike(objectNode.type)){
+            if(ClassHelper.isArrayLike(objectNode.type) || objectNode.isSign(ModifierSign.PLUS)){
                 // "requirements": ["item/amount"] | {+: [], {"item": "xxx"}}
                 ObjectNode childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
                 for(JsonValue childValue : value){
@@ -204,6 +205,12 @@ public class JsonTransform{
 
                 value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(DrawMulti.class)));
                 value.addChild("drawers", elementValue);
+            }else if(type == Rect.class && value.size == 4){
+                value.setType(ValueType.object);
+                value.get(0).setName("x");
+                value.get(1).setName("y");
+                value.get(2).setName("width");
+                value.get(3).setName("height");
             }
         }
     }
@@ -285,6 +292,14 @@ public class JsonTransform{
                 if(value.has("liquid") && value.has("amount")){
                     value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
                     return;
+                }
+            }else if(type == Rect.class && value.size == 4){
+                if(value.has("x") && value.has("y") && value.has("width") && value.has("height")){
+                    value.setType(ValueType.array);
+                    value.get("x").setName("0");
+                    value.get("y").setName("1");
+                    value.get("width").setName("2");
+                    value.get("height").setName("3");
                 }
             }
         }
