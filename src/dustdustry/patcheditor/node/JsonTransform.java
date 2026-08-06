@@ -1,6 +1,5 @@
 package dustdustry.patcheditor.node;
 
-import arc.func.*;
 import arc.math.geom.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
@@ -67,7 +66,7 @@ public class JsonTransform{
             int i = 0;
             JsonValue currentParent = new JsonValue(ValueType.object);
             currentParent.setName(names[i++]);
-            JsonHelper.replace(value, currentParent); // don't affect the order
+            JsonValues.replace(value, currentParent); // don't affect the order
 
             while(i < names.length - 1){
                 currentParent.addChild(names[i++], currentParent = new JsonValue(ValueType.object));
@@ -161,7 +160,7 @@ public class JsonTransform{
                 // items: [copper/2] -> items: {items: [copper/2]}
                 value.setType(ValueType.object);
                 JsonValue itemsValue = new JsonValue(ValueType.array);
-                JsonHelper.moveChild(value, itemsValue);
+                JsonValues.moveChild(value, itemsValue);
                 value.addChild("items", itemsValue);
             }
         }else if(type == ConsumeLiquids.class){
@@ -169,7 +168,7 @@ public class JsonTransform{
                 // liquids: [water/0.1] -> liquids: {liquids: [water/0.1]}
                 value.setType(ValueType.object);
                 JsonValue liquidsValue = new JsonValue(ValueType.array);
-                JsonHelper.moveChild(value, liquidsValue);
+                JsonValues.moveChild(value, liquidsValue);
                 value.addChild("liquids", liquidsValue);
             }
         }else if(type == ConsumePower.class){
@@ -185,7 +184,7 @@ public class JsonTransform{
                 /* to MultiEffect */
                 value.setType(ValueType.object);
                 JsonValue elementValue = new JsonValue(ValueType.array);
-                JsonHelper.moveChild(value, elementValue);
+                JsonValues.moveChild(value, elementValue);
 
                 value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(MultiEffect.class)));
                 value.addChild("effects", elementValue);
@@ -193,7 +192,7 @@ public class JsonTransform{
                 /* to MultiBulletType */
                 value.setType(ValueType.object);
                 JsonValue elementValue = new JsonValue(ValueType.array);
-                JsonHelper.moveChild(value, elementValue);
+                JsonValues.moveChild(value, elementValue);
 
                 value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(MultiBulletType.class)));
                 value.addChild("bullets", elementValue);
@@ -201,7 +200,7 @@ public class JsonTransform{
                 /* to DrawMulti */
                 value.setType(ValueType.object);
                 JsonValue elementValue = new JsonValue(ValueType.array);
-                JsonHelper.moveChild(value, elementValue);
+                JsonValues.moveChild(value, elementValue);
 
                 value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(DrawMulti.class)));
                 value.addChild("drawers", elementValue);
@@ -241,7 +240,7 @@ public class JsonTransform{
 
             if(flattenMultiArray && childNode.isMultiArrayLike()){
                 for(JsonValue indexValue : childValue){
-                    JsonHelper.remove(indexValue);
+                    JsonValues.remove(indexValue);
                     indexValue.setName(childValue.name + NodeManager.pathComp + indexValue.name);
                     result.add(indexValue);
                 }
@@ -338,7 +337,7 @@ public class JsonTransform{
                 name.append(singleEnd.name);
 
                 singleEnd.setName(name.toString());
-                JsonHelper.replace(value, singleEnd);
+                JsonValues.replace(value, singleEnd);
             }
         }
     }

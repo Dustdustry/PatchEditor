@@ -238,7 +238,7 @@ public class PatchJsonIO{
             }
 
             if(value.child == null){
-                JsonHelper.remove(value);
+                JsonValues.remove(value);
                 return;
             }
         }
