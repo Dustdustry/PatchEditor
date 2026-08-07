@@ -1,8 +1,5 @@
 package dustdustry.patcheditor.ui.modifier;
 
-import dustdustry.patcheditor.node.*;
-import dustdustry.patcheditor.node.modifier.*;
-import dustdustry.patcheditor.ui.*;
 import arc.*;
 import arc.audio.*;
 import arc.graphics.*;
@@ -12,10 +9,15 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import dustdustry.patcheditor.node.*;
+import dustdustry.patcheditor.node.modifier.*;
+import dustdustry.patcheditor.ui.*;
+import dustdustry.patcheditor.utils.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
@@ -320,6 +322,38 @@ public abstract class ModifierBuilder<T>{
                     return true;
                 });
             }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
+        }
+    }
+
+    public static class PartProgressBuilder extends ModifierBuilder<ProgressBuilder>{
+        private ProgressElem progressElem;
+
+        public PartProgressBuilder(ModifyConsumer<ProgressBuilder> consumer){
+            super(consumer);
+        }
+
+        @Override
+        protected void build(Table table){
+            // uhh. same to NodeDisplay
+            progressElem = new ProgressElem(consumer.getValue()).hideText();
+            table.add(progressElem).size(64f);
+
+            Tooltip tooltip = new Tooltip(t -> {
+                t.background(Styles.black).margin(24f);
+                t.add(new ProgressElem(consumer.getValue()){{
+                    fontColor = Color.white;
+                    boundColor = Pal.gray;
+                }}).size(256f);
+            });
+            tooltip.allowMobile = true;
+            progressElem.addListener(tooltip);
+        }
+
+        @Override
+        protected void updateUI(){
+            super.updateUI();
+
+            progressElem.setProgress(consumer.getValue());
         }
     }
 }

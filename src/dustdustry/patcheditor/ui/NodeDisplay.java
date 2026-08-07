@@ -1,5 +1,6 @@
 package dustdustry.patcheditor.ui;
 
+import arc.graphics.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.style.*;
@@ -17,7 +18,9 @@ import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.editor.data.*;
 import mindustry.entities.*;
+import mindustry.entities.part.DrawPart.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.logic.*;
 import mindustry.logic.LogicFx.*;
 import mindustry.type.*;
@@ -132,6 +135,10 @@ public class NodeDisplay{
             displayNameType(object);
             table.add().expandX();
             displayEffect(effect);
+        }else if(object instanceof PartProgress progress){
+            displayNameType(object);
+            table.add().expandX();
+            displayProgress(progress);
         }else{
             displayNameType(object);
         }
@@ -181,10 +188,34 @@ public class NodeDisplay{
 
             ClickListener listener = new ClickListener();
             EffectEntry entry = new EffectEntry(effect).name(PatchJsonIO.getKeyName(effect));
-            valueTable.add(EffectElems.getEffectElem(entry, listener)).size(imageSize).tooltip(t -> {
+            Element element = EffectElems.getEffectElem(entry, listener);
+            valueTable.add(element).size(imageSize);
+
+            Tooltip tooltip = new Tooltip(t -> {
                 t.background(Styles.black3).margin(8f);
                 t.add(EffectElems.getEffectElem(entry, listener)).minSize(imageSize * 5f);
-            }).get().addListener(listener);
+            });
+            tooltip.allowMobile = true;
+
+            element.addListener(listener);
+            element.addListener(tooltip);
+        });
+    }
+
+    private static void displayProgress(PartProgress progress){
+        table.table(valueTable -> {
+            ProgressElem progressElem = new ProgressElem(progress).hideText();
+            valueTable.add(progressElem).size(imageSize);
+
+            Tooltip tooltip = new Tooltip(t -> {
+                t.background(Styles.black).margin(24f);
+                t.add(new ProgressElem(progress){{
+                    fontColor = Color.white;
+                    boundColor = Pal.gray;
+                }}).size(256f);
+            });
+            tooltip.allowMobile = true;
+            progressElem.addListener(tooltip);
         });
     }
 }
