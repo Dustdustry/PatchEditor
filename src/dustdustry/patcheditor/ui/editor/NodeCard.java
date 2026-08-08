@@ -229,17 +229,7 @@ public class NodeCard extends Table{
                     }
                 }
 
-                if(child instanceof InvalidEditorNode){
-                    addUnknownButton(cont, child);
-                }else{
-                    DataModifier<?> modifier = NodeModifier.getModifier(child.getObjNode());
-                    if(modifier != null && !child.isObjectForm()){
-                        modifier.setData(rootEditorNode, child.getPath());
-                        addEditTable(cont, child, modifier);
-                    }else{
-                        addChildButton(cont, child);
-                    }
-                }
+                buildCard(cont, child);
 
                 if(++index % columns == 0){
                     cont.row();
@@ -256,12 +246,24 @@ public class NodeCard extends Table{
         seq.clear();
     }
 
-    private void addEditTable(Table table, EditorNode node, DataModifier<?> modifier){
-        Color modifiedColor = EPalettes.modified, unmodifiedColor0 = EPalettes.unmodified;
-        if(isWarning(node)) unmodifiedColor0 = EPalettes.warn;
-        else if(node.isAppended()) unmodifiedColor0 = EPalettes.add;
+    private void buildCard(Table table, EditorNode child){
+        if(child instanceof InvalidEditorNode){
+            addUnknownButton(table, child);
+            return;
+        }
+        DataModifier<?> modifier = NodeModifier.getModifier(child.getObjNode());
+        if(modifier != null && !child.isObjectForm()){
+            modifier.setData(rootEditorNode, child.getPath());
+            addEditTable(table, child, modifier);
+        }else{
+            addChildButton(table, child);
+        }
+    }
 
-        Color unmodifiedColor = unmodifiedColor0;
+    private void addEditTable(Table table, EditorNode node, DataModifier<?> modifier){
+        CardState state = CardState.of(node);
+        Color modifiedColor = EPalettes.modified;
+        Color unmodifiedColor = state.required ? EPalettes.warn : state.appended ? EPalettes.add : EPalettes.unmodified;
 
         table.table(t -> {
             if(Vars.mobile) addNoteHolder(t, node);
@@ -303,21 +305,14 @@ public class NodeCard extends Table{
         });
     }
 
-    private static boolean isWarning(EditorNode node){
-        return node.isRequired();
-    }
 
     private void addChildButton(Table table, EditorNode node){
-        ImageButtonStyle style = EStyles.cardButtoni;
-        if(isWarning(node)){
-            style = EStyles.cardWarni;
-        }else if(node.isAppended()){
-            style = EStyles.addButtoni;
-        }else if(node.isRemoving()){
-            style = EStyles.cardRemovedi;
-        }else if(node.hasValue()){
-            style = EStyles.cardModifiedButtoni;
-        }
+        CardState state = CardState.of(node);
+        ImageButtonStyle style = state.required ? EStyles.cardWarni
+            : state.appended ? EStyles.addButtoni
+            : state.removing ? EStyles.cardRemovedi
+            : state.hasValue ? EStyles.cardModifiedButtoni
+            : EStyles.cardButtoni;
 
         Button btn = table.button(b -> {
             addNoteHolder(b, node);
@@ -344,7 +339,7 @@ public class NodeCard extends Table{
             b.row();
             Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
             horizontalLine.colspan(b.getColumns());
-        }, style, () -> {}).disabled(node.isRemoving() || (node.getObject() == null && !node.isOverriding())).get();
+        }, style, () -> {}).disabled(state.removing || (node.getObject() == null && !state.overriding)).get();
 
         EUI.backButtonClick(btn, () -> setEditPath(node.getPath()));
     }
@@ -414,56 +409,30 @@ public class NodeCard extends Table{
 
         table.defaults().padLeft(4f).padRight(4f).grow();
 
-        if(isRemovableKey(child)){
-            setupRemoveKeyButtons(table, child);
-            // When already removed, no other buttons are relevant.
-            if(child.isRemoving()) return;
+        CardState state = CardState.of(child);
+
+        if(state.removableKey){
+            boolean undoMode = state.removing;
+            table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
+                if(undoMode) child.clearJson();
+                else child.setRemoved();
+            }).tooltip(undoMode ? "@node.revertRemove" : "@node.removeKey");
+            if(state.removing) return;
         }
 
-        if(child.isAppended()){
-            setupAppendedButtons(table, child, modifier != null);
+        if(state.appended){
+            if(state.canChangeType) addChangeTypeButton(table, child);
+            table.button(Icon.cancel, Styles.clearNonei, child::clearJson).grow().tooltip("@node.remove");
         }else if(modifier != null){
-            setupValueButtons(table, child, modifier);
+            if(NodeModifier.isComplexType(child.getObjNode())) addChangeTypeButton(table, child);
+            Cell<?> undoCell = table.button(Icon.undo, Styles.clearNonei, () -> {
+                modifier.resetModify();
+                modifier.syncUI();
+            }).tooltip("@node-modifier.undo", true).grow();
+            TableUtils.collapseCell(undoCell, child::hasValue);
         }else{
             setupOverrideButtons(table, child);
         }
-    }
-
-    private static boolean isRemovableKey(EditorNode child){
-        return child.getObjNode().hasSign(ModifierSign.REMOVE) && !child.isChangedType() && !child.isAppended();
-    }
-
-    private void setupRemoveKeyButtons(Table table, EditorNode child){
-        boolean undoMode = child.isRemoving();
-        table.button(undoMode ? Icon.undo : Icon.cancel, Styles.clearNoneTogglei, () -> {
-            if(undoMode){
-                child.clearJson();
-            }else{
-                child.setRemoved();
-            }
-        }).tooltip(undoMode ? "@node.revertRemove" : "@node.removeKey");
-    }
-
-    private void setupAppendedButtons(Table table, EditorNode child, boolean hasModifier){
-        boolean canChangeType = hasModifier
-        ? NodeModifier.isComplexType(child.getObjNode())
-        : PatchJsonIO.typeOverrideable(child.getTypeIn());
-        if(canChangeType) addChangeTypeButton(table, child);
-
-        table.button(Icon.cancel, Styles.clearNonei, child::clearJson).grow().tooltip("@node.remove");
-    }
-
-    private void setupValueButtons(Table table, EditorNode child, DataModifier<?> modifier){
-        // A value with a complex form (e.g. Effect) can be switched to a full object.
-        if(NodeModifier.isComplexType(child.getObjNode())){
-            addChangeTypeButton(table, child);
-        }
-
-        Cell<?> undoCell = table.button(Icon.undo, Styles.clearNonei, () -> {
-            modifier.resetModify();
-            modifier.syncUI();
-        }).tooltip("@node-modifier.undo", true).grow();
-        TableUtils.collapseCell(undoCell, child::hasValue);
     }
 
     private void setupOverrideButtons(Table table, EditorNode child){
@@ -639,5 +608,26 @@ public class NodeCard extends Table{
         return "NodeCard{" +
         "nodeData=" + editorPath +
         '}';
+    }
+
+    private static class CardState{
+        public EditorNode node;
+        public boolean appended, removing, required, hasValue, overriding, changedType, removableKey, canOverride, canChangeType;
+
+        private static CardState of(EditorNode node){
+            var s = new CardState();
+            s.node = node;
+            s.appended = node.isAppended();
+            s.removing = node.isRemoving();
+            s.required = node.isRequired();
+            s.hasValue = node.hasValue();
+            s.overriding = node.isOverriding();
+            s.changedType = node.isChangedType();
+            s.removableKey = node.getObjNode().hasSign(ModifierSign.REMOVE) && !s.changedType && !s.appended;
+            s.canOverride = PatchJsonIO.overrideable(node.getTypeIn())
+                && (node.getObject() == null || node.getObjNode().field != null);
+            s.canChangeType = PatchJsonIO.typeOverrideable(node.getTypeIn());
+            return s;
+        }
     }
 }
