@@ -18,6 +18,7 @@ import arc.util.serialization.Jval.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
+import mindustry.entities.part.DrawPart.*;
 import mindustry.entities.Units.*;
 import mindustry.entities.abilities.*;
 import mindustry.entities.bullet.*;
@@ -58,9 +59,10 @@ public class PatchJsonIO{
     BuildVisibility.class, BuildVisibility.class,
     Sound.class, Sounds.class,
 
-    Sortf.class, UnitSorts.class,
-    Interp.class, Interp.class,
-    Blending.class, Blending.class,
+        Sortf.class, UnitSorts.class,
+        Interp.class, Interp.class,
+        PartProgress.class, PartProgress.class,
+        Blending.class, Blending.class,
     CacheLayer.class, CacheLayer.class
     );
 
@@ -299,5 +301,101 @@ public class PatchJsonIO{
             // patchNode('array': {}) -> normal modify(override) do nothing
             parseJson(childObj, childNode, childValue, strategy);
         }
+    }
+
+    public static void toPatchNode(ProgressBuilder builder, PatchNode node){
+        if(builder.isConstantBase()){
+            node.type = ValueType.doubleValue;
+            node.value = String.valueOf(builder.base.get(new PartParams()));
+            return;
+        }
+
+        String keyName = PatchJsonIO.getKeyName(builder.base);
+        if(keyName == null || keyName.equals(builder.base.toString()))
+            throw new IllegalArgumentException("Base is not a named constant");
+
+        if(builder.ops.isEmpty()){
+            node.value = keyName;
+            return;
+        }
+
+        node.getOrCreate("type").value = keyName;
+        PatchNode opsNode = node.getOrCreate("ops");
+        opsNode.type = ValueType.array;
+        int i = 0;
+        for(ProgressBuilder.Op op : builder.ops){
+            PatchNode opNode = opsNode.getOrCreate(String.valueOf(i));
+            opNode.getOrCreate("op").value = op.name;
+
+            for(var entry : op.params.entries()){
+                Object val = entry.value;
+                PatchNode paramNode = opNode.getOrCreate(entry.key);
+                if(val instanceof Number){
+                    paramNode.value = val.toString();
+                    paramNode.type = ValueType.doubleValue;
+                }else if(val instanceof PartProgress p){
+                    if(p instanceof ProgressBuilder other){
+                        toPatchNode(other, paramNode);
+                    }else{
+                        String name = PatchJsonIO.getKeyName(p);
+                        if(name == null || name.equals(p.toString()))
+                            throw new IllegalArgumentException("Nested PartProgress is not a named constant or ProgressBuilder");
+                        paramNode.value = name;
+                        paramNode.type = ValueType.stringValue;
+                    }
+                }else if(val instanceof Interp interp){
+                    paramNode.value = PatchJsonIO.getKeyName(interp);
+                    paramNode.type = ValueType.stringValue;
+                }else{
+                    paramNode.value = String.valueOf(val);
+                    paramNode.type = ValueType.stringValue;
+                }
+            }
+            i++;
+        }
+    }
+
+    /** Copy from {@link ContentParser}. This is a bad idea but there is no way to track the operations. */
+    public static ProgressBuilder parseProgressBuilder(JsonValue data){
+        if(data.isString()) return Reflect.get(PartProgress.class, data.getString("type"));
+        if(data.isNumber()) return new ProgressBuilder(data.asFloat());
+
+        PartProgress base = Reflect.get(PartProgress.class, data.getString("type"));
+        ProgressBuilder builder = new ProgressBuilder(base);
+
+        JsonValue opval =
+        data.has("operation") ? data.get("operation") :
+        data.has("op") ? data.get("op") : null;
+
+        //no singular operation, check for multi-operation
+        if(opval == null){
+            JsonValue opsVal =
+            data.has("operations") ? data.get("operations") :
+            data.has("ops") ? data.get("ops") : null;
+
+            if(opsVal != null){
+                if(!opsVal.isArray()) throw new RuntimeException("Chained PartProgress operations must be an array.");
+                int i = 0;
+                while(true){
+                    JsonValue val = opsVal.get(i);
+                    if(val == null) break;
+                    JsonValue op = val.has("operation") ? val.get("operation") :
+                    val.has("op") ? val.get("op") : null;
+
+                    builder = Reflect.invoke(ContentParser.class, getParser(), "parseProgressOp",
+                    new Object[]{builder, op.asString(), val},
+                    PartProgress.class, String.class, JsonValue.class);
+                    i++;
+                }
+            }
+
+            return builder;
+        }
+
+        //this is the name of the method to call
+        String op = opval.asString();
+        return Reflect.invoke(ContentParser.class, getParser(), "parseProgressOp",
+        new Object[]{builder, op, data},
+        PartProgress.class, String.class, JsonValue.class);
     }
 }

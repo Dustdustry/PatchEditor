@@ -30,7 +30,7 @@ public abstract class ResolutionStrategy{
     protected Seq<Class<?>> classBlacklist = Seq.with(
     Class.class, Texture.class, Fi.class, KeyBind.class, UnitEntity.class, PartParams.class
     );
-    protected Seq<Class<?>> editableInterfaces = Seq.with(Interp.class, Sortf.class);
+    protected Seq<Class<?>> editableInterfaces = Seq.with(Interp.class, Sortf.class, PartProgress.class);
     protected ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(
     Drill.class, Seq.with("oreCount", "itemArray"),
     UnitType.class, Seq.with("sample"),

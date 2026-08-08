@@ -16,6 +16,7 @@ import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
+import mindustry.entities.part.DrawPart.*;
 import mindustry.entities.abilities.*;
 import mindustry.entities.bullet.*;
 import mindustry.entities.part.*;
@@ -129,6 +130,13 @@ public class ObjectExporter{
             }
         }else if(object instanceof Interp interp){
             String fieldName = findStaticFieldName(interp, Interp.class);
+            if(fieldName != null){
+                result.set(fieldName);
+            }else{
+                return null;
+            }
+        }else if(object instanceof PartProgress prog){
+            String fieldName = findStaticFieldName(prog, PartProgress.class);
             if(fieldName != null){
                 result.set(fieldName);
             }else{

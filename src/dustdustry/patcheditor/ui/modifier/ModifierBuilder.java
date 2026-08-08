@@ -325,22 +325,22 @@ public abstract class ModifierBuilder<T>{
         }
     }
 
-    public static class PartProgressBuilder extends ModifierBuilder<ProgressBuilder>{
-        private ProgressElem progressElem;
+    public static class ProgressUiBuilder extends ModifierBuilder<ProgressBuilder>{
+        private ProgressElem progressElem, tooltipElem;
 
-        public PartProgressBuilder(ModifyConsumer<ProgressBuilder> consumer){
+        public ProgressUiBuilder(ModifyConsumer<ProgressBuilder> consumer){
             super(consumer);
         }
 
         @Override
         protected void build(Table table){
-            // uhh. same to NodeDisplay
-            progressElem = new ProgressElem(consumer.getValue()).hideText();
-            table.add(progressElem).size(64f);
+            progressElem = new ProgressElem(value).hideText();
+            table.add(progressElem).size(64f).pad(8f);
+            table.button(Icon.edit, Styles.clearNonei, () -> EUI.progressEditor.show(this::setValue)).width(48f).growY();
 
             Tooltip tooltip = new Tooltip(t -> {
                 t.background(Styles.black).margin(24f);
-                t.add(new ProgressElem(consumer.getValue()){{
+                t.add(tooltipElem = new ProgressElem(value){{
                     fontColor = Color.white;
                     boundColor = Pal.gray;
                 }}).size(256f);
@@ -350,10 +350,17 @@ public abstract class ModifierBuilder<T>{
         }
 
         @Override
+        protected void buildNull(Table table){
+            table.image(Core.atlas.find("error")).size(64f).pad(8f);
+            table.button(Icon.edit, Styles.clearNonei, () -> EUI.progressEditor.show(this::setValue)).width(48f).growY();
+        }
+
+        @Override
         protected void updateUI(){
             super.updateUI();
 
-            progressElem.setProgress(consumer.getValue());
+            progressElem.setProgress(value);
+            tooltipElem.setProgress(value);
         }
     }
 }

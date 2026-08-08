@@ -35,6 +35,7 @@ public class EUI{
     public static PatchEditor patchEditor;
     public static ContentAssetEditor contentAssetEditor;
     public static EditNoteDialog noteEditor;
+    public static EditProgressDialog progressEditor;
 
     public static FavoritesDialog favorites;
     public static NotesDialog notes;
@@ -58,6 +59,7 @@ public class EUI{
         patchEditor = new PatchEditor();
         contentAssetEditor = new ContentAssetEditor();
         noteEditor = new EditNoteDialog();
+        progressEditor = new EditProgressDialog();
 
         favorites = new FavoritesDialog();
         notes = new NotesDialog();
@@ -103,6 +105,20 @@ public class EUI{
         }
 
         return new DeboundTextField(text, timeSeconds, changed);
+    }
+
+    public static TextArea deboundTextArea(String text, Cons<String> changed){
+        return deboundTextArea(text, changed, 0.5f);
+    }
+
+    public static TextArea deboundTextArea(String text, Cons<String> changed, float timeSeconds){
+        if(Vars.mobile && !Core.input.useKeyboard()){
+            TextArea area = new TextArea(text);
+            area.changed(() -> changed.get(area.getText()));
+            return area;
+        }
+
+        return new DeboundTextArea(text, timeSeconds, changed);
     }
 
     public static void infoToast(String text){
@@ -155,22 +171,54 @@ public class EUI{
     public static class DeboundTextField extends TextField{
         private boolean keeping;
         private final Timekeeper keeper;
+        private final Cons<String> cons;
 
-        public DeboundTextField(String text, float seconds, Cons<String> deboundCons){
-            setText(text);
+        @Override
+        public void act(float delta){
+            super.act(delta);
+
+            if(keeping && keeper.get()){
+                keeping = false;
+                cons.get(getText());
+            }
+        }
+
+        public DeboundTextField(String text, float seconds, Cons<String> cons){
+            super(text);
+            this.cons = cons;
             keeper = Timekeeper.ofSeconds(seconds);
 
             changed(() -> {
                 keeping = true;
                 keeper.reset();
             });
+        }
+    }
 
-            addAction(Actions.forever(Actions.run(() -> {
-                if(keeping && keeper.get()){
-                    keeping = false;
-                    deboundCons.get(getText());
-                }
-            })));
+    public static class DeboundTextArea extends TextArea{
+        private boolean keeping;
+        private final Timekeeper keeper;
+        private final Cons<String> cons;
+
+        @Override
+        public void act(float delta){
+            super.act(delta);
+
+            if(keeping && keeper.get()){
+                keeping = false;
+                cons.get(getText());
+            }
+        }
+
+        public DeboundTextArea(String text, float seconds, Cons<String> cons){
+            super(text);
+            this.cons = cons;
+            keeper = Timekeeper.ofSeconds(seconds);
+
+            changed(() -> {
+                keeping = true;
+                keeper.reset();
+            });
         }
     }
 }

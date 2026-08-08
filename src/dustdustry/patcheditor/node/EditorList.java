@@ -12,6 +12,7 @@ import mindustry.graphics.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.meta.*;
+import mindustry.entities.part.DrawPart.*;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -22,8 +23,9 @@ public class EditorList{
     // Read only. Do not hold the reference.
     private static Seq<Weapon> weaponList;
 
-    private static Seq<String> visibilityList, interpList, attributeList, sortfList;
+    private static Seq<String> visibilityList, interpList, attributeList, sortfList, partProgressList;
     private static Seq<ColorEntry> colorList;
+    private static Seq<Field> partProgressFields, interpFields;
 
     public static Seq<Weapon> getWeapons(){
         if(weaponList == null){
@@ -61,7 +63,7 @@ public class EditorList{
 
     public static Seq<String> getInterpList(){
         if(interpList == null){
-            interpList = PatchJsonIO.getKeyEntryMap(Interp.class).keys().toSeq();
+            interpList = getInterpFields().map(Field::getName);
         }
         return interpList;
     }
@@ -71,6 +73,35 @@ public class EditorList{
             sortfList = PatchJsonIO.getKeyEntryMap(Sortf.class).keys().toSeq();
         }
         return sortfList;
+    }
+
+    public static Seq<String> getPartProgressList(){
+        if(partProgressList == null){
+            partProgressList = getPartProgressFields().map(Field::getName);
+        }
+        return partProgressList;
+    }
+
+    /**
+     * Static PartProgress variables available in the progress script scope.
+     * Read only. Do not hold the reference.
+     */
+    public static Seq<Field> getPartProgressFields(){
+        if(partProgressFields == null){
+            partProgressFields = Seq.with(PartProgress.class.getFields()).select(f -> f.getType() == PartProgress.class);
+        }
+        return partProgressFields;
+    }
+
+    /**
+     * Static Interp variables available in the progress script scope.
+     * Read only. Do not hold the reference.
+     */
+    public static Seq<Field> getInterpFields(){
+        if(interpFields == null){
+            interpFields = Seq.with(Interp.class.getFields()).select(f -> Interp.class.isAssignableFrom(f.getType()));
+        }
+        return interpFields;
     }
 
     public static Seq<String> getAttributeList(){
