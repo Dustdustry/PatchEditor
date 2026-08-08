@@ -335,6 +335,13 @@ public class EditorNode{
         manager.applyOp(new ImportOp(getPath(), sourceNode));
     }
 
+    public void setPatch(PatchNode source, boolean uiUpdated){
+        manager.applyOp(new BatchOp(getPath(),
+            new ClearChildrenOp(getPath()),
+            new ImportOp(getPath(), source)
+        ), uiUpdated);
+    }
+
     public void clearChildren(){
         // help gc
         for(EditorNode child : children.values()){

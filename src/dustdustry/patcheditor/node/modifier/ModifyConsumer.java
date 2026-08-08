@@ -3,8 +3,6 @@ package dustdustry.patcheditor.node.modifier;
 public interface ModifyConsumer<T>{
     T getValue();
 
-    T getDefaultValue();
-
     Class<?> getDataType();
 
     Class<?> getTypeMeta();

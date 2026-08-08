@@ -152,8 +152,8 @@ public abstract class PatchOperator{
 
             ObjectNode template = ObjectResolver.getTemplate(elementType, strategy);
             DataModifier<?> modifier = NodeModifier.getModifier(template);
-            if(modifier != null){
-                appended.type = modifier.valueType();
+            if(modifier instanceof ValueModifier<?> valueModifier){
+                appended.type = valueModifier.getValueType();
                 appended.value = PatchJsonIO.getKeyName(template.object);
             }
         }

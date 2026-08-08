@@ -2,7 +2,6 @@ package dustdustry.patcheditor.node.modifier;
 
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.node.EditorList.*;
-import dustdustry.patcheditor.node.modifier.DataModifier.*;
 import arc.audio.*;
 import arc.func.*;
 import arc.graphics.*;
@@ -10,14 +9,18 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
+import dustdustry.patcheditor.node.modifier.ValueModifier.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.Units.*;
 import mindustry.entities.bullet.*;
+import mindustry.entities.part.DrawPart.*;
 import mindustry.entities.units.*;
 import mindustry.type.*;
 import mindustry.type.weapons.*;
 import mindustry.world.meta.*;
+
+import static dustdustry.patcheditor.node.modifier.ValueModifier.*;
 
 /**
  * @author minri2
@@ -49,6 +52,7 @@ public class NodeModifier{
         new ModifierConfig(() -> new EnumModifier(Category.values()), Category.class),
 
         new ModifierConfig(EffectModifier::new, Effect.class),
+        new ModifierConfig(PartProgressModifier::new, PartProgress.class).objectForm(),
 
         new ModifierConfig(ColorModifier::new, Color.class),
         new ModifierConfig(ContentTypeModifier::new, MappableContent.class),
@@ -65,6 +69,16 @@ public class NodeModifier{
     public static DataModifier<?> getModifier(ObjectNode node){
         if(canModify(node)){
             Class<?> type = node.type;
+            for(ModifierConfig config : modifyConfig){
+                if(config.canModify(node, type)) return config.getModifier();
+            }
+        }
+        return null;
+    }
+
+    public static DataModifier<?> getModifier(EditorNode node){
+        if(canModify(node.getObjNode())){
+            Class<?> type = node.getObjNode().type;
             for(ModifierConfig config : modifyConfig){
                 if(config.canModify(node, type)) return config.getModifier();
             }
@@ -100,6 +114,7 @@ public class NodeModifier{
         private final Prov<DataModifier<?>> prov;
 
         private @Nullable Boolf<ObjectNode> nodeCheck;
+        private boolean objectForm;
 
         public ModifierConfig(Prov<DataModifier<?>> prov, Seq<Class<?>> types){
             this.prov = prov;
@@ -115,6 +130,12 @@ public class NodeModifier{
             return (nodeCheck == null || nodeCheck.get(node)) && modifierTypes.contains(c -> c.isAssignableFrom(type));
         }
 
+        public boolean canModify(EditorNode node, Class<?> type){
+            return (nodeCheck == null || nodeCheck.get(node.getObjNode()))
+                && modifierTypes.contains(c -> c.isAssignableFrom(type))
+                && (!node.isObjectForm() || objectForm);
+        }
+
         public ModifierConfig check(Boolf<ObjectNode> extraCheck){
             this.nodeCheck = extraCheck;
             return this;
@@ -122,6 +143,11 @@ public class NodeModifier{
 
         public ModifierConfig fieldOf(Class<?> clazz, String name){
             return check(node -> node.getParent() != null && clazz.isAssignableFrom(node.getParent().type) && name.equals(node.name));
+        }
+
+        public ModifierConfig objectForm(){
+            this.objectForm = true;
+            return this;
         }
 
         public DataModifier<?> getModifier(){

@@ -251,8 +251,8 @@ public class NodeCard extends Table{
             addUnknownButton(table, child);
             return;
         }
-        DataModifier<?> modifier = NodeModifier.getModifier(child.getObjNode());
-        if(modifier != null && !child.isObjectForm()){
+        DataModifier<?> modifier = NodeModifier.getModifier(child);
+        if(modifier != null){
             modifier.setData(rootEditorNode, child.getPath());
             addEditTable(table, child, modifier);
         }else{

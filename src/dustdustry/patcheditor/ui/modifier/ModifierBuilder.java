@@ -33,11 +33,19 @@ public abstract class ModifierBuilder<T>{
     public void buildTable(Table table, boolean readOnly){
         this.readOnly = readOnly;
         value = consumer.getValue();
-        build(table);
-        updateUI();
+        if(value == null){
+            buildNull(table);
+        }else{
+            build(table);
+            updateUI();
+        }
     }
 
     protected abstract void build(Table table);
+
+    protected void buildNull(Table table){
+        table.add("null");
+    }
 
     // Sync ui here
     protected void setValue(T value){
@@ -143,6 +151,11 @@ public abstract class ModifierBuilder<T>{
                     return true;
                 });
             }).grow().get();
+        }
+
+        @Override
+        protected void buildNull(Table table){
+            build(table);
         }
 
         @Override
