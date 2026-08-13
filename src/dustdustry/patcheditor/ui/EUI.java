@@ -97,7 +97,9 @@ public class EUI{
 
     public static TextField deboundTextField(String text, Cons<String> changed, float timeSeconds){
         if(Vars.mobile && !Core.input.useKeyboard()){
-            return Elem.newField(text, changed);
+            TextField field = new TextField(text);
+            field.changed(() -> changed.get(field.getText()));
+            return field;
         }
 
         return new DeboundTextField(text, timeSeconds, changed);
