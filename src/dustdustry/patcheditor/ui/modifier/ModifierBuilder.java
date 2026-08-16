@@ -158,6 +158,7 @@ public abstract class ModifierBuilder<T>{
         @Override
         protected void buildNull(Table table){
             build(table);
+            updateUI();
         }
 
         @Override
