@@ -139,7 +139,7 @@ public abstract class PatchOperator{
         }
 
         @Override
-        public void apply(PatchNode root) {
+        public void apply(PatchNode root){
             captureSnapshot(root);
             PatchNode node = root.navigateChild(path, true);
 
@@ -149,9 +149,9 @@ public abstract class PatchOperator{
             appended.type = ClassHelper.isArrayLike(elementType) ? ValueType.array : ValueType.object;
 
             ObjectNode template = ObjectResolver.getTemplate(elementType, strategy);
-            DataModifier<?> modifier = NodeModifier.getModifier(template);
-            if(modifier instanceof ValueModifier<?> valueModifier){
-                appended.type = valueModifier.getValueType();
+            ValueType valueType = NodeModifier.valueTypeOf(template);
+            if(valueType != null){
+                appended.type = valueType;
                 appended.value = PatchJsonIO.getKeyName(template.object);
             }
         }
