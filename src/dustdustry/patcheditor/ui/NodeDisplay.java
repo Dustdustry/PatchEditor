@@ -4,7 +4,6 @@ import arc.graphics.*;
 import arc.scene.*;
 import arc.scene.event.*;
 import arc.scene.style.*;
-import arc.struct.ObjectMap.*;
 import dustdustry.patcheditor.node.*;
 import dustdustry.patcheditor.utils.*;
 import arc.*;
@@ -14,14 +13,12 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.content.*;
 import mindustry.ctype.*;
 import mindustry.editor.data.*;
 import mindustry.entities.*;
 import mindustry.entities.part.DrawPart.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
-import mindustry.logic.*;
 import mindustry.logic.LogicFx.*;
 import mindustry.type.*;
 import mindustry.ui.*;
@@ -148,7 +145,7 @@ public class NodeDisplay{
         table.table(nodeInfoTable -> {
             nodeInfoTable.defaults().minWidth(labelWidth).growX();
 
-            Class<?> type = ClassHelper.unoymousClass(object == null ? node.getTypeOut() : object.getClass());
+            Class<?> type = ClassHelper.actualClass(object == null ? node.getTypeOut() : object.getClass());
             nodeInfoTable.add(node.getDisplayName()).wrap().tooltip(node.getDisplayName());
             nodeInfoTable.row();
             nodeInfoTable.add(ClassHelper.getDisplayName(type)).fontScale(0.85f).color(EPalettes.type).ellipsis(true).wrap().padTop(4f).tooltip(ClassHelper.getDisplayName(type));

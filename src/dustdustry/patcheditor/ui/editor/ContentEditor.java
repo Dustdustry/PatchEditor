@@ -2,7 +2,6 @@ package dustdustry.patcheditor.ui.editor;
 
 import arc.scene.ui.layout.*;
 import dustdustry.patcheditor.node.*;
-import dustdustry.patcheditor.node.patch.PatchOperator.*;
 import dustdustry.patcheditor.node.resolve.*;
 import dustdustry.patcheditor.ui.*;
 import dustdustry.patcheditor.ui.dialog.*;
@@ -76,7 +75,7 @@ public class ContentEditor extends PatchEditor{
         if(content == null){
             objectTree = ObjectResolver.getTemplate(type.contentClass, ObjectResolver.content);
         }else{
-            Class<?> typeContent = ClassHelper.unoymousClass(content.getClass());
+            Class<?> typeContent = ClassHelper.actualClass(content.getClass());
             String name = content instanceof MappableContent mc ? mc.name : "";
             objectTree = new ObjectNode(name, ObjectExample.getExample(typeContent, typeContent, true), typeContent);
             objectTree.strategy = ObjectResolver.content;

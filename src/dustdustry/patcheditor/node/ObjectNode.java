@@ -40,7 +40,7 @@ public class ObjectNode{
         this.object = object;
         this.field = field;
 
-        this.type = ClassHelper.unoymousClass(type);
+        this.type = ClassHelper.actualClass(type);
         this.keyType = keyType;
 
         // fix FieldMetaData

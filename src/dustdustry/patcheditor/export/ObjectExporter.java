@@ -30,8 +30,6 @@ import mindustry.world.consumers.*;
 import mindustry.world.draw.*;
 import mindustry.world.meta.*;
 
-import java.math.*;
-
 public class ObjectExporter{
     private static final ObjectMap<Class<?>, Seq<String>> fieldBlacklist = ObjectMap.of(
     Block.class, Seq.with("teamRegion", "teamRegions", "consumes"),
@@ -184,11 +182,11 @@ public class ObjectExporter{
     private static boolean shouldExportField(Object value, Object defaultValue, ExportConfig config){
         if(value == null) return config.exportNulls;
         if(config.allowDefault) return true;
-        return !PatchCompare.equalsValue(value, defaultValue, ClassHelper.unoymousClass(value.getClass()));
+        return !PatchCompare.equalsValue(value, defaultValue, ClassHelper.actualClass(value.getClass()));
     }
 
     private static void exportFields(ObjectNode objectNode, JsonValue value, ExportConfig config){
-        Class<?> type = ClassHelper.unoymousClass(objectNode.object.getClass());
+        Class<?> type = ClassHelper.actualClass(objectNode.object.getClass());
         ObjectNode template = ObjectResolver.getTemplate(type, ObjectExample.getExample(type, type, true), objectNode.getResolutionStrategy());
         Seq<String> blackList = findFieldBlacklist(type);
 
@@ -235,7 +233,7 @@ public class ObjectExporter{
         if(object instanceof MapEntry<?,?> entry) object = entry.value;
 
         value.setType(ValueType.object);
-        Class<?> type = ClassHelper.unoymousClass(object.getClass());
+        Class<?> type = ClassHelper.actualClass(object.getClass());
         if(PatchJsonIO.typeOverrideable(type)){
             String typeName = PatchJsonIO.getTypeName(type);
             value.addChild("type", new JsonValue(typeName));

@@ -6,8 +6,7 @@ import java.lang.reflect.*;
 
 public class ClassHelper{
 
-    // TODO: rename to `actualClass`
-    public static Class<?> unoymousClass(Class<?> clazz){
+    public static Class<?> actualClass(Class<?> clazz){
         if(clazz == null) return null;
         if(isLambda(clazz)) return clazz.getInterfaces()[0];
         while(clazz.isAnonymousClass()) clazz = clazz.getSuperclass();

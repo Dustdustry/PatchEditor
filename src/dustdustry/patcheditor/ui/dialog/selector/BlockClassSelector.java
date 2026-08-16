@@ -75,7 +75,7 @@ public class BlockClassSelector extends SelectorDialog<Class<?>>{
 
         if(map == null) map = new OrderedMap<>();
         for(Block block : Vars.content.blocks()){
-            Class<?> blockClass = ClassHelper.unoymousClass(block.getClass());
+            Class<?> blockClass = ClassHelper.actualClass(block.getClass());
             if(selectable != null && !selectable.get(blockClass)) continue;
             if(ClassMap.classes.findKey(blockClass, true) != null){
                 map.get(blockClass, Seq::new).add(block);

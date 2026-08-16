@@ -170,7 +170,7 @@ public class ContentAssetEditor extends BaseDialog{
     }
 
     protected void readContentClass(){
-        contentClass = asset.content == null ? asset.type.contentClass : ClassHelper.unoymousClass(asset.content.getClass());
+        contentClass = asset.content == null ? asset.type.contentClass : ClassHelper.actualClass(asset.content.getClass());
     }
 
     protected void applyJson(){

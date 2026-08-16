@@ -148,8 +148,8 @@ public class EditorNode{
     public Class<?> getTypeOut(){
         ObjectNode objectNode = getObjNode();
         if(objectNode.object == null) return objectNode.type;
-        if(objectNode.object instanceof MapEntry<?,?> entry) return ClassHelper.unoymousClass(entry.value.getClass());
-        return ClassHelper.unoymousClass(objectNode.object.getClass());
+        if(objectNode.object instanceof MapEntry<?,?> entry) return ClassHelper.actualClass(entry.value.getClass());
+        return ClassHelper.actualClass(objectNode.object.getClass());
     }
 
     public boolean canAppend(){

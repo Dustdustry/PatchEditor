@@ -10,7 +10,7 @@ import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
 import java.lang.reflect.*;
-import mindustry.ai.types.*;
+
 import mindustry.ctype.*;
 import mindustry.entities.Units.*;
 import mindustry.entities.bullet.*;
@@ -102,7 +102,7 @@ public abstract class ResolutionStrategy{
 
             ObjectSet<String> keysRemovable = new ObjectSet<>();
             for(Consume consumer : block.consumers){
-                String type = ClassHelper.unoymousClass(consumer.getClass()).getSimpleName().replace("Consume", "");
+                String type = ClassHelper.actualClass(consumer.getClass()).getSimpleName().replace("Consume", "");
                 keysRemovable.add(Strings.camelToKebab(type));
             }
 
