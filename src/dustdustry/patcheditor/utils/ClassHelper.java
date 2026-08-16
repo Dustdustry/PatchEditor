@@ -5,8 +5,11 @@ import arc.struct.*;
 import java.lang.reflect.*;
 
 public class ClassHelper{
+
+    // TODO: rename to `actualClass`
     public static Class<?> unoymousClass(Class<?> clazz){
         if(clazz == null) return null;
+        if(isLambda(clazz)) return clazz.getInterfaces()[0];
         while(clazz.isAnonymousClass()) clazz = clazz.getSuperclass();
         return clazz;
     }
@@ -33,5 +36,9 @@ public class ClassHelper{
 
     public static String getDisplayName(Class<?> clazz){
         return clazz.getSimpleName() + (isArray(clazz) ? "[..]" : "");
+    }
+
+    public static boolean isLambda(Class<?> clazz){
+        return clazz.isSynthetic() && clazz.getName().contains("$$Lambda");
     }
 }
