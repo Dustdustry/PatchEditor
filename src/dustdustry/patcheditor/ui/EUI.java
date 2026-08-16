@@ -125,6 +125,14 @@ public class EUI{
         infoToast(text, 0.7f);
     }
 
+    public static void copiedToast(){
+        copiedToast(null);
+    }
+
+    public static void copiedToast(String text){
+        infoToast(text == null ? "@patch-editor.copied" : Core.bundle.format("patch-editor.copied.with", text));
+    }
+
     public static void infoToast(String text, float duration){
         Table t = new Table(Styles.black3);
         t.touchable = Touchable.disabled;

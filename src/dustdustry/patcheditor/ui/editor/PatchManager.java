@@ -253,7 +253,7 @@ public class PatchManager extends BaseDialog{
             table.button("@patch-manager.patch.export.clipboard", Icon.copy, Styles.cleart, () -> {
                 dialog.hide();
                 Core.app.setClipboardText(patch.patch);
-                EUI.infoToast(Core.bundle.format("patch-manager.patch.copy.info", patch.displayName()));
+                EUI.copiedToast(patch.displayName());
             }).row();
 
             table.button("@patch-manager.patch.export.file", Icon.download, Styles.cleart, () -> {

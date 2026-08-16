@@ -258,7 +258,7 @@ public class NotesDialog extends BaseDialog{
             }).tooltip("@patch-editor.note.edit");
             buttons.button(Icon.copySmall, Styles.clearNonei, () -> {
                 Core.app.setClipboardText(fieldId);
-                EUI.infoToast("@favorites.copy-id.succeed");
+                EUI.copiedToast(fieldId);
             }).tooltip("@favorites.copy-id");
             if(isUser){
                 buttons.button(Icon.cancelSmall, Styles.clearNonei, () -> {

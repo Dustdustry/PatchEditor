@@ -139,7 +139,7 @@ public class MissingRegionsDialog extends BaseDialog{
     protected void copyName(String name){
         try{
             Core.app.setClipboardText(name);
-            EUI.infoToast(Core.bundle.format("patch-editor.missingRegions.copied", name));
+            EUI.copiedToast(name);
         }catch(Exception e){
             Vars.ui.showException(e);
         }

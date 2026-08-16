@@ -186,7 +186,7 @@ public class ProgressTutorialDialog extends BaseDialog{
     private static void copyVar(Element cell, String text){
         cell.clicked(() -> {
             Core.app.setClipboardText(text);
-            EUI.copiedToast();
+            EUI.copiedToast(text);
         });
         cell.addListener(new Tooltip(t -> t.background(Styles.black8).margin(8f).add("@patch-editor.editProgress.tutorial.var.copy")));
     }

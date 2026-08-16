@@ -581,7 +581,7 @@ public class NodeCard extends Table{
 
                     t.clicked(() -> {
                         Core.app.setClipboardText(editorPath);
-                        EUI.infoToast(Core.bundle.format("node-card.path.copy", editorPath));
+                        EUI.copiedToast(editorPath);
                     });
                 });
             }).marginLeft(8f).marginRight(8f).height(64);
