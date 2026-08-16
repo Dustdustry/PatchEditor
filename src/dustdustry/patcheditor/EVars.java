@@ -1,6 +1,6 @@
 package dustdustry.patcheditor;
 
-import dustdustry.patcheditor.node.resolve.*;
+import dustdustry.patcheditor.core.resolve.*;
 import mindustry.*;
 import mindustry.mod.Mods.*;
 

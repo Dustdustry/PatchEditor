@@ -8,7 +8,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import dustdustry.patcheditor.node.*;
+import dustdustry.patcheditor.core.*;
 import dustdustry.patcheditor.ui.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;

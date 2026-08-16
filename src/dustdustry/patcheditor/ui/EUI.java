@@ -1,6 +1,6 @@
 package dustdustry.patcheditor.ui;
 
-import dustdustry.patcheditor.*;
+import dustdustry.patcheditor.data.*;
 import dustdustry.patcheditor.ui.dialog.*;
 import dustdustry.patcheditor.ui.editor.*;
 import dustdustry.patcheditor.ui.dialog.selector.*;
@@ -12,7 +12,6 @@ import arc.scene.actions.*;
 import arc.scene.event.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import arc.scene.utils.*;
 import arc.util.*;
 import mindustry.*;
 import mindustry.ui.*;

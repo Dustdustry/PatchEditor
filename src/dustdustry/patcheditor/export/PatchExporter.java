@@ -1,11 +1,11 @@
 package dustdustry.patcheditor.export;
 
+import dustdustry.patcheditor.core.*;
+import dustdustry.patcheditor.core.resolve.*;
 import dustdustry.patcheditor.export.ObjectExporter.*;
-import dustdustry.patcheditor.node.*;
 import arc.struct.ObjectMap.*;
 import arc.util.serialization.*;
 import arc.util.serialization.JsonValue.*;
-import dustdustry.patcheditor.node.resolve.*;
 
 public class PatchExporter{
     public static String export(String path){

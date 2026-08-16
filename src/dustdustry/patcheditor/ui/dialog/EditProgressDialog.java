@@ -1,10 +1,9 @@
 package dustdustry.patcheditor.ui.dialog;
 
-import arc.*;
 import arc.func.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
-import dustdustry.patcheditor.utils.*;
+import dustdustry.patcheditor.modifier.*;
 import dustdustry.patcheditor.ui.*;
 import mindustry.entities.part.DrawPart.*;
 import mindustry.gen.*;

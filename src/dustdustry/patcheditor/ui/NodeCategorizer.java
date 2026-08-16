@@ -1,10 +1,9 @@
 package dustdustry.patcheditor.ui;
 
-import dustdustry.patcheditor.*;
-import dustdustry.patcheditor.node.*;
-import dustdustry.patcheditor.node.EditorNode.*;
-import dustdustry.patcheditor.node.modifier.*;
-import dustdustry.patcheditor.utils.*;
+import dustdustry.patcheditor.core.*;
+import dustdustry.patcheditor.core.EditorNode.*;
+import dustdustry.patcheditor.data.*;
+import dustdustry.patcheditor.modifier.*;
 import arc.struct.*;
 import arc.util.*;
 import mindustry.type.*;

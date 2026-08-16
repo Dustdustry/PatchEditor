@@ -1,12 +1,10 @@
 package dustdustry.patcheditor.ui.editor;
 
 import arc.scene.ui.layout.*;
-import dustdustry.patcheditor.node.*;
-import dustdustry.patcheditor.node.resolve.*;
+import dustdustry.patcheditor.core.*;
+import dustdustry.patcheditor.core.resolve.*;
 import dustdustry.patcheditor.ui.*;
 import dustdustry.patcheditor.ui.dialog.*;
-import dustdustry.patcheditor.ui.editor.PatchManager.*;
-import dustdustry.patcheditor.utils.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
 import mindustry.mod.data.*;

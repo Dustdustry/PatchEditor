@@ -1,8 +1,7 @@
 package dustdustry.patcheditor.export;
 
-import dustdustry.patcheditor.node.*;
-import dustdustry.patcheditor.node.resolve.*;
-import dustdustry.patcheditor.utils.*;
+import dustdustry.patcheditor.core.*;
+import dustdustry.patcheditor.core.resolve.*;
 import arc.*;
 import arc.audio.*;
 import arc.graphics.*;

@@ -1,0 +1,11 @@
+package dustdustry.patcheditor.core;
+
+import arc.struct.*;
+
+public class MapLike{
+    @SuppressWarnings("unchecked")
+    public static boolean contains(Object object, Object key){
+        return object instanceof ObjectMap map1 && map1.containsKey(key)
+        || object instanceof ObjectFloatMap map2 && map2.containsKey(key);
+    }
+}

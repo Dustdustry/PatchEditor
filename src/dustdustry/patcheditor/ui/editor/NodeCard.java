@@ -1,16 +1,14 @@
 package dustdustry.patcheditor.ui.editor;
 
 import arc.math.*;
-import dustdustry.patcheditor.*;
+import dustdustry.patcheditor.core.*;
+import dustdustry.patcheditor.data.*;
 import dustdustry.patcheditor.export.*;
-import dustdustry.patcheditor.node.*;
-import dustdustry.patcheditor.node.EditorNode.*;
-import dustdustry.patcheditor.node.modifier.*;
-import dustdustry.patcheditor.node.patch.*;
+import dustdustry.patcheditor.core.EditorNode.*;
+import dustdustry.patcheditor.modifier.*;
 import dustdustry.patcheditor.ui.*;
 import dustdustry.patcheditor.ui.NodeCategorizer.*;
 import dustdustry.patcheditor.ui.dialog.*;
-import dustdustry.patcheditor.utils.*;
 import arc.*;
 import arc.graphics.*;
 import arc.input.*;

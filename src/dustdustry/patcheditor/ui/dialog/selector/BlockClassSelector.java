@@ -4,7 +4,7 @@ import arc.func.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import dustdustry.patcheditor.utils.*;
+import dustdustry.patcheditor.core.*;
 import mindustry.*;
 import mindustry.mod.*;
 import mindustry.ui.*;

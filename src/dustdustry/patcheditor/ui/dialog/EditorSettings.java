@@ -1,11 +1,12 @@
 package dustdustry.patcheditor.ui.dialog;
 
 import arc.scene.ui.TextButton.*;
+import arc.scene.ui.layout.*;
+import dustdustry.patcheditor.core.*;
 import dustdustry.patcheditor.export.ObjectExporter.*;
-import dustdustry.patcheditor.node.*;
 import arc.*;
 import arc.struct.*;
-import dustdustry.patcheditor.node.JsonProcessor.*;
+import dustdustry.patcheditor.core.JsonProcessor.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;

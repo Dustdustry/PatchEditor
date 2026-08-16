@@ -1,6 +1,6 @@
 package dustdustry.patcheditor.ui.dialog.selector;
 
-import dustdustry.patcheditor.node.*;
+import dustdustry.patcheditor.core.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;

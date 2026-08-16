@@ -2,7 +2,7 @@ package dustdustry.patcheditor.ui.dialog.selector;
 
 import arc.math.*;
 import arc.scene.ui.*;
-import dustdustry.patcheditor.node.*;
+import dustdustry.patcheditor.core.*;
 import arc.*;
 import arc.audio.*;
 import arc.scene.ui.layout.*;
