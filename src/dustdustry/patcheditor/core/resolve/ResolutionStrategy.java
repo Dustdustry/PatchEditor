@@ -53,18 +53,6 @@ public abstract class ResolutionStrategy{
         node.addChild("name", "<unnamed>").addSign(ModifierSign.MODIFY);
     }
 
-    public boolean shouldAddPlusSign(ObjectNode node, Class<?> objectType){
-        return true;
-    }
-
-    public boolean shouldAddModifySign(ObjectNode parent, ObjectNode child){
-        return true;
-    }
-
-    public boolean shouldAddRemoveSign(ObjectNode parent, ObjectNode child){
-        return true;
-    }
-
     public void addSpecialChildren(ObjectNode node, Object object){
         if(object instanceof UnitType type){
             node.addChild("type", EditorList.getUnitTypeName(type.constructor.get().getClass()), UnitConstructorType.class).addSign(ModifierSign.MODIFY);

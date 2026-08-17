@@ -42,13 +42,9 @@ public class ObjectResolver{
         if(node.elementType != null && !strategy.isTypeEditable(node.elementType)) return;
 
         if(ClassHelper.isArrayLike(objectType)){
-            if(strategy.shouldAddPlusSign(node, objectType)){
-                node.addSign(ModifierSign.PLUS, null, node.elementType, null);
-            }
+            node.addSign(ModifierSign.PLUS, null, node.elementType, null);
         }else if(ClassHelper.isMap(objectType)){
-            if(strategy.shouldAddPlusSign(node, objectType)){
-                node.addSign(ModifierSign.PLUS, null, node.elementType, node.keyType);
-            }
+            node.addSign(ModifierSign.PLUS, null, node.elementType, node.keyType);
         }
 
         // object resolve
@@ -57,47 +53,33 @@ public class ObjectResolver{
                 Object o = Array.get(object, i);
                 if(o == null) continue;
                 ObjectNode child = node.addChild("" + i, o, node.elementType);
-                if(strategy.shouldAddModifySign(node, child)){
-                    child.addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
-                }
+                child.addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
         }else if(object instanceof Seq<?> seq){
             for(int i = 0; i < seq.size; i++){
                 Object o = seq.get(i);
                 ObjectNode child = node.addChild("" + i, o, node.elementType);
-                if(strategy.shouldAddModifySign(node, child)){
-                    child.addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
-                }
+                child.addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
         }else if(object instanceof ObjectSet<?> set){
             int i = 0;
             for(Object o : set){
                 ObjectNode child = node.addChild("" + i++, o, node.elementType);
-                if(strategy.shouldAddModifySign(node, child)){
-                    child.addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
-                }
+                child.addSign(ModifierSign.MODIFY, node.type, node.elementType, null);
             }
         }else if(object instanceof ObjectMap<?, ?> map){
             for(var entry : map){
                 String name = PatchJsonIO.getKeyName(entry.key);
                 ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry), node.elementType, node.elementType, node.keyType);
-                if(strategy.shouldAddModifySign(node, entryNode)){
-                    entryNode.addSign(ModifierSign.MODIFY);
-                }
-                if(strategy.shouldAddRemoveSign(node, entryNode)){
-                    entryNode.addSign(ModifierSign.REMOVE);
-                }
+                entryNode.addSign(ModifierSign.MODIFY);
+                entryNode.addSign(ModifierSign.REMOVE);
             }
         }else if(object instanceof ObjectFloatMap<?> map){
             for(var entry : map){
                 String name = PatchJsonIO.getKeyName(entry.key);
                 ObjectNode entryNode = node.addChild(name, new MapEntry<>(entry.key, entry.value), node.elementType, node.elementType, node.keyType);
-                if(strategy.shouldAddModifySign(node, entryNode)){
-                    entryNode.addSign(ModifierSign.MODIFY);
-                }
-                if(strategy.shouldAddRemoveSign(node, entryNode)){
-                    entryNode.addSign(ModifierSign.REMOVE);
-                }
+                entryNode.addSign(ModifierSign.MODIFY);
+                entryNode.addSign(ModifierSign.REMOVE);
             }
         }else if(object instanceof ContentType ctype){
             OrderedMap<String, Content> map = new OrderedMap<>(); // in order
@@ -115,9 +97,7 @@ public class ObjectResolver{
                 int i = 0;
                 for(Object o : set.array){
                     ObjectNode child = node.addChild("" + i++, o, enumClass);
-                    if(strategy.shouldAddModifySign(node, child)){
-                        child.addSign(ModifierSign.MODIFY, enumClass, enumClass, null);
-                    }
+                    child.addSign(ModifierSign.MODIFY, enumClass, enumClass, null);
                 }
             }
         }else if(object instanceof Attributes attributes){
@@ -148,10 +128,8 @@ public class ObjectResolver{
 
             ObjectNode child = node.addChild(name, childObj, copiedMeta);
 
-            if(strategy.shouldAddModifySign(node, child)){
-                if(!ClassHelper.isMap(child.type)){
-                    child.addSign(ModifierSign.MODIFY);
-                }
+            if(!ClassHelper.isMap(child.type)){
+                child.addSign(ModifierSign.MODIFY);
             }
         }
 
