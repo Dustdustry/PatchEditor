@@ -312,8 +312,7 @@ public class PatchJsonIO{
         }
 
         String keyName = PatchJsonIO.getKeyName(builder.base);
-        if(keyName == null || keyName.equals(builder.base.toString()))
-            throw new IllegalArgumentException("Base is not a named constant");
+        if(keyName == null) throw new IllegalArgumentException("Base is not a named constant");
 
         if(builder.ops.isEmpty()){
             node.value = keyName;

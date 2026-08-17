@@ -20,7 +20,8 @@ public class ProgressBuilder implements PartProgress{
     }
 
     public ProgressBuilder(PartProgress base, Interp interp){
-        this.base = base.curve(interp);
+        this.base = base;
+        curve(interp);
     }
 
     public boolean isConstantBase(){
