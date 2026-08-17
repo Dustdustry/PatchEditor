@@ -71,6 +71,7 @@ public class EditorNode{
             // data driven
             if(patchNode != null){
                 for(PatchNode childPatch : patchNode.children.values()){
+                    boolean elemInvalid = false;
                     if(childPatch.sign == ModifierSign.PLUS){
                         PatchNode typeNode = childPatch.getOrNull("type");
                         String typeJson = typeNode == null ? null : typeNode.value;
@@ -86,11 +87,13 @@ public class EditorNode{
                             children.put(child.name(), child);
                         }catch(Exception e){
                             Log.err(e);
+                            elemInvalid = true;
                         }
-                        continue;
+
+                        if(!elemInvalid) continue;
                     }
 
-                    if(isInvalidNode(children, childPatch)){
+                    if(elemInvalid || isInvalidNode(children, childPatch)){
                         EditorNode child = new InvalidEditorNode(childPatch.key, manager, getObjNode().getResolutionStrategy());
                         child.parent = this;
                         children.put(childPatch.key, child);

@@ -44,7 +44,7 @@ public class PatchJsonIO{
     );
 
     public static final ObjectMap<Class<?>, Class<?>> defaultClassMap = ObjectMap.of(
-        Ability.class, ForceFieldAbility.class
+    Ability.class, ForceFieldAbility.class
     );
     public static final Seq<Class<?>> fixedTypeClasses = Seq.with(
     UnitType.class, ContentType.class,
@@ -56,11 +56,10 @@ public class PatchJsonIO{
     BlockFlag.class, BlockFlag.class,
     BuildVisibility.class, BuildVisibility.class,
     Sound.class, Sounds.class,
-
-        Sortf.class, UnitSorts.class,
-        Interp.class, Interp.class,
-        PartProgress.class, PartProgress.class,
-        Blending.class, Blending.class,
+    Sortf.class, UnitSorts.class,
+    Interp.class, Interp.class,
+    PartProgress.class, PartProgress.class,
+    Blending.class, Blending.class,
     CacheLayer.class, CacheLayer.class
     );
 
@@ -246,7 +245,11 @@ public class PatchJsonIO{
         if(value.isArray()){
             // patchNode('array': []) -> override array.
             int i = 0;
-            ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
+            ObjectNode template = null;
+            if(objectNode != null && objectNode.elementType != null){
+                template = ObjectResolver.getTemplate(objectNode.elementType, strategy);
+            }
+
             for(JsonValue childValue : value){
                 PatchNode childNode = patchNode.getOrCreate("" + i++);
                 parseJson(template, childNode, childValue, strategy);
