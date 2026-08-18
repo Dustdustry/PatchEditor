@@ -44,7 +44,9 @@ public class ProgressElem extends Element{
 
     // inline?
     protected float getValue(float value){
-        return progress.get(params.set(value, value, value, value, value, value, value, value, value));
+        params.set(value, value, value, value, value, value, value, value, value);
+        params.life = value;
+        return progress.get(params);
     }
 
     @Override
