@@ -184,6 +184,11 @@ public class EUI{
         public void act(float delta){
             super.act(delta);
 
+            if(keeping && !hasKeyboard()){
+                keeping = false;
+                cons.get(getText());
+            }
+
             if(keeping && keeper.get()){
                 keeping = false;
                 cons.get(getText());
@@ -210,6 +215,11 @@ public class EUI{
         @Override
         public void act(float delta){
             super.act(delta);
+
+            if(keeping && !hasKeyboard()){
+                keeping = false;
+                cons.get(getText());
+            }
 
             if(keeping && keeper.get()){
                 keeping = false;
