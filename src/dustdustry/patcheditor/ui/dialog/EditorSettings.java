@@ -5,27 +5,39 @@ import arc.graphics.*;
 import arc.graphics.g2d.*;
 import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
+import arc.util.*;
+import dustdustry.patcheditor.*;
 import dustdustry.patcheditor.core.*;
 import dustdustry.patcheditor.export.ObjectExporter.*;
 import arc.*;
 import arc.struct.*;
 import dustdustry.patcheditor.core.JsonProcessor.*;
+import dustdustry.patcheditor.ui.*;
+import mindustry.*;
+import mindustry.core.*;
 import mindustry.gen.*;
+import mindustry.graphics.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 import mindustry.ui.dialogs.SettingsMenuDialog.*;
 import mindustry.ui.dialogs.SettingsMenuDialog.SettingsTable.*;
 
+import javax.lang.model.element.*;
+import java.time.format.*;
+
 import static arc.Core.settings;
+import static mindustry.ui.Styles.*;
 
 public class EditorSettings extends BaseDialog{
     private static final TextButtonStyle grayTogglet = new TextButtonStyle(){{
-        over = Styles.flatOver;
+        down = over = Styles.flatOver;
         disabled = Styles.grayPanelDark;
-        down = Styles.flatOver;
         up = Styles.grayPanel;
         checked = Styles.flatDown;
         font = Fonts.def;
+        fontColor = EPalettes.gray;
+        downFontColor = overFontColor = EPalettes.lighterGray;
+        checkedFontColor = Color.white;
     }};
 
     public EditorSettings(){
@@ -60,6 +72,25 @@ public class EditorSettings extends BaseDialog{
 
         table.sliderPref("patch-editor.undoLimit", 20, 0, 160, 20,s -> Core.bundle.format("setting.patch-editor.undoLimit.text", s));
         settings.add(new SingleEnumSettings("patch-editor.exportType", ExportType.values(), ExportType.hjson));
+        settings.add(new SlotSettings(16f, cont -> {
+            cont.button(t -> {
+                t.background(Styles.grayPanel).left();
+
+                t.image().color(Pal.lightishGray).width(16f).padRight(16f).growY();
+                t.image(new TextureRegion(EVars.thisMod.iconTexture)).padTop(8f).padBottom(8f).size(Vars.iconXLarge);
+                t.table(info -> {
+                    info.defaults().expandX().left();
+                    info.add(EVars.thisMod.meta.displayName);
+                    info.row();
+                    info.add(UI.formatIcons(Core.bundle.get("patch-editor.bannerInfo"))).color(Pal.lightishGray).padTop(4f);
+                }).padLeft(8f);
+
+                t.add().expandX();
+
+                t.image().color(Pal.lightishGray).size(2f, 16f).padRight(16f);
+                t.add(EVars.thisMod.meta.author).padRight(16f);
+            }, graySquarei, () -> Core.app.openURI(EVars.repoLink)).grow();
+        }));
 
         table.rebuild();
         addCloseButton();
@@ -106,9 +137,11 @@ public class EditorSettings extends BaseDialog{
         @Override
         public void add(SettingsTable table){
             table.table(cont -> {
+                cont.background(Styles.grayPanel).margin(8f);
+
                 cont.table(top -> {
                     top.left();
-                    top.image(Icon.settings);
+                    top.image(Icon.settingsSmall);
                     top.add(title).padLeft(8f);
                 }).growX().row();
 
@@ -118,10 +151,10 @@ public class EditorSettings extends BaseDialog{
                         buttons.button(text, grayTogglet, () -> settings.put(name, anEnum.name()))
                         .margin(8f).growX().checked(b -> anEnum.name().equals(settings.getString(name)));
                     }
-                }).padTop(3f).growX();
+                }).padTop(4f).growX();
 
                 addDesc(cont);
-            }).pad(6f).growX();
+            }).padTop(6f).growX();
 
             table.row();
         }
