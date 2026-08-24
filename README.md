@@ -16,7 +16,7 @@ This mod helps you create patches faster and more intuitively:
 - **Visual selectors** — pick textures, sounds, colors, effects and more via dedicated dialogs.
 - **Export & share** — generate clean HJSON/JSON patches ready for publishing.
 
-![PatchEditor](https://github.com/user-attachments/assets/40737915-3ee4-4e39-b1e0-69706837f3ef)
+![PatchEditor](https://github.com/user-attachments/assets/785ec269-d294-445c-890d-739d38fc8198)
 
 ---
 
