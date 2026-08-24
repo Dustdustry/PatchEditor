@@ -145,7 +145,7 @@ public class ContentAssetEditor extends BaseDialog{
             applyJson();
         }catch(Exception e){
             asset.data = oldJson;
-            ui.showException("@patch.importerror", e);
+            ui.showException("@patch.importError", e);
         }
     }
 
