@@ -1,5 +1,8 @@
 package dustdustry.patcheditor.ui.dialog;
 
+import arc.func.*;
+import arc.graphics.*;
+import arc.graphics.g2d.*;
 import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import dustdustry.patcheditor.core.*;
@@ -120,6 +123,28 @@ public class EditorSettings extends BaseDialog{
                 addDesc(cont);
             }).pad(6f).growX();
 
+            table.row();
+        }
+    }
+
+    public static class SlotSettings extends Setting{
+        public float padding;
+        protected Cons<Table> cons;
+
+        public SlotSettings(Cons<Table> cons){
+            this(6f, cons);
+        }
+
+        public SlotSettings(float padding, Cons<Table> cons){
+            super("");
+
+            this.cons = cons;
+            this.padding = padding;
+        }
+
+        @Override
+        public void add(SettingsTable table){
+            table.table(cons).padTop(padding).padBottom(padding).growX().row();
             table.row();
         }
     }

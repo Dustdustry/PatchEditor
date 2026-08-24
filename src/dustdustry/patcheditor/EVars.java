@@ -9,6 +9,7 @@ public class EVars{
 
     public static String githubNotesRepo = "Dustdustry/PatchNotes";
     public static String githubNotesBranch = "main";
+    public static String repoLink = "https://github.com/Dustdustry/PatchEditor";
 
     public static void init(){
         thisMod = Vars.mods.getMod(Main.class);
