@@ -74,9 +74,10 @@ public abstract class ModifierBuilder<T>{
 
         @Override
         public void build(Table table){
-            field = table.field(value, t -> {
+            field = table.add(new CacheTextField(value, t -> {
                 setValue(UI.formatIcons(t));
-            }).valid(consumer::checkValue).pad(4f).growX().get();
+            })).valid(consumer::checkValue).pad(4f).growX().get();
+            field.setProgrammaticChangeEvents(true);
 
             if(consumer.getTypeMeta() == String.class){
                 table.button(Icon.pencil, Styles.clearNonei, () -> {
