@@ -3,6 +3,7 @@ package dustdustry.patcheditor.ui.dialog.selector;
 import arc.func.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
+import arc.struct.ObjectMap.*;
 import arc.util.*;
 import dustdustry.patcheditor.core.*;
 import mindustry.*;
@@ -77,8 +78,16 @@ public class BlockClassSelector extends SelectorDialog<Class<?>>{
         for(Block block : Vars.content.blocks()){
             Class<?> blockClass = ClassHelper.actualClass(block.getClass());
             if(selectable != null && !selectable.get(blockClass)) continue;
+            if(!superClass.isAssignableFrom(blockClass)) continue;
             if(ClassMap.classes.findKey(blockClass, true) != null){
                 map.get(blockClass, Seq::new).add(block);
+            }
+        }
+
+        for(Class<?> clazz : ClassMap.classes.values()){
+            if(!superClass.isAssignableFrom(clazz)) continue;
+            if(!map.containsKey(clazz)){
+                map.put(clazz, new Seq<>());
             }
         }
 
