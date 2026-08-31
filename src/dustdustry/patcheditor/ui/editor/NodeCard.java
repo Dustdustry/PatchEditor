@@ -419,7 +419,8 @@ public class NodeCard extends Table{
         }
 
         if(state.appended){
-            if(state.canChangeType) addChangeTypeButton(table, child);
+            // Content references (Block/Item/Liquid...) are name-serialized in fields/elements;
+            if(state.canChangeType && !MappableContent.class.isAssignableFrom(child.getTypeIn())) addChangeTypeButton(table, child);
             table.button(Icon.cancel, Styles.clearNonei, child::clearJson).grow().tooltip("@node.remove");
         }else if(modifier != null){
             if(NodeModifier.isComplexType(child.getObjNode())) addChangeTypeButton(table, child);
