@@ -28,6 +28,7 @@ import static dustdustry.patcheditor.modifier.ValueModifier.*;
  */
 public class NodeModifier{
     public static final Seq<ModifierConfig> modifyConfig = new Seq<>();
+    public static final Seq<Class<?>> valueToObjectTypes = Seq.with(Effect.class);
 
     static {
         modifyConfig.addAll(
@@ -106,8 +107,6 @@ public class NodeModifier{
         DataModifier<?> modifier = getModifier(node);
         return modifier instanceof ValueModifier<?> valueModifier ? valueModifier.getValueType() : null;
     }
-
-    public static final Seq<Class<?>> valueToObjectTypes = Seq.with(Effect.class);
 
     public static boolean isComplexType(ObjectNode node){
         return node != null && PatchJsonIO.typeOverrideable(node.type)

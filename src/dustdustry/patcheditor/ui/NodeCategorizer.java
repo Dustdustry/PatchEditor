@@ -6,6 +6,7 @@ import dustdustry.patcheditor.data.*;
 import dustdustry.patcheditor.modifier.*;
 import arc.struct.*;
 import arc.util.*;
+import mindustry.ctype.*;
 import mindustry.type.*;
 import mindustry.world.*;
 import mindustry.world.blocks.*;
@@ -23,7 +24,7 @@ public class NodeCategorizer{
     );
 
     public static Seq<NodeCategory> categorizedNode(EditorNode node){
-        if(node.getObjNode().elementType == Block.class) return categorizedBlock(node);
+        if(node.getObject() == ContentType.block) return categorizedBlock(node);
         return categorizedNormal(node);
     }
 
