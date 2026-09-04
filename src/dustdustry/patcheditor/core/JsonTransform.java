@@ -302,6 +302,7 @@ public class JsonTransform{
                     value.get("y").setName("1");
                     value.get("width").setName("2");
                     value.get("height").setName("3");
+                    return;
                 }
             }else if(type == Vec3.class && value.size == 3){
                 if(value.has("x") && value.has("y") && value.has("z")){
@@ -309,6 +310,7 @@ public class JsonTransform{
                     value.get("x").setName("0");
                     value.get("y").setName("1");
                     value.get("z").setName("2");
+                    return;
                 }
             }
         }
