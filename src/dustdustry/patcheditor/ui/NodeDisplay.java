@@ -145,9 +145,9 @@ public class NodeDisplay{
             nodeInfoTable.defaults().minWidth(labelWidth).growX();
 
             Class<?> type = ClassHelper.actualClass(object == null ? node.getTypeOut() : object.getClass());
-            nodeInfoTable.add(node.getDisplayName()).wrap().tooltip(node.getDisplayName());
+            nodeInfoTable.add(node.getDisplayName()).wrap(true).tooltip(node.getDisplayName());
             nodeInfoTable.row();
-            nodeInfoTable.add(ClassHelper.getDisplayName(type)).fontScale(0.85f).color(EPalettes.type).ellipsis(true).wrap().padTop(4f).tooltip(ClassHelper.getDisplayName(type));
+            nodeInfoTable.add(ClassHelper.getDisplayName(type)).fontScale(0.85f).color(EPalettes.type).ellipsis(true).wrap(true).padTop(4f).tooltip(ClassHelper.getDisplayName(type));
         });
     }
 
@@ -157,7 +157,7 @@ public class NodeDisplay{
 
             valueTable.image(getDisplayIcon(object)).scaling(Scaling.fit).size(imageSize);
             valueTable.row();
-            valueTable.add(getDisplayName(object)).labelAlign(Align.right).ellipsis(true).wrap().padTop(8f).minWidth(labelWidth).growX();
+            valueTable.add(getDisplayName(object)).labelAlign(Align.right).ellipsis(true).wrap(true).padTop(8f).minWidth(labelWidth).growX();
         });
     }
 

@@ -135,7 +135,7 @@ public class EUI{
     public static void infoToast(String text, float duration){
         Table t = new Table(Styles.black3);
         t.touchable = Touchable.disabled;
-        t.margin(16).add(text).wrap().width(256f).style(Styles.outlineLabel).labelAlign(Align.left);
+        t.margin(16).add(text).wrap(true).width(256f).style(Styles.outlineLabel).labelAlign(Align.left);
 
         t.update(t::toFront);
 

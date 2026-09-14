@@ -117,7 +117,7 @@ public class MissingRegionsDialog extends BaseDialog{
                 table.table(t -> {
                     t.defaults().left();
                     t.image(Tex.nomap).size(Vars.iconLarge).pad(4f);
-                    t.add(name).wrap().left().growX().width(labelWidth).pad(6f);
+                    t.add(name).wrap(true).left().growX().width(labelWidth).pad(6f);
                     t.button(Icon.copy, Styles.clearNonei, () -> copyName(name)).size(36f).pad(4f).tooltip("@patch-editor.missingRegions.copy", true);
                 }).growX().pad(2f);
 
