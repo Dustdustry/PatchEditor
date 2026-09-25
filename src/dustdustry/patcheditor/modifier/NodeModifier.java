@@ -18,6 +18,7 @@ import mindustry.entities.part.DrawPart.*;
 import mindustry.entities.units.*;
 import mindustry.type.*;
 import mindustry.type.weapons.*;
+import mindustry.world.*;
 import mindustry.world.meta.*;
 
 import static dustdustry.patcheditor.modifier.ValueModifier.*;
@@ -51,6 +52,7 @@ public class NodeModifier{
         new ModifierConfig(() -> new EnumModifier(EditorList.getAttributeList()), Attribute.class),
         new ModifierConfig(() -> new EnumModifier(EditorList.getSortfList()), Sortf.class),
         new ModifierConfig(() -> new EnumModifier(Category.values()), Category.class),
+        new ModifierConfig(() -> new EnumModifier(BlockGroup.values()), BlockGroup.class),
 
         new ModifierConfig(EffectModifier::new, Effect.class),
         new ModifierConfig(PartProgressModifier::new, PartProgress.class).objectForm(),
