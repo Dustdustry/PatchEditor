@@ -17,8 +17,7 @@
 ## Output Template
 
 #### ✨ 新特性
-- **[核心功能名称]**：
-    - **[逻辑/细节描述]**：描述具体的改动点
+- **[核心功能名称]**： 描述具体的改动点
 - **[新增支持]**：描述新增的字段或协议
 
 #### 🐛 修复
@@ -31,8 +30,7 @@
 ---
 
 #### ✨ Features
-- **[Feature Name]**:
-    - **[Detail]**: Description of the logic change.
+- **[Feature Name]**: Description of the logic change.
 - **[Support]**: Added support for [Fields/Protocols].
 
 #### 🐛 Bug Fixes
