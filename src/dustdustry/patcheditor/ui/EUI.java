@@ -30,6 +30,7 @@ public class EUI{
     public static SoundSelector soundSelector;
     public static BlockClassSelector blockClassSelector;
     public static ColorSelector colorSelector;
+    public static EffectSelector effectSelector;
 
     public static PatchEditor patchEditor;
     public static ContentAssetEditor contentAssetEditor;
@@ -54,6 +55,7 @@ public class EUI{
         soundSelector = new SoundSelector();
         blockClassSelector = new BlockClassSelector();
         colorSelector = new ColorSelector();
+        effectSelector = new EffectSelector();
 
         patchEditor = new PatchEditor();
         contentAssetEditor = new ContentAssetEditor();

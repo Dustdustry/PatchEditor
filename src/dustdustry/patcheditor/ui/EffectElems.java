@@ -58,7 +58,7 @@ public class EffectElems{
     }
 
     /** copy from {@link mindustry.ui.dialogs.EffectsDialog} */
-    public static class EffectCell extends Element{
+    private static class EffectCell extends Element{
         EffectEntry effect;
         Effect renderEffect;
         float size = -1f;

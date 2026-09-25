@@ -295,8 +295,9 @@ public abstract class ModifierBuilder<T>{
             .tooltip(t -> t.background(Styles.black3).label(() -> value).pad(4f));
 
             table.button(Icon.book, Styles.clearNonei, () -> {
-                EffectsDialog.withAllEffects().show(entry -> {
+                EUI.effectSelector.select(entry ->{
                     setValue(entry.name);
+                    return true;
                 });
             }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
         }

@@ -6,9 +6,12 @@ import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.content.*;
+import mindustry.entities.*;
 import mindustry.entities.Units.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.logic.LogicFx.*;
 import mindustry.mod.*;
 import mindustry.type.*;
 import mindustry.world.meta.*;
@@ -26,6 +29,7 @@ public class EditorList{
     private static Seq<String> visibilityList, interpList, attributeList, sortfList, partProgressList;
     private static Seq<ColorEntry> colorList;
     private static Seq<Field> partProgressFields, interpFields;
+    private static Seq<EffectEntry> effectList;
 
     public static Seq<Weapon> getWeapons(){
         if(weaponList == null){
@@ -82,10 +86,6 @@ public class EditorList{
         return partProgressList;
     }
 
-    /**
-     * Static PartProgress variables available in the progress script scope.
-     * Read only. Do not hold the reference.
-     */
     public static Seq<Field> getPartProgressFields(){
         if(partProgressFields == null){
             partProgressFields = Seq.with(PartProgress.class.getFields()).select(f -> f.getType() == PartProgress.class);
@@ -93,10 +93,6 @@ public class EditorList{
         return partProgressFields;
     }
 
-    /**
-     * Static Interp variables available in the progress script scope.
-     * Read only. Do not hold the reference.
-     */
     public static Seq<Field> getInterpFields(){
         if(interpFields == null){
             interpFields = Seq.with(Interp.class.getFields()).select(f -> Interp.class.isAssignableFrom(f.getType()));
@@ -132,6 +128,14 @@ public class EditorList{
             colorList.sortComparing(e -> e.name);
         }
         return colorList;
+    }
+
+    public static Seq<EffectEntry> getEffectList(){
+        if(effectList == null){
+            effectList = Seq.select(Fx.class.getFields(), f -> f.getType() == Effect.class).map(f -> new EffectEntry(Reflect.get(f)).name(f.getName()));
+            effectList.sortComparing(e -> e.name);
+        }
+        return effectList;
     }
 
     public enum UnitConstructorType{
