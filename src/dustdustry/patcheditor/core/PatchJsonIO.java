@@ -357,7 +357,7 @@ public class PatchJsonIO{
 
     /** Copy from {@link ContentParser}. This is a bad idea but there is no way to track the operations. */
     public static ProgressBuilder parseProgressBuilder(JsonValue data){
-        if(data.isString()) return Reflect.get(PartProgress.class, data.getString("type"));
+        if(data.isString()) return new ProgressBuilder(Reflect.get(PartProgress.class, data.asString()));
         if(data.isNumber()) return new ProgressBuilder(data.asFloat());
 
         PartProgress base = Reflect.get(PartProgress.class, data.getString("type"));
