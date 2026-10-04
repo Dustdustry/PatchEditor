@@ -24,7 +24,7 @@ public class PatchExporter{
         JsonValue value = new JsonValue(ValueType.object);
         if(objectNode.getParent() != null && objectNode.getParent().isRoot()){
             for(Entry<String, ObjectNode> entry : objectNode.getChildren()){
-                JsonValue childValue = new JsonValue(ValueType.object);
+                JsonValue childValue = new JsonValue(ValueType.object); // Just a default type, change the value type later.
 
                 value.addChild(entry.key, childValue);
                 ObjectExporter.exportObject(entry.value, childValue, config);

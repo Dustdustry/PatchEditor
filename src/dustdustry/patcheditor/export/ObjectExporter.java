@@ -231,7 +231,7 @@ public class ObjectExporter{
         Object object = objectNode.object;
         if(object instanceof MapEntry<?,?> entry) object = entry.value;
 
-        value.setType(ValueType.object);
+        value.setType(objectNode.isArrayLike() ? ValueType.array : ValueType.object);
         Class<?> type = ClassHelper.actualClass(object.getClass());
         if(PatchJsonIO.typeOverrideable(type)){
             String typeName = PatchJsonIO.getTypeName(type);
