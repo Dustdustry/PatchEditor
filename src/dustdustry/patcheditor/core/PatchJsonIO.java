@@ -11,7 +11,6 @@ import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
 import arc.util.serialization.Json.*;
-import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.Jval.*;
 import mindustry.content.*;
 import mindustry.ctype.*;
@@ -191,37 +190,58 @@ public class PatchJsonIO{
                 if(resolvedType != null) return resolvedType;
             }
 
-            JsonValue value = JsonTransform.toJsonValue(patchNode);
-            if(patchNode.value != null) return json.readValue(type, objectNode.elementType, value);
+            JNode value = JsonTransform.toJsonTree(patchNode);
+            if(patchNode.value != null) return readValue(type, objectNode.elementType, value);
 
             Object copied = PatchJsonIO.cloneObject(original);
-            if(copied == null) return json.readValue(type, objectNode.elementType, value);
+            if(copied == null) return readValue(type, objectNode.elementType, value);
 
             // stimulate patch applying
-            json.readFields(copied, value);
+            applyFields(json, copied, value);
             return copied;
         }catch(Exception e){
             return null;
         }
     }
 
+    public static <T> T readValue(Class<T> type, Class<?> elementType, JNode value){
+        return getParser().getJson().fromJson(type, elementType, value.toJson());
+    }
+
+    public static Object asParserTree(JNode value){
+        return getParser().getJson().fromJson(null, value.toJson());
+    }
+
+    private static void applyFields(Json json, Object target, JNode value){
+        ObjectMap<String, FieldMetadata> fields = json.getFields(target.getClass());
+
+        for(JNode child : value){
+            if(child.name == null) continue;
+
+            FieldMetadata metadata = fields.get(child.name.replace(" ", "_"));
+            if(metadata == null) continue;
+
+            Reflect.set(target, metadata.field, json.fromJson(metadata.field.getType(), metadata.elementType, child.toJson()));
+        }
+    }
+
     public static void parseJson(ObjectNode objectNode, PatchNode patchNode, String patch){
-        JsonValue value = getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
+        JNode value = JNode.of(Jval.read(patch));
         JsonTransform.extractDotSyntax(value);
         JsonTransform.desugarJson(objectNode, value);
         parseJson(objectNode, patchNode, value, objectNode.getResolutionStrategy());
     }
 
-    public static void parseJson(ObjectNode objectNode, PatchNode patchNode, JsonValue value, ResolutionStrategy strategy){
+    public static void parseJson(ObjectNode objectNode, PatchNode patchNode, JNode value, ResolutionStrategy strategy){
         // sign is seen as attribute in PatchNode, not a node
         if(!value.isValue() && value.has(ModifierSign.PLUS.sign)){
-            JsonValue plusValue = value.remove(ModifierSign.PLUS.sign);
+            JNode plusValue = value.remove(ModifierSign.PLUS.sign);
 
             int i = 0;
             if(plusValue.isArray()){
                 // patchNode('+': [{}, ""]) -> multiple append
                 ObjectNode template = objectNode == null ? null : ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
-                for(JsonValue childValue : plusValue){
+                for(JNode childValue : plusValue){
                     PatchNode childNode = patchNode.getOrCreate(appendPrefix + i++);
                     if(debug) Log.info("'@' got sign @", childNode.getPath(), childNode.sign);
                     parseJson(template, childNode, childValue, strategy);
@@ -236,8 +256,8 @@ public class PatchJsonIO{
                 parseJson(template, childNode, plusValue, strategy);
             }
 
-            if(value.child == null){
-                JsonValues.remove(value);
+            if(value.isEmpty()){
+                value.remove();
                 return;
             }
         }
@@ -250,12 +270,12 @@ public class PatchJsonIO{
                 template = ObjectResolver.getTemplate(objectNode.elementType, strategy);
             }
 
-            for(JsonValue childValue : value){
+            for(JNode childValue : value){
                 PatchNode childNode = patchNode.getOrCreate("" + i++);
                 parseJson(template, childNode, childValue, strategy);
                 childNode.sign = ModifierSign.PLUS;
             }
-            patchNode.type = ValueType.array;
+            patchNode.type = Jtype.array;
             patchNode.sign = ModifierSign.MODIFY;
             return;
         }
@@ -265,7 +285,7 @@ public class PatchJsonIO{
 
         if(value.isValue()) return;
 
-        for(JsonValue childValue : value){
+        for(JNode childValue : value){
             String name = childValue.name;
 
             ObjectNode childObj = objectNode == null ? null : objectNode.getOrResolve(name);
@@ -291,7 +311,7 @@ public class PatchJsonIO{
                     childNode.sign = ModifierSign.REMOVE;
                 }else{
                     // patchNode('map': {}) -> modify(override) or append key
-                    Object key = parser.getJson().readValue(objectNode.keyType, new JsonValue(childValue.name));
+                    Object key = readValue(objectNode.keyType, null, JNode.of(null, childValue.name));
                     if(key != null && !MapLike.contains(objectNode.object, key)){
                         childNode.sign = ModifierSign.PLUS;
                         if(debug) Log.info("'@' got sign '@'", childNode.getPath(), childNode.sign);
@@ -306,7 +326,7 @@ public class PatchJsonIO{
 
     public static void toPatchNode(ProgressBuilder builder, PatchNode node){
         if(builder.isConstantBase()){
-            node.type = ValueType.doubleValue;
+            node.type = Jtype.number;
             node.value = String.valueOf(builder.base.get(new PartParams()));
             return;
         }
@@ -321,7 +341,7 @@ public class PatchJsonIO{
 
         node.getOrCreate("type").value = keyName;
         PatchNode opsNode = node.getOrCreate("ops");
-        opsNode.type = ValueType.array;
+        opsNode.type = Jtype.array;
         int i = 0;
         for(ProgressBuilder.Op op : builder.ops){
             PatchNode opNode = opsNode.getOrCreate(String.valueOf(i));
@@ -332,7 +352,7 @@ public class PatchJsonIO{
                 PatchNode paramNode = opNode.getOrCreate(entry.key);
                 if(val instanceof Number){
                     paramNode.value = val.toString();
-                    paramNode.type = ValueType.doubleValue;
+                    paramNode.type = Jtype.number;
                 }else if(val instanceof PartProgress p){
                     if(p instanceof ProgressBuilder other){
                         toPatchNode(other, paramNode);
@@ -341,14 +361,14 @@ public class PatchJsonIO{
                         if(name == null || name.equals(p.toString()))
                             throw new IllegalArgumentException("Nested PartProgress is not a named constant or ProgressBuilder");
                         paramNode.value = name;
-                        paramNode.type = ValueType.stringValue;
+                        paramNode.type = Jtype.string;
                     }
                 }else if(val instanceof Interp interp){
                     paramNode.value = PatchJsonIO.getKeyName(interp);
-                    paramNode.type = ValueType.stringValue;
+                    paramNode.type = Jtype.string;
                 }else{
                     paramNode.value = String.valueOf(val);
-                    paramNode.type = ValueType.stringValue;
+                    paramNode.type = Jtype.string;
                 }
             }
             i++;
@@ -356,20 +376,20 @@ public class PatchJsonIO{
     }
 
     /** Copy from {@link ContentParser}. This is a bad idea but there is no way to track the operations. */
-    public static ProgressBuilder parseProgressBuilder(JsonValue data){
+    public static ProgressBuilder parseProgressBuilder(JNode data){
         if(data.isString()) return new ProgressBuilder(Reflect.get(PartProgress.class, data.asString()));
         if(data.isNumber()) return new ProgressBuilder(data.asFloat());
 
         PartProgress base = Reflect.get(PartProgress.class, data.getString("type"));
         ProgressBuilder builder = new ProgressBuilder(base);
 
-        JsonValue opval =
+        JNode opval =
         data.has("operation") ? data.get("operation") :
         data.has("op") ? data.get("op") : null;
 
         //no singular operation, check for multi-operation
         if(opval == null){
-            JsonValue opsVal =
+            JNode opsVal =
             data.has("operations") ? data.get("operations") :
             data.has("ops") ? data.get("ops") : null;
 
@@ -377,13 +397,13 @@ public class PatchJsonIO{
                 if(!opsVal.isArray()) throw new RuntimeException("Chained PartProgress operations must be an array.");
                 int i = 0;
                 while(true){
-                    JsonValue val = opsVal.get(i);
+                    JNode val = opsVal.get(i);
                     if(val == null) break;
-                    JsonValue op = val.has("operation") ? val.get("operation") :
+                    JNode op = val.has("operation") ? val.get("operation") :
                     val.has("op") ? val.get("op") : null;
 
                     builder = Reflect.invoke(ContentParser.class, getParser(), "parseProgressOp",
-                    new Object[]{builder, op.asString(), val},
+                    new Object[]{builder, op.asString(), asParserTree(val)},
                     PartProgress.class, String.class, JsonValue.class);
                     i++;
                 }
@@ -395,7 +415,7 @@ public class PatchJsonIO{
         //this is the name of the method to call
         String op = opval.asString();
         return Reflect.invoke(ContentParser.class, getParser(), "parseProgressOp",
-        new Object[]{builder, op, data},
+        new Object[]{builder, op, asParserTree(data)},
         PartProgress.class, String.class, JsonValue.class);
     }
 }

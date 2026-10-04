@@ -133,13 +133,11 @@ public class FieldNotes{
     }
 
     public static String exportUserNotesJson(){
-        JsonValue value = JsonIO.json.fromJson(null, notesToJson(userNotes));
-        return value.toJson(OutputType.json);
+        return notesToJson(userNotes);
     }
 
     public static String exportWikiNotesJson(){
-        JsonValue value = JsonIO.json.fromJson(null, JsonIO.json.toJson(wikiNotesData));
-        return value.toJson(OutputType.json);
+        return new Json(OutputType.json).toJson(wikiNotesData);
     }
 
     public static void importUserNotesClipboard(String text, boolean replace){
@@ -258,7 +256,7 @@ public class FieldNotes{
             fields.put(field, note);
         }
 
-        return JsonIO.json.toJson(data);
+        return new Json(OutputType.json).toJson(data);
     }
 
     public static class NotesData{

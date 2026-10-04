@@ -2,16 +2,16 @@ package dustdustry.patcheditor.modifier;
 
 import arc.struct.*;
 import dustdustry.patcheditor.core.*;
-import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.Jval.*;
 import dustdustry.patcheditor.modifier.ModifierBuilder.*;
 import mindustry.ctype.*;
 
 import java.util.*;
 
 public abstract class ValueModifier<T> extends DataModifier<T>{
-    protected ValueType valueType = ValueType.stringValue;
+    protected Jtype valueType = Jtype.string;
 
-    public ValueType getValueType(){
+    public Jtype getValueType(){
         return valueType;
     }
 
@@ -55,21 +55,21 @@ public abstract class ValueModifier<T> extends DataModifier<T>{
     public static class ContentTypeModifier extends ValueModifier<Content>{
         public ContentTypeModifier(){
             builder = new ContentBuilder(this);
-            valueType = ValueType.stringValue;
+            valueType = Jtype.string;
         }
     }
 
     public static class BooleanModifier extends ValueModifier<Boolean>{
         public BooleanModifier(){
             builder = new BooleanBuilder(this);
-            valueType = ValueType.booleanValue;
+            valueType = Jtype.bool;
         }
     }
 
     public static class StringModifier extends ValueModifier<String>{
         public StringModifier(){
             builder = new TextBuilder(this);
-            valueType = ValueType.stringValue;
+            valueType = Jtype.string;
         }
 
         @Override
@@ -81,19 +81,19 @@ public abstract class ValueModifier<T> extends DataModifier<T>{
     public static class EnumModifier extends StringModifier{
         public EnumModifier(Seq<String> names){
             builder = new SelectBuilder(this, names);
-            valueType = ValueType.stringValue;
+            valueType = Jtype.string;
         }
 
         public EnumModifier(Enum<?>[] enums){
             builder = new SelectBuilder(this, enums);
-            valueType = ValueType.stringValue;
+            valueType = Jtype.string;
         }
     }
 
     public static class NumberModifier extends StringModifier{
         public NumberModifier(){
             super();
-            valueType = ValueType.doubleValue;
+            valueType = Jtype.number;
         }
 
         @Override
@@ -127,7 +127,7 @@ public abstract class ValueModifier<T> extends DataModifier<T>{
     public static class TextureRegionModifier extends StringModifier{
         public TextureRegionModifier(){
             builder = new TextureRegionBuilder(this);
-            valueType = ValueType.stringValue;
+            valueType = Jtype.string;
         }
     }
 
@@ -135,21 +135,21 @@ public abstract class ValueModifier<T> extends DataModifier<T>{
     public static class WeaponNameModifier extends StringModifier{
         public WeaponNameModifier(){
             builder = new WeaponNameBuilder(this);
-            valueType = ValueType.stringValue;
+            valueType = Jtype.string;
         }
     }
 
     public static class EffectModifier extends StringModifier{
         public EffectModifier(){
             builder = new EffectBuilder(this);
-            valueType = ValueType.stringValue;
+            valueType = Jtype.string;
         }
     }
 
     public static class SoundModifier extends StringModifier{
         public SoundModifier(){
             builder = new SoundBuilder(this);
-            valueType = ValueType.stringValue;
+            valueType = Jtype.string;
         }
     }
 }

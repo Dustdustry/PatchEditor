@@ -3,7 +3,7 @@ package dustdustry.patcheditor.core;
 import dustdustry.patcheditor.core.resolve.*;
 import dustdustry.patcheditor.modifier.*;
 import arc.struct.ObjectMap.*;
-import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.Jval.*;
 
 public abstract class PatchOperator{
     public final String path;
@@ -67,9 +67,9 @@ public abstract class PatchOperator{
 
     public static class SetOp extends PatchOperator{
         public final String value;
-        public final ValueType type;
+        public final Jtype type;
 
-        public SetOp(String path, String value, ValueType type){
+        public SetOp(String path, String value, Jtype type){
             super(path);
 
             this.value = value;
@@ -146,10 +146,10 @@ public abstract class PatchOperator{
             String prefix = plusSyntax ? PatchJsonIO.appendPrefix : "";
             PatchNode appended = node.getOrCreate(findKey(prefix, node));
             appended.sign = ModifierSign.PLUS;
-            appended.type = ClassHelper.isArrayLike(elementType) ? ValueType.array : ValueType.object;
+            appended.type = ClassHelper.isArrayLike(elementType) ? Jtype.array : Jtype.object;
 
             ObjectNode template = ObjectResolver.getTemplate(elementType, strategy);
-            ValueType valueType = NodeModifier.valueTypeOf(template);
+            Jtype valueType = NodeModifier.valueTypeOf(template);
             if(valueType != null){
                 appended.type = valueType;
                 appended.value = PatchJsonIO.getKeyName(template.object);
@@ -208,7 +208,7 @@ public abstract class PatchOperator{
             if(node.sign != ModifierSign.PLUS) node.sign = ModifierSign.MODIFY;
             // clear leftover scalar value from simple-value form
             node.value = null;
-            node.type = ValueType.object;
+            node.type = Jtype.object;
             node.getOrCreate("type").value = PatchJsonIO.getTypeName(type);
         }
     }
@@ -235,9 +235,9 @@ public abstract class PatchOperator{
     }
 
     public static class SetValueTypeOp extends PatchOperator{
-        public final ValueType type;
+        public final Jtype type;
 
-        public SetValueTypeOp(String path, ValueType type){
+        public SetValueTypeOp(String path, Jtype type){
             super(path);
             this.type = type;
         }

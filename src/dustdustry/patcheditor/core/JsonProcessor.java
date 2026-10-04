@@ -2,7 +2,6 @@ package dustdustry.patcheditor.core;
 
 import arc.util.serialization.*;
 import arc.util.serialization.Jval.*;
-import arc.util.serialization.JsonWriter.*;
 
 public class JsonProcessor{
     public boolean sugarStacks;
@@ -12,17 +11,17 @@ public class JsonProcessor{
 
     private final ObjectNode objectNode;
     private final PatchNode patchNode;
-    private final JsonValue jsonValue;
+    private final JNode jsonNode;
 
     public JsonProcessor(ObjectNode objectNode, PatchNode patchNode){
         this.objectNode = objectNode;
         this.patchNode = patchNode;
-        this.jsonValue = null;
+        this.jsonNode = null;
     }
 
-    public JsonProcessor(ObjectNode objectNode, JsonValue jsonValue){
+    public JsonProcessor(ObjectNode objectNode, JNode jsonNode){
         this.objectNode = objectNode;
-        this.jsonValue = jsonValue;
+        this.jsonNode = jsonNode;
         this.patchNode = null;
     }
 
@@ -55,13 +54,13 @@ public class JsonProcessor{
     }
 
     public String toJson(){
-        JsonValue value = resolveValue();
+        JNode value = resolveValue();
         if(value == null) return "";
         return formatString(value);
     }
 
     public String toPatch(){
-        JsonValue value = resolveValue();
+        JNode value = resolveValue();
         if(value == null) return "";
 
         SugarJsonConfig config = new SugarJsonConfig().sugarStacks(sugarStacks);
@@ -74,7 +73,7 @@ public class JsonProcessor{
     }
 
     public String toModJson(){
-        JsonValue value = resolveValue();
+        JNode value = resolveValue();
         if(value == null) return "";
 
         SugarJsonConfig config = new SugarJsonConfig().sugarStacks(sugarStacks);
@@ -84,18 +83,18 @@ public class JsonProcessor{
         return formatString(value);
     }
 
-    private JsonValue resolveValue(){
-        if(jsonValue != null) return jsonValue;
-        if(patchNode != null) return JsonTransform.toJsonValue(patchNode);
+    private JNode resolveValue(){
+        if(jsonNode != null) return jsonNode;
+        if(patchNode != null) return JsonTransform.toJsonTree(patchNode);
         return null;
     }
 
-    private String formatString(JsonValue value){
+    private String formatString(JNode value){
         OutputFormat fmt = format != null ? format : OutputFormat.hjson;
         if(fmt == OutputFormat.hjson){
-            return JsonValues.valueToJval(value).toString(Jformat.hjson);
+            return value.toJson(Jformat.hjson);
         }else{
-            return formatJson ? JsonValues.valueToJval(value).toString(Jformat.formatted) : value.toJson(OutputType.json);
+            return formatJson ? value.toJson(Jformat.formatted) : value.toJson(Jformat.plain);
         }
     }
 

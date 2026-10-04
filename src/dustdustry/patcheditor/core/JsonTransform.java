@@ -2,7 +2,6 @@ package dustdustry.patcheditor.core;
 
 import arc.math.geom.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
 import arc.util.serialization.Jval.*;
 import dustdustry.patcheditor.core.resolve.*;
 import dustdustry.patcheditor.core.JsonProcessor.*;
@@ -18,67 +17,96 @@ import mindustry.world.draw.*;
 public class JsonTransform{
 
     /** patchTree to jsonTree */
-    public static JsonValue toJsonValue(PatchNode patchNode){
-        return toJsonValue(patchNode, new JsonValue(patchNode.type));
+    public static JNode toJsonTree(PatchNode patchNode){
+        return toJsonTree(patchNode, newNode(patchNode));
     }
 
-    private static JsonValue toJsonValue(PatchNode patchNode, JsonValue value){
+    private static JNode toJsonTree(PatchNode patchNode, JNode value){
         value.setName(patchNode.key);
         if(patchNode.value != null){
-            if(patchNode.type == ValueType.doubleValue || patchNode.type == ValueType.longValue){
-                value.set(Double.parseDouble(patchNode.value), patchNode.value);
+            if(patchNode.type == Jtype.number){
+                value.set(parseNumber(patchNode.value));
+            }else if(patchNode.type == Jtype.bool){
+                value.set(Boolean.parseBoolean(patchNode.value));
             }else{
                 value.set(patchNode.value);
             }
         }
 
-        int size = 0;
-        JsonValue appendValue = null;
-        for(PatchNode childNode : patchNode.children.values()){
-            JsonValue childValue = new JsonValue(childNode.type);
+        if(!value.isValue()){
+            JNode appendValue = null;
+            for(PatchNode childNode : patchNode.children.values()){
+                JNode childValue = newNode(childNode);
 
-            if(childNode.key.startsWith(PatchJsonIO.appendPrefix)){
-                if(appendValue == null){
-                    appendValue = new JsonValue(ValueType.array);
-                    value.addChild(ModifierSign.PLUS.sign, appendValue);
-                    size++;
+                if(childNode.key.startsWith(PatchJsonIO.appendPrefix)){
+                    if(appendValue == null){
+                        appendValue = JNode.array();
+                        value.addChild(ModifierSign.PLUS.sign, appendValue);
+                    }
+
+                    appendValue.addChild(childValue);
+                }else{
+                    value.addChild(childNode.key, childValue);
                 }
 
-                appendValue.addChild(childValue.name, childValue);
-            }else{
-                value.addChild(childNode.key, childValue);
-                size++;
+                toJsonTree(childNode, childValue);
             }
-
-            toJsonValue(childNode, childValue);
         }
 
-        value.size = size;
         return value;
     }
 
-    public static void extractDotSyntax(JsonValue value){
+    private static JNode newNode(PatchNode patchNode){
+        return switch(patchNode.type){
+            case object -> JNode.object();
+            case array -> JNode.array();
+            default -> JNode.nullValue();
+        };
+    }
+
+    /** Keeps integers integral so that large values and index-like fields survive a round trip. */
+    private static Jval parseNumber(String text){
+        try{
+            if(text.indexOf('.') < 0 && text.indexOf('e') < 0 && text.indexOf('E') < 0){
+                return Jval.valueOf(Long.parseLong(text));
+            }
+            return Jval.valueOf(Double.parseDouble(text));
+        }catch(NumberFormatException ignored){
+            //e.g. a "0.5f" literal: leave it as text, the game parser accepts both forms
+            return Jval.valueOf(text);
+        }
+    }
+
+    public static void extractDotSyntax(JNode value){
         if(value.name != null && value.parent != null && value.name.contains(NodeManager.pathComp)){
             String[] names = value.name.split(NodeManager.pathSplitter);
 
-            int i = 0;
-            JsonValue currentParent = new JsonValue(ValueType.object);
-            currentParent.setName(names[i++]);
-            JsonValues.replace(value, currentParent); // don't affect the order
+            JNode parent = value.parent;
+            int position = value.index();
 
-            while(i < names.length - 1){
-                currentParent.addChild(names[i++], currentParent = new JsonValue(ValueType.object));
+            value.remove();
+
+            // dotted keys sharing a prefix merge into one object; a Jval map cannot hold duplicate sibling names
+            JNode current = parent;
+            for(int i = 0; i < names.length - 1; i++){
+                JNode child = current.get(names[i]);
+                if(child == null || child.isValue()){
+                    child = JNode.object(names[i]); // insertChild keys the object by the child's own name
+                    current.insertChild(position, child);
+                }
+                current = child;
             }
 
-            currentParent.addChild(names[i], value);
+            value.setName(names[names.length - 1]);
+            current.addChild(value);
         }
 
-        for(JsonValue childValue : value){
+        for(JNode childValue : value){
             extractDotSyntax(childValue);
         }
     }
 
-    public static void desugarJson(ObjectNode objectNode, JsonValue value){
+    public static void desugarJson(ObjectNode objectNode, JNode value){
         boolean isValue = value.isValue();
 
         if(objectNode != null){
@@ -90,7 +118,7 @@ public class JsonTransform{
             if(ClassHelper.isArrayLike(objectNode.type) || objectNode.isSign(ModifierSign.PLUS)){
                 // "requirements": ["item/amount"] | {+: [], {"item": "xxx"}}
                 ObjectNode childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
-                for(JsonValue childValue : value){
+                for(JNode childValue : value){
                     if(ModifierSign.PLUS.sign.equals(childValue.name)){
                         ObjectNode plusNode = objectNode.getOrResolve(childValue.name);
                         desugarJson(plusNode, childValue);
@@ -104,135 +132,135 @@ public class JsonTransform{
 
         if(value.isValue()) return;
 
-        for(JsonValue childValue : value){
+        for(JNode childValue : value){
             ObjectNode childNode = childValue.name == null || objectNode == null ? null : objectNode.getOrResolve(childValue.name);
             desugarJson(childNode, childValue);
         }
     }
 
-    private static void desugarJson(JsonValue value, Class<?> type){
+    private static void desugarJson(JNode value, Class<?> type){
         // TODO: More sugar syntaxes support
         if(type == ItemStack.class || type == PayloadStack.class){
             if(!value.isString() || !value.asString().contains("/")) return;
             String[] split = value.asString().split("/");
-            value.setType(ValueType.object);
-            JsonValue amountValue = new JsonValue(split[1]);
-            amountValue.setType(ValueType.doubleValue);
-            value.addChild("item", new JsonValue(split[0]));
-            value.addChild("amount", amountValue);
+            value.setType(Jtype.object);
+            value.addChild(JNode.of("item", split[0]));
+            value.addChild(JNode.of("amount", parseNumber(split[1])));
         }else if(type == LiquidStack.class || type == ConsumeLiquid.class){
             if(!value.isString() || !value.asString().contains("/")) return;
             String[] split = value.asString().split("/");
-            value.setType(ValueType.object);
-            JsonValue amountValue = new JsonValue(split[1]);
-            amountValue.setType(ValueType.doubleValue);
-            value.addChild("liquid", new JsonValue(split[0]));
-            value.addChild("amount", amountValue);
+            value.setType(Jtype.object);
+            value.addChild(JNode.of("liquid", split[0]));
+            value.addChild(JNode.of("amount", parseNumber(split[1])));
         }else if(type == Consume.class && value.name != null){
             if(value.name.equals("remove")){
                 if(value.isString()){
                     // remove: item -> remove: {item: -}
                     String removed = value.asString();
-                    value.setType(ValueType.object);
-                    value.addChild(removed, new JsonValue(ModifierSign.REMOVE.sign));
+                    value.setType(Jtype.object);
+                    value.addChild(JNode.of(removed, ModifierSign.REMOVE.sign));
                 }else if(value.isArray()){
                     // remove: [item, liquid] -> remove: {item: -, liquid: -}
-                    value.setType(ValueType.object);
-                    for(JsonValue child : value){
+                    Jval container = Jval.newObject();
+                    Jval.JsonMap map = container.asObject();
+                    for(JNode child : value){
                         if(child.isString()){
-                            child.setName(child.asString());
-                            child.set(ModifierSign.REMOVE.sign);
+                            map.put(child.asString(), Jval.valueOf(ModifierSign.REMOVE.sign));
                         }
                     }
+                    value.set(container);
                 }
             }
         }else if(type == ConsumeItems.class){
             if(value.isString()){
                 // items: copper/2 -> items: {items: [copper/2]}
                 String item = value.asString();
-                value.setType(ValueType.object);
-                JsonValue itemsValue = new JsonValue(ValueType.array);
+                value.setType(Jtype.object);
+                JNode itemsValue = JNode.array();
                 value.addChild("items", itemsValue);
-                itemsValue.addChild("", new JsonValue(item));
+                itemsValue.addChild(JNode.of(null, item));
             }else if(value.isArray()){
                 // items: [copper/2] -> items: {items: [copper/2]}
-                value.setType(ValueType.object);
-                JsonValue itemsValue = new JsonValue(ValueType.array);
-                JsonValues.moveChild(value, itemsValue);
+                value.setType(Jtype.object);
+                JNode itemsValue = JNode.array();
+                value.moveChildrenTo(itemsValue);
                 value.addChild("items", itemsValue);
             }
         }else if(type == ConsumeLiquids.class){
             if(value.isArray()){
                 // liquids: [water/0.1] -> liquids: {liquids: [water/0.1]}
-                value.setType(ValueType.object);
-                JsonValue liquidsValue = new JsonValue(ValueType.array);
-                JsonValues.moveChild(value, liquidsValue);
+                value.setType(Jtype.object);
+                JNode liquidsValue = JNode.array();
+                value.moveChildrenTo(liquidsValue);
                 value.addChild("liquids", liquidsValue);
             }
         }else if(type == ConsumePower.class){
             if(value.isNumber()){
                 // power: 10 -> power: {usage: 10}
                 float num = value.asFloat();
-                value.setType(ValueType.object);
-                value.addChild("usage", new JsonValue(num));
+                value.setType(Jtype.object);
+                value.addChild(JNode.of("usage", num));
             }
         }else if(value.isArray()){
             /* object: [{}] -> object: { type: MultiXXX, objects: [{}]}*/
             if(type == Effect.class){
                 /* to MultiEffect */
-                value.setType(ValueType.object);
-                JsonValue elementValue = new JsonValue(ValueType.array);
-                JsonValues.moveChild(value, elementValue);
+                value.setType(Jtype.object);
+                JNode elementValue = JNode.array();
+                value.moveChildrenTo(elementValue);
 
-                value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(MultiEffect.class)));
+                value.addChild(JNode.of("type", PatchJsonIO.getTypeName(MultiEffect.class)));
                 value.addChild("effects", elementValue);
             }else if(type == BulletType.class){
                 /* to MultiBulletType */
-                value.setType(ValueType.object);
-                JsonValue elementValue = new JsonValue(ValueType.array);
-                JsonValues.moveChild(value, elementValue);
+                value.setType(Jtype.object);
+                JNode elementValue = JNode.array();
+                value.moveChildrenTo(elementValue);
 
-                value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(MultiBulletType.class)));
+                value.addChild(JNode.of("type", PatchJsonIO.getTypeName(MultiBulletType.class)));
                 value.addChild("bullets", elementValue);
             }else if(type == DrawBlock.class){
                 /* to DrawMulti */
-                value.setType(ValueType.object);
-                JsonValue elementValue = new JsonValue(ValueType.array);
-                JsonValues.moveChild(value, elementValue);
+                value.setType(Jtype.object);
+                JNode elementValue = JNode.array();
+                value.moveChildrenTo(elementValue);
 
-                value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(DrawMulti.class)));
+                value.addChild(JNode.of("type", PatchJsonIO.getTypeName(DrawMulti.class)));
                 value.addChild("drawers", elementValue);
-            }else if(type == Rect.class && value.size == 4){
-                value.setType(ValueType.object);
-                value.get(0).setName("x");
-                value.get(1).setName("y");
-                value.get(2).setName("width");
-                value.get(3).setName("height");
-            }else if(type == Vec3.class && value.size == 3){
-                value.setType(ValueType.object);
-                value.get(0).setName("x");
-                value.get(1).setName("y");
-                value.get(2).setName("z");
+            }else if(type == Rect.class && value.size() == 4){
+                toObject(value, "x", "y", "width", "height");
+            }else if(type == Vec3.class && value.size() == 3){
+                toObject(value, "x", "y", "z");
             }
         }
     }
 
+    /** Array to object: keys the children in order, e.g. a Rect quad becomes x/y/width/height. */
+    private static void toObject(JNode value, String... keys){
+        value.setType(Jtype.object);
+
+        Seq<JNode> children = value.children();
+        for(int i = 0; i < children.size && i < keys.length; i++){
+            children.get(i).setName(keys[i]);
+        }
+    }
+
     /** jsonTree to patchJsonTree. */
-    public static JsonValue processJson(ObjectNode objectNode, JsonValue value){
+    public static JNode processJson(ObjectNode objectNode, JNode value){
         return processJson(objectNode, value, true);
     }
 
-    public static JsonValue processJson(ObjectNode objectNode, JsonValue value, boolean flattenMultiArray){
+    public static JNode processJson(ObjectNode objectNode, JNode value, boolean flattenMultiArray){
         if(value.isValue()) return value;
 
-        for(JsonValue child : value){
+        for(JNode child : value){
             ObjectNode childNode = child.name != null ? objectNode.getOrResolve(child.name) : null;
             if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
             if(childNode != null) processJson(childNode, child, flattenMultiArray);
         }
 
-        Seq<JsonValue> result = new Seq<>();
-        for(JsonValue childValue : value){
+        Seq<JNode> result = new Seq<>();
+        for(JNode childValue : value){
             ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
             if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
 
@@ -242,22 +270,27 @@ public class JsonTransform{
             }
 
             if(flattenMultiArray && childNode.isMultiArrayLike()){
-                for(JsonValue indexValue : childValue){
-                    JsonValues.remove(indexValue);
+                for(JNode indexValue : childValue.detachChildren()){
                     indexValue.setName(childValue.name + NodeManager.pathComp + indexValue.name);
                     result.add(indexValue);
                 }
             }else if(flattenMultiArray && childNode.isArrayLike() && childValue.has(ModifierSign.PLUS.sign)){
-                JsonValue plusValue = childValue.remove(ModifierSign.PLUS.sign);
-                if(childValue.child != null){
+                JNode plusValue = childValue.remove(ModifierSign.PLUS.sign);
+                if(!childValue.isEmpty()){
                     result.add(childValue);
                 }
                 plusValue.setName(childValue.name + NodeManager.pathComp + plusValue.name);
                 result.add(plusValue);
             }else if(childNode.type == Consume.class && childNode.name.equals("remove")){
-                childValue.setType(ValueType.array);
-                for(JsonValue removed : childValue){
-                    removed.set(removed.name());
+                Seq<String> names = new Seq<>();
+                for(JNode child : childValue){
+                    names.add(child.name);
+                }
+
+                childValue.setType(Jtype.array);
+                Seq<JNode> removed = childValue.children();
+                for(int i = 0; i < removed.size && i < names.size; i++){
+                    removed.get(i).set(names.get(i));
                 }
                 result.insert(0, childValue);
             }else{
@@ -265,22 +298,11 @@ public class JsonTransform{
             }
         }
 
-        value.child = result.size > 0 ? result.get(0) : null;
-        value.size = result.size;
-        JsonValue prev = null;
-        for(JsonValue jv : result){
-            jv.parent = value;
-            jv.prev = prev;
-            jv.next = null;
-            if(prev != null) prev.next = jv;
-
-            prev = jv;
-        }
-
+        value.setChildren(result);
         return value;
     }
 
-    public static void sugarPatch(ObjectNode objectNode, JsonValue value, SugarJsonConfig config){
+    public static void sugarPatch(ObjectNode objectNode, JNode value, SugarJsonConfig config){
         if(objectNode == null || config == null) return;
 
         if(value.isObject()){
@@ -295,21 +317,14 @@ public class JsonTransform{
                     value.set(value.get("liquid").asString() + "/" + value.get("amount").asString());
                     return;
                 }
-            }else if(type == Rect.class && value.size == 4){
+            }else if(type == Rect.class && value.size() == 4){
                 if(value.has("x") && value.has("y") && value.has("width") && value.has("height")){
-                    value.setType(ValueType.array);
-                    value.get("x").setName("0");
-                    value.get("y").setName("1");
-                    value.get("width").setName("2");
-                    value.get("height").setName("3");
+                    value.setType(Jtype.array);
                     return;
                 }
-            }else if(type == Vec3.class && value.size == 3){
+            }else if(type == Vec3.class && value.size() == 3){
                 if(value.has("x") && value.has("y") && value.has("z")){
-                    value.setType(ValueType.array);
-                    value.get("x").setName("0");
-                    value.get("y").setName("1");
-                    value.get("z").setName("2");
+                    value.setType(Jtype.array);
                     return;
                 }
             }
@@ -317,46 +332,46 @@ public class JsonTransform{
 
         if(value.isValue()) return;
 
-        for(JsonValue childValue : value){
+        for(JNode childValue : value){
             ObjectNode childNode = childValue.name != null ? objectNode.getOrResolve(childValue.name) : null;
             if(childNode == null && objectNode.elementType != null) childNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
             sugarPatch(childNode, childValue, config);
         }
     }
 
-    public static void simplifyPath(JsonValue value){
+    public static void simplifyPath(JNode value){
         if(value == null) return;
 
-        for(JsonValue childValue : value){
+        for(JNode childValue : value){
             simplifyPath(childValue);
         }
 
         if(dotSimplifiable(value)){
             int singleCount = 1;
-            JsonValue singleEnd = value;
-            while(singleEnd.child != null && singleEnd.child.next == null && singleEnd.child.prev == null && dotSimplifiable(singleEnd.child)){
-                singleEnd = singleEnd.child;
+            JNode singleEnd = value;
+            while(singleEnd.size() == 1 && dotSimplifiable(singleEnd.first())){
+                singleEnd = singleEnd.first();
                 singleCount++;
             }
 
             if(singleCount >= PatchJsonIO.simplifySingleCount){
                 StringBuilder name = new StringBuilder();
-                JsonValue current = value;
-                while(current != singleEnd){
+                JNode current = value;
+                while(current.val != singleEnd.val){
                     name.append(current.name).append(NodeManager.pathComp);
-                    current = current.child;
+                    current = current.first();
                 }
                 name.append(singleEnd.name);
 
-                singleEnd.setName(name.toString());
-                JsonValues.replace(value, singleEnd);
+                value.set(singleEnd.val);
+                value.setName(name.toString());
             }
         }
     }
 
-    private static boolean dotSimplifiable(JsonValue node){
+    private static boolean dotSimplifiable(JNode node){
         if(node.isArray() || node.has("type")) return false;
-        JsonValue parent = node.parent;
+        JNode parent = node.parent;
         return parent != null && !parent.isArray() && !"consumes".equals(parent.name);
     }
 
@@ -391,7 +406,7 @@ public class JsonTransform{
             }
 
             // see array and value node as leaf nodes
-            if(childNode.type == ValueType.object){
+            if(childNode.type == Jtype.object){
                 getRedundant(childObj, childNode, out);
             }else if(isRedundantPatch(childObj, childNode)){
                 out.add(childNode);
@@ -400,8 +415,8 @@ public class JsonTransform{
     }
 
     private static boolean isRedundantPatch(ObjectNode objectNode, PatchNode patchNode){
-        if(objectNode == null || patchNode.type == ValueType.object) return false;
-        if(patchNode.type != ValueType.array && (patchNode.value == null || patchNode.sign != null)) return false;
+        if(objectNode == null || patchNode.type == Jtype.object) return false;
+        if(patchNode.type != Jtype.array && (patchNode.value == null || patchNode.sign != null)) return false;
 
         Object original = objectNode.object;
         if(original instanceof MapEntry<?,?> entry) original = entry.value;
@@ -419,22 +434,21 @@ public class JsonTransform{
         }
     }
 
-    public static JsonValue migrateTweaker(String patch){
-        JsonValue tweakerJson = PatchJsonIO.getParser().getJson().fromJson(null, Jval.read(patch).toString(Jformat.plain));
-        return migrateTweaker(tweakerJson);
+    public static JNode migrateTweaker(String patch){
+        return migrateTweaker(JNode.of(Jval.read(patch)));
     }
 
-    private static JsonValue migrateTweaker(JsonValue json){
+    private static JNode migrateTweaker(JNode json){
         if(json.isValue()) return json;
 
-        for(JsonValue childValue : json){
+        for(JNode childValue : json){
             if(childValue.name != null){
                 if(childValue.name.startsWith("#")){
                     String key = childValue.name.substring(1);
                     childValue.setName(key);
 
                     if(json.isObject() && Strings.canParsePositiveInt(key)){
-                        json.setType(ValueType.array);
+                        json.setType(Jtype.array);
                     }
                 }else if(childValue.isValue() && childValue.name.equals("=")){
                     json.set(childValue.asString());

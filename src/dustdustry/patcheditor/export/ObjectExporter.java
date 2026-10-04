@@ -12,7 +12,7 @@ import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.Jval.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.part.DrawPart.*;
@@ -36,11 +36,11 @@ public class ObjectExporter{
     BulletType.class, Seq.with("cachedDps")
     );
 
-    public static JsonValue exportJson(ObjectNode objectNode){
+    public static JNode exportJson(ObjectNode objectNode){
         return exportJson(objectNode, new ExportConfig());
     }
 
-    public static @Nullable JsonValue exportJson(ObjectNode objectNode, ExportConfig config){
+    public static @Nullable JNode exportJson(ObjectNode objectNode, ExportConfig config){
         Object object = objectNode.object;
         Class<?> type = objectNode.type;
 
@@ -51,7 +51,7 @@ public class ObjectExporter{
 
         if(object == null) return null;
 
-        JsonValue result = new JsonValue(ValueType.object);
+        JNode result = JNode.object();
         if(type.isPrimitive() || Reflect.isWrapper(type)){
             exportPrimitive(object, type, result);
         }else if(type == String.class){
@@ -65,25 +65,25 @@ public class ObjectExporter{
         }else if(object instanceof PayloadStack stack){
             result.set(stack.item.name + "/" + stack.amount);
         }else if(object instanceof Vec3 vec){
-            result.setType(ValueType.array);
-            result.addChild(new JsonValue(vec.x));
-            result.addChild(new JsonValue(vec.y));
-            result.addChild(new JsonValue(vec.z));
+            result.setType(Jtype.array);
+            result.addChild(JNode.of(null, vec.x));
+            result.addChild(JNode.of(null, vec.y));
+            result.addChild(JNode.of(null, vec.z));
         }else if(object instanceof Vec2 vec){
-            result.setType(ValueType.array);
-            result.addChild(new JsonValue(vec.x));
-            result.addChild(new JsonValue(vec.y));
+            result.setType(Jtype.array);
+            result.addChild(JNode.of(null, vec.x));
+            result.addChild(JNode.of(null, vec.y));
         }else if(object instanceof Rect rect){
-            result.setType(ValueType.array);
-            result.addChild(new JsonValue(rect.x));
-            result.addChild(new JsonValue(rect.y));
-            result.addChild(new JsonValue(rect.width));
-            result.addChild(new JsonValue(rect.height));
+            result.setType(Jtype.array);
+            result.addChild(JNode.of(null, rect.x));
+            result.addChild(JNode.of(null, rect.y));
+            result.addChild(JNode.of(null, rect.width));
+            result.addChild(JNode.of(null, rect.height));
         }else if(object instanceof Team team){
             if(team.id < Team.baseTeams.length){
                 result.set(team.name);
             }else{
-                result.set(team.id, null);
+                result.set(team.id);
             }
         }else if(object instanceof Effect effect){
             String fieldName = findStaticFieldName(effect, Effect.class);
@@ -158,14 +158,14 @@ public class ObjectExporter{
         }else if(object instanceof Attributes attributes){
             for(Attribute attr : Attribute.all){
                 if(attributes.get(attr) != 0f){
-                    result.addChild(attr.name, new JsonValue(attributes.get(attr)));
+                    result.addChild(JNode.of(attr.name, attributes.get(attr)));
                 }
             }
         }else if(ClassHelper.isContainer(type)){
-            result.setType(ClassHelper.isArrayLike(type) ? ValueType.array : ValueType.object);
+            result.setType(ClassHelper.isArrayLike(type) ? Jtype.array : Jtype.object);
             for(Entry<String, ObjectNode> entry : objectNode.getChildren()){
                 if(!entry.value.isSign()){
-                    JsonValue value = exportJson(entry.value, config);
+                    JNode value = exportJson(entry.value, config);
                     if(value != null) result.addChild(entry.key, value);
                 }
             }
@@ -184,7 +184,7 @@ public class ObjectExporter{
         return !PatchCompare.equalsValue(value, defaultValue, ClassHelper.actualClass(value.getClass()));
     }
 
-    private static void exportFields(ObjectNode objectNode, JsonValue value, ExportConfig config){
+    private static void exportFields(ObjectNode objectNode, JNode value, ExportConfig config){
         Class<?> type = ClassHelper.actualClass(objectNode.object.getClass());
         ObjectNode template = ObjectResolver.getTemplate(type, ObjectExample.getExample(type, type, true), objectNode.getResolutionStrategy());
         Seq<String> blackList = findFieldBlacklist(type);
@@ -197,45 +197,38 @@ public class ObjectExporter{
                 if(templateChild != null && !shouldExportField(childNode.object, templateChild.object, config)) continue;
             }
 
-            JsonValue childValue = exportJson(childNode, config);
+            JNode childValue = exportJson(childNode, config);
             if(childValue != null) value.addChild(entry.key, childValue);
         }
     }
 
-    private static void exportPrimitive(Object value, Class<?> type, JsonValue result){
+    private static void exportPrimitive(Object value, Class<?> type, JNode result){
         if(type == float.class || type == Float.class){
-            result.setType(ValueType.doubleValue);
-            result.set(value == null ? 0F : Double.parseDouble(Float.toString((float)value)), null);
+            result.set(value == null ? 0F : (float)value);
         }else if(type == double.class || type == Double.class){
-            result.setType(ValueType.doubleValue);
-            result.set(value == null ? 0D : Double.parseDouble(Double.toString((double)value)), null);
+            result.set(value == null ? 0D : (double)value);
         }else if(type == int.class || type == Integer.class){
-            result.setType(ValueType.longValue);
-            result.set(value == null ? 0 : (int)value, null);
+            result.set(value == null ? 0L : (long)(int)value);
         }else if(type == long.class || type == Long.class){
-            result.setType(ValueType.longValue);
-            result.set(value == null ? 0L : (long)value, null);
+            result.set(value == null ? 0L : (long)value);
         }else if(type == boolean.class || type == Boolean.class){
-            result.setType(ValueType.booleanValue);
             result.set(value != null && (boolean)value);
         }else if(type == short.class || type == Short.class){
-            result.setType(ValueType.longValue);
-            result.set(value == null ? 0 : (short)value, null);
+            result.set(value == null ? 0L : (long)(short)value);
         }else if(type == byte.class || type == Byte.class){
-            result.setType(ValueType.longValue);
-            result.set(value == null ? 0 : (byte)value, null);
+            result.set(value == null ? 0L : (long)(byte)value);
         }
     }
 
-    public static void exportObject(ObjectNode objectNode, JsonValue value, ExportConfig config){
+    public static void exportObject(ObjectNode objectNode, JNode value, ExportConfig config){
         Object object = objectNode.object;
         if(object instanceof MapEntry<?,?> entry) object = entry.value;
 
-        value.setType(objectNode.isArrayLike() ? ValueType.array : ValueType.object);
+        value.setType(objectNode.isArrayLike() ? Jtype.array : Jtype.object);
         Class<?> type = ClassHelper.actualClass(object.getClass());
         if(PatchJsonIO.typeOverrideable(type)){
             String typeName = PatchJsonIO.getTypeName(type);
-            value.addChild("type", new JsonValue(typeName));
+            value.addChild(JNode.of("type", typeName));
         }
 
         exportFields(objectNode, value, config);

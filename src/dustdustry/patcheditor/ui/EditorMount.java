@@ -8,8 +8,7 @@ import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
-import arc.util.serialization.JsonWriter.*;
+import arc.util.serialization.Jval.*;
 import dustdustry.patcheditor.core.EditorPatch;
 import mindustry.*;
 import mindustry.core.GameState.*;
@@ -125,9 +124,9 @@ public class EditorMount{
             Seq<PatchAsset> assets = state.data.getPatches();
 
             String name = findAssetName("Patch", assets);
-            JsonValue json = new JsonValue(ValueType.object);
-            json.addChild("name", new JsonValue(name));
-            assets.add(new PatchAsset(json.toJson(OutputType.json)));
+            Jval json = Jval.newObject();
+            json.add("name", name);
+            assets.add(new PatchAsset(json.toString(Jformat.plain)));
 
             state.data.reloadPatches(assets);
             Reflect.invoke(assetsDialog, "rebuild");

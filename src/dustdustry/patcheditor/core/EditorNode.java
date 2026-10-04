@@ -5,7 +5,7 @@ import dustdustry.patcheditor.core.PatchOperator.*;
 import arc.func.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.Jval.*;
 import mindustry.ctype.*;
 import mindustry.type.*;
 import mindustry.world.consumers.*;
@@ -280,11 +280,11 @@ public class EditorNode{
         return seq;
     }
 
-    public void setValue(String value, ValueType valueType, boolean uiUpdated){
+    public void setValue(String value, Jtype valueType, boolean uiUpdated){
         manager.applyOp(new SetOp(getPath(), value, valueType), uiUpdated);
     }
 
-    public void setValueType(ValueType type){
+    public void setValueType(Jtype type){
         manager.applyOp(new SetValueTypeOp(getPath(), type));
     }
 
@@ -314,7 +314,7 @@ public class EditorNode{
         if(sign == ModifierSign.MODIFY && ClassHelper.isArrayLike(getTypeIn())){
             manager.applyOp(new BatchOp(getPath(),
             new SetSignOp(getPath(), sign),
-            new SetValueTypeOp(getPath(), ValueType.array),
+            new SetValueTypeOp(getPath(), Jtype.array),
             new ClearChildrenOp(getPath())
             ));
         }else{

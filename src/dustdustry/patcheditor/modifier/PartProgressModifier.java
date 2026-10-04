@@ -14,7 +14,7 @@ public class PartProgressModifier extends DataModifier<ProgressBuilder>{
     public ProgressBuilder readValue(EditorNode node){
         if(node.hasValue()){
             PatchNode patchNode = node.getPatch();
-            if(patchNode != null) return PatchJsonIO.parseProgressBuilder(JsonTransform.toJsonValue(patchNode));
+            if(patchNode != null) return PatchJsonIO.parseProgressBuilder(JsonTransform.toJsonTree(patchNode));
         }else if(node.getObject() instanceof PartProgress progress){
             return new ProgressBuilder(progress);
         }

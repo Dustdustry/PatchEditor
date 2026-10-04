@@ -2,14 +2,14 @@ package dustdustry.patcheditor.core;
 
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.Jval.*;
 
 import java.util.*;
 
 public class PatchNode{
     public String key;
     public @Nullable String value;
-    public ValueType type = ValueType.object;
+    public Jtype type = Jtype.object;
 
     private PatchNode parent;
     public final ObjectMap<String, PatchNode> children = new OrderedMap<>();

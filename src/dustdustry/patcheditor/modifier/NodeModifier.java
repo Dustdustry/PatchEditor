@@ -9,7 +9,7 @@ import arc.graphics.g2d.*;
 import arc.math.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.Jval.*;
 import mindustry.ctype.*;
 import mindustry.entities.*;
 import mindustry.entities.Units.*;
@@ -105,7 +105,7 @@ public class NodeModifier{
         return node != null && node.hasSign(ModifierSign.MODIFY);
     }
 
-    public static @Nullable ValueType valueTypeOf(ObjectNode node){
+    public static @Nullable Jtype valueTypeOf(ObjectNode node){
         DataModifier<?> modifier = getModifier(node);
         return modifier instanceof ValueModifier<?> valueModifier ? valueModifier.getValueType() : null;
     }

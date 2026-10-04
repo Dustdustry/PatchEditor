@@ -20,7 +20,7 @@ import arc.scene.ui.ImageButton.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
-import arc.util.serialization.JsonValue.*;
+import arc.util.serialization.Jval.*;
 import mindustry.*;
 import mindustry.ctype.*;
 import mindustry.gen.*;
@@ -377,7 +377,7 @@ public class NodeCard extends Table{
             }else{
                 boolean append = !forceOverride && editorNode.canAppend();
                 editorNode.append(append);
-                editorNode.setValueType(append ? ValueType.object : ValueType.array);
+                editorNode.setValueType(append ? Jtype.object : Jtype.array);
             }
         });
     }

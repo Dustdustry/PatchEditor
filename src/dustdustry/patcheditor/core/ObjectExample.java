@@ -4,7 +4,6 @@ import arc.graphics.*;
 import arc.struct.*;
 import arc.util.*;
 import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
 import mindustry.*;
 import mindustry.ctype.*;
 
@@ -50,13 +49,15 @@ public class ObjectExample{
         }
 
         if(example == null){
-            JsonValue value = new JsonValue(ValueType.object);
-            value.addChild("type", new JsonValue(PatchJsonIO.getTypeName(type)));
+            JNode value = JNode.object();
+            value.addChild(JNode.of("type", PatchJsonIO.getTypeName(type)));
 
             try{
                 Json parserJson = PatchJsonIO.getParser().getJson();
                 // Invoke internalRead to skip null fields checking.
-                example = Reflect.invoke(parserJson, "internalRead", new Object[]{base, null, value, null}, Class.class, Class.class, JsonValue.class, Class.class);
+                example = Reflect.invoke(parserJson, "internalRead",
+                new Object[]{base, null, PatchJsonIO.asParserTree(value), null},
+                Class.class, Class.class, JsonValue.class, Class.class);
             }catch(Exception ignored){
                 return null;
             }

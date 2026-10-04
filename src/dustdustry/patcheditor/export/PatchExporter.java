@@ -4,8 +4,6 @@ import dustdustry.patcheditor.core.*;
 import dustdustry.patcheditor.core.resolve.*;
 import dustdustry.patcheditor.export.ObjectExporter.*;
 import arc.struct.ObjectMap.*;
-import arc.util.serialization.*;
-import arc.util.serialization.JsonValue.*;
 
 public class PatchExporter{
     public static String export(String path){
@@ -21,10 +19,10 @@ public class PatchExporter{
     }
 
     public static String export(ObjectNode objectNode, ExportConfig config, PatchExportOptions options){
-        JsonValue value = new JsonValue(ValueType.object);
+        JNode value = JNode.object();
         if(objectNode.getParent() != null && objectNode.getParent().isRoot()){
             for(Entry<String, ObjectNode> entry : objectNode.getChildren()){
-                JsonValue childValue = new JsonValue(ValueType.object); // Just a default type, change the value type later.
+                JNode childValue = JNode.object(); // Just a default type, change the value type later.
 
                 value.addChild(entry.key, childValue);
                 ObjectExporter.exportObject(entry.value, childValue, config);
