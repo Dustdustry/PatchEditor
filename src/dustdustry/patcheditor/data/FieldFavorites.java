@@ -1,5 +1,7 @@
 package dustdustry.patcheditor.data;
 
+import arc.util.serialization.*;
+import arc.util.serialization.JsonWriter.*;
 import dustdustry.patcheditor.core.*;
 import arc.files.*;
 import arc.struct.*;
@@ -90,7 +92,7 @@ public class FieldFavorites{
         map.clear();
 
         try{
-            map.putAll(parseJson(configFi.readString()));
+            map.putAll((ObjectMap<? extends String, ? extends FavoriteField>)parseJson(configFi.readString()));
         }catch(Exception e){
             Log.err("Failed to read favorites to " + configFi.absolutePath(), e);
         }
@@ -117,7 +119,7 @@ public class FieldFavorites{
         FavoritesData data = new FavoritesData();
         data.version = 2;
         data.favorites.addAll(map.values());
-        return JsonIO.json.toJson(data);
+        return new Json(OutputType.json).toJson(data);
     }
 
     private static OrderedMap<String, FavoriteField> parseJson(String text){
