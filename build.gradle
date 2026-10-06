@@ -2,7 +2,14 @@ apply plugin: "java"
 
 version = '1.0'
 
-sourceSets.main.java.srcDirs = ["src"]
+sourceSets{
+    main{
+        java.srcDirs = ["src"]
+    }
+    test{
+        java.srcDirs = ["test/java"]
+    }
+}
 
 repositories{
     mavenCentral()
@@ -37,6 +44,9 @@ java{
 ext{
     mindustryVersion = 'v160.4' //the build number that this mod is made for
     jabelVersion = "93fde537c7"
+    //Kept at a Java 8 compatible JUnit on purpose: the test source set is compiled with --release 8.
+    junitVersion = '5.11.4'
+    junitPlatformVersion = '1.11.4'
     isWindows = System.getProperty("os.name").toLowerCase().contains("windows")
     sdkRoot = System.getenv("ANDROID_HOME") ?: System.getenv("ANDROID_SDK_ROOT")
     modDir = "${System.getenv("APPDATA")}\\Mindustry\\mods"
@@ -51,10 +61,21 @@ allprojects{
     }
 }
 
+// The tests are not shipped and never run on Android, so they compile on the local JDK and are free to
+// use the whole language. Only the main source set stays pinned to Java 8.
+tasks.named('compileTestJava'){
+    options.compilerArgs.removeAll(['--release', '8'])
+    options.release = 17
+}
+
 dependencies{
     def useLatest = false //set to "true" to always depend on the newest version of mindustry
 
     compileOnly useLatest ? "Anuken:MindustryBuilds:latest" : "Anuken:Mindustry:$mindustryVersion"
+
+    testImplementation useLatest ? "Anuken:MindustryBuilds:latest" : "Anuken:Mindustry:$mindustryVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+    testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junitPlatformVersion"
 
     annotationProcessor "Anuken:jabel:v1.0.0"
 }
@@ -120,5 +141,14 @@ tasks.register('compileAndCopy', Copy){
     include "${project.name}Desktop.jar"
     doFirst {
         delete layout.buildDirectory.file("libs/${project.name}Android.jar")
+    }
+}
+
+test{
+    useJUnitPlatform()
+    testLogging{
+        // "failed" alone keeps a green run silent: list every test so a run says what it ran
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
     }
 }
