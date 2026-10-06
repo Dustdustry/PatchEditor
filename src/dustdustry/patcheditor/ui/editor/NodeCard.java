@@ -541,6 +541,26 @@ public class NodeCard extends Table{
                 }).padLeft(16f).tooltip(Core.bundle.format("node-card.appendPatchNode", editorPath), true)
                 .disabled(b -> Core.app.getClipboardText() == null);
 
+                if(!readOnly && ClassHelper.isArrayLike(node.getTypeIn())){
+                    buttons.button(b -> {
+                        b.stack(new Image(Icon.download){{
+                            setColor(Pal.lightishGray);
+                        }}, new Table(t -> {
+                            t.right().bottom().margin(10f);
+                            t.image(Icon.add).size(Vars.iconSmall);
+                        })).grow();
+                    }, Styles.cleari, () -> {
+                        try{
+                            node.appendElements(Core.app.getClipboardText());
+                        }catch(RuntimeException e){
+                            Vars.ui.showException("@node-card.appendElementsNode.failed", e);
+                            return;
+                        }
+                        EUI.infoToast(Core.bundle.format("node-card.appendElementsNode", editorPath));
+                    }).padLeft(16f).tooltip(Core.bundle.format("node-card.appendElementsNode", editorPath), true)
+                    .disabled(b -> Core.app.getClipboardText() == null);
+                }
+
                 if(!readOnly) buttons.button(Icon.copy, Styles.cleari, () -> {
                     PatchNode patchNode = node.getPatch();
                     Core.app.setClipboardText(patchNode == null ? "" : new JsonProcessor(node.getObjNode(), patchNode).options(EditorSettings.getPatchExportOptions()).toPatch());

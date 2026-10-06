@@ -232,6 +232,29 @@ public class PatchJsonIO{
         parseJson(objectNode, patchNode, value, objectNode.getResolutionStrategy());
     }
 
+    /**
+     * Parses an append snippet against an array node: a list payload becomes one element per entry,
+     * anything else is a single element. Empty if the node has no element type to append.
+     */
+    public static Seq<PatchNode> parseElements(ObjectNode objectNode, String patch){
+        if(objectNode == null || objectNode.elementType == null) return new Seq<>();
+
+        ObjectNode elementNode = ObjectResolver.getTemplate(objectNode.elementType, objectNode.getResolutionStrategy());
+
+        PatchNode sourceNode = new PatchNode(objectNode.name);
+        parseJson(Jval.read(patch).isArray() ? objectNode : elementNode, sourceNode, patch);
+
+        Seq<PatchNode> elements = new Seq<>();
+        if(sourceNode.type == Jtype.array){
+            for(PatchNode child : sourceNode.children.values()){
+                elements.add(child);
+            }
+        }else{
+            elements.add(sourceNode);
+        }
+        return elements;
+    }
+
     public static void parseJson(ObjectNode objectNode, PatchNode patchNode, JNode value, ResolutionStrategy strategy){
         // sign is seen as attribute in PatchNode, not a node
         if(!value.isValue() && value.has(ModifierSign.PLUS.sign)){

@@ -2,6 +2,7 @@ package dustdustry.patcheditor.core;
 
 import dustdustry.patcheditor.core.resolve.*;
 import dustdustry.patcheditor.modifier.*;
+import arc.struct.*;
 import arc.struct.ObjectMap.*;
 import arc.util.serialization.Jval.*;
 
@@ -63,6 +64,23 @@ public abstract class PatchOperator{
         node.remove();
 
         JsonTransform.cleanEmptyParents(parent);
+    }
+
+    /** Copies a parsed patch onto a node, optionally carrying its sign over. */
+    protected static void importPatch(PatchNode patchNode, PatchNode sourceNode, boolean importSign){
+        patchNode.type = sourceNode.type;
+        patchNode.value = sourceNode.value;
+        if(importSign) patchNode.sign = sourceNode.sign;
+        for(Entry<String, PatchNode> entry : sourceNode.children){
+            importPatch(patchNode.getOrCreate(entry.key), entry.value, true);
+        }
+    }
+
+    /** Index of the first free append slot of a node, e.g. the {@code #ADD_} key index. */
+    protected static int nextAppendIndex(PatchNode node, String prefix){
+        int index = 0;
+        while(node.getOrNull(prefix + index) != null) index++;
+        return index;
     }
 
     public static class SetOp extends PatchOperator{
@@ -144,7 +162,7 @@ public abstract class PatchOperator{
             PatchNode node = root.navigateChild(path, true);
 
             String prefix = plusSyntax ? PatchJsonIO.appendPrefix : "";
-            PatchNode appended = node.getOrCreate(findKey(prefix, node));
+            PatchNode appended = node.getOrCreate(prefix + nextAppendIndex(node, prefix));
             appended.sign = ModifierSign.PLUS;
             appended.type = ClassHelper.isArrayLike(elementType) ? Jtype.array : Jtype.object;
 
@@ -155,11 +173,45 @@ public abstract class PatchOperator{
                 appended.value = PatchJsonIO.getKeyName(template.object);
             }
         }
+    }
 
-        private String findKey(String prefix, PatchNode node){
-            int index = 0;
-            while(node.getOrNull(prefix + index) != null) index++;
-            return prefix + index;
+    /** Appends parsed elements to an array node: the plus form while it can be appended to, indexes otherwise. */
+    public static class AppendElementsOp extends PatchOperator{
+        public final Seq<PatchNode> elements;
+        public final Class<?> elementType;
+        public final boolean plusSyntax;
+        public final ResolutionStrategy strategy;
+
+        public AppendElementsOp(String path, Seq<PatchNode> elements, Class<?> elementType, boolean plusSyntax, ResolutionStrategy strategy){
+            super(path);
+            this.elements = elements;
+            this.elementType = elementType;
+            this.plusSyntax = plusSyntax;
+            this.strategy = strategy;
+        }
+
+        @Override
+        public boolean shouldApply(PatchNode root){
+            return !elements.isEmpty();
+        }
+
+        @Override
+        public void apply(PatchNode root){
+            captureSnapshot(root);
+            PatchNode node = root.navigateChild(path, true);
+            node.type = plusSyntax ? Jtype.object : Jtype.array;
+
+            String prefix = plusSyntax ? PatchJsonIO.appendPrefix : "";
+            ObjectNode template = ObjectResolver.getTemplate(elementType, strategy);
+            int index = nextAppendIndex(node, prefix);
+
+            for(PatchNode element : elements){
+                JsonTransform.clearRedundant(template, element);
+
+                PatchNode appended = node.getOrCreate(prefix + index++);
+                importPatch(appended, element, false);
+                appended.sign = ModifierSign.PLUS;
+            }
         }
     }
 
@@ -269,15 +321,6 @@ public abstract class PatchOperator{
             captureSnapshot(root);
             PatchNode patchNode = root.navigateChild(path, true);
             importPatch(patchNode, source, patchNode.sign == null);
-        }
-
-        private void importPatch(PatchNode patchNode, PatchNode sourceNode, boolean importSign){
-            patchNode.type = sourceNode.type;
-            patchNode.value = sourceNode.value;
-            if(importSign) patchNode.sign = sourceNode.sign;
-            for(Entry<String, PatchNode> entry : sourceNode.children){
-                importPatch(patchNode.getOrCreate(entry.key), entry.value, true);
-            }
         }
     }
 

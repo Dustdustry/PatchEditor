@@ -336,6 +336,15 @@ public class EditorNode{
         manager.applyOp(new ImportOp(getPath(), sourceNode));
     }
 
+    public void appendElements(String patch){
+        if(!ClassHelper.isArrayLike(getTypeIn())) return;
+
+        Seq<PatchNode> elements = PatchJsonIO.parseElements(getObjNode(), patch);
+        if(elements.isEmpty()) return;
+
+        manager.applyOp(new AppendElementsOp(getPath(), elements, objectNode.elementType, canAppend(), objectNode.getResolutionStrategy()));
+    }
+
     public void setPatch(PatchNode source, boolean uiUpdated){
         manager.applyOp(new BatchOp(getPath(),
             new ClearChildrenOp(getPath()),
