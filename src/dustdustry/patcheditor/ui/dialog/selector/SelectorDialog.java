@@ -83,6 +83,7 @@ public abstract class SelectorDialog<T> extends BaseDialog{
         }).growX().get();
         table.button(Icon.cancel, Styles.cleari, () -> {
             query = "";
+            field.setText(query);
             itemCont.clearChildren();
             setupCont(itemCont);
         }).pad(8f);

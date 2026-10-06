@@ -27,13 +27,11 @@ public class EffectSelector extends SelectorDialog<EffectEntry>{
 
         ClickListener listener = new ClickListener();
         Element element = EffectElems.getEffectElem(item, listener);
-        table.add(element).growX().height(size).tooltip(item.name, true);
-        element.addListener(listener);
-
-        table.fill(t -> {
+        table.stack(element, new Table(t -> {
             t.right().bottom();
             t.add(item.name).ellipsis(true).labelAlign(Align.right).color(EPalettes.value).pad(8f).width(size * 0.75f);
-        });
+        })).growX().maxWidth(size).height(size).tooltip(item.name, true);
+        element.addListener(listener);
     }
 
     @Override
