@@ -268,7 +268,7 @@ public abstract class PatchOperator{
         public void apply(PatchNode root){
             captureSnapshot(root);
             PatchNode patchNode = root.navigateChild(path, true);
-            importPatch(patchNode, source, false);
+            importPatch(patchNode, source, patchNode.sign == null);
         }
 
         private void importPatch(PatchNode patchNode, PatchNode sourceNode, boolean importSign){
