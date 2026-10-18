@@ -1,5 +1,8 @@
 package dustdustry.patcheditor.ui;
 
+import arc.graphics.g2d.*;
+import arc.scene.style.*;
+import dustdustry.patcheditor.*;
 import dustdustry.patcheditor.data.*;
 import dustdustry.patcheditor.ui.dialog.*;
 import dustdustry.patcheditor.ui.editor.*;
@@ -14,6 +17,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.*;
+import mindustry.gen.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
@@ -73,6 +77,9 @@ public class EUI{
         FieldNotes.init();
 
         ColorPickerExt.init();
+
+        Drawable icon = new TextureRegionDrawable(new TextureRegion(EVars.thisMod.iconTexture));
+        Vars.ui.settings.addCategory("@patch-editor", icon,table -> settings.buildSettings(table));
     }
 
     public static void showUsageInfo(Runnable onHide){

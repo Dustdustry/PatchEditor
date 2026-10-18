@@ -45,6 +45,8 @@ public class EditorSettings extends BaseDialog{
         checkedFontColor = Color.white;
     }};
 
+    public SettingsTable table = new SettingsTable();
+
     public EditorSettings(){
         super("@patch-editor.settings");
 
@@ -65,9 +67,13 @@ public class EditorSettings extends BaseDialog{
 
     private void setup(){
         SettingsTable table = new SettingsTable();
-        Seq<Setting> settings = table.getSettings();
+        buildSettings(table);
         cont.pane(Styles.noBarPane, table);
+        addCloseButton();
+    }
 
+    public void buildSettings(SettingsTable table){
+        Seq<Setting> settings = table.getSettings();
         table.checkPref("patch-editor.simplifyPath", true);
         table.checkPref("patch-editor.sugar.stacks", true);
         table.checkPref("patch-editor.magicExport.allowDefault", false);
@@ -105,7 +111,6 @@ public class EditorSettings extends BaseDialog{
         }));
 
         table.rebuild();
-        addCloseButton();
     }
 
     private static void setupQuickButtons(Table table){
