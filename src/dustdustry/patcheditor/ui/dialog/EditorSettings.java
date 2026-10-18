@@ -3,6 +3,8 @@ package dustdustry.patcheditor.ui.dialog;
 import arc.func.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
+import arc.scene.Element;
+import arc.scene.event.*;
 import arc.scene.ui.TextButton.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
@@ -14,9 +16,12 @@ import arc.struct.*;
 import dustdustry.patcheditor.core.JsonProcessor.*;
 import dustdustry.patcheditor.ui.*;
 import mindustry.*;
+import mindustry.content.*;
 import mindustry.core.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.logic.*;
+import mindustry.logic.LogicFx.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 import mindustry.ui.dialogs.SettingsMenuDialog.*;
@@ -72,6 +77,13 @@ public class EditorSettings extends BaseDialog{
 
         table.sliderPref("patch-editor.undoLimit", 20, 0, 160, 20,s -> Core.bundle.format("setting.patch-editor.undoLimit.text", s));
         settings.add(new SingleEnumSettings("patch-editor.exportType", ExportType.values(), ExportType.hjson));
+        settings.add(new SlotSettings(8, t -> {
+            t.background(Styles.grayPanel).margin(8f).left();
+            t.add("@patch-editor.settings.quickAccess").width(64f).wrap();
+            t.image().color(Pal.lightishGray).width(2f).pad(8f, 16f,  8f, 16f).growY();
+            t.table(EditorSettings::setupQuickButtons);
+        }));
+
         settings.add(new SlotSettings(16f, cont -> {
             cont.button(t -> {
                 t.background(Styles.grayPanel).left();
@@ -94,6 +106,37 @@ public class EditorSettings extends BaseDialog{
 
         table.rebuild();
         addCloseButton();
+    }
+
+    private static void setupQuickButtons(Table table){
+        table.defaults().padRight(8f).fillX();
+
+        table.button(b -> {
+            b.margin(8f).left();
+            b.image(Tex.alphaaaa).size(Vars.iconMed).padRight(8f);
+            b.add("@patch-editor.settings.quickAccess.texture");
+        },  Styles.cleari, () -> EUI.textureRegionSelector.select(r -> false));
+
+        table.button(b -> {
+            b.margin(8f);
+            Element element = EffectElems.getEffectElem(new EffectEntry(Fx.reactorExplosion), b.getClickListener());
+            b.add(element).size(Vars.iconMed).padRight(8f);
+            b.add("@patch-editor.settings.quickAccess.effect");
+        },  Styles.cleari, () -> EUI.effectSelector.select(r -> false));
+
+        table.row();
+
+        table.button(b -> {
+            b.margin(8f).left();
+            b.add(new BorderImage()).size(Vars.iconMed).padRight(8f).color(Pal.accent);
+            b.add("@patch-editor.settings.quickAccess.color");
+        },  Styles.cleari, () -> EUI.colorSelector.select(r -> false));
+
+        table.button(b -> {
+            b.margin(8f).left();
+            b.image(Icon.play).size(Vars.iconMed).padRight(8f);
+            b.add("@patch-editor.settings.quickAccess.sound");
+        },  Styles.cleari, () -> EUI.soundSelector.select(r -> false));
     }
 
     public static ExportConfig getExportConfig(){
