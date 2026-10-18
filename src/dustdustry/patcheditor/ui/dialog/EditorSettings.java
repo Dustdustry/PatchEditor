@@ -85,8 +85,8 @@ public class EditorSettings extends BaseDialog{
         settings.add(new SingleEnumSettings("patch-editor.exportType", ExportType.values(), ExportType.hjson));
         settings.add(new SlotSettings(8, t -> {
             t.background(Styles.grayPanel).margin(8f).left();
-            t.add("@patch-editor.settings.quickAccess").width(64f).wrap();
-            t.image().color(Pal.lightishGray).width(2f).pad(8f, 16f,  8f, 16f).growY();
+            t.add("@patch-editor.settings.quickAccess").width(72f).wrap();
+            t.image().color(Pal.lightishGray).width(2f).pad(8f, 8f,  8f, 16f).growY();
             t.table(EditorSettings::setupQuickButtons);
         }));
 
