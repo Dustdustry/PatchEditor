@@ -49,10 +49,9 @@ public class SoundSelector extends SelectorDialog<Sound>{
         String name = PatchJsonIO.getKeyEntryMap(Sound.class).findKey(item, true);
         table.add(name).pad(4f).expandX().left();
 
-        Label label = new Label(Strings.autoFixed(item.getLength(), 2) + "s");
         table.button(b -> {
             b.image(Icon.play).pad(4f);
-            b.add("@selector.sound.unloaded").width(64f).update(l -> {
+            b.add("@selector.sound.unloaded").minWidth(64f).update(l -> {
                 if(!Mathf.zero(item.getLength())){
                     l.setText(Strings.autoFixed(item.getLength(), 2) + "s");
                     l.update(null);
