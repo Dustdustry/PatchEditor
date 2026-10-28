@@ -24,6 +24,7 @@ import static mindustry.Vars.*;
 
 public class EditorMount{
     private static Seq<EditorPatch> editorPatches;
+    private static boolean contentMismatchWarned;
 
     // extremely hacky
     public static void mount(){
@@ -153,7 +154,14 @@ public class EditorMount{
         Seq<ContentAsset> assetsList = searchString == null ? assets : assets.select(asset -> asset.name.toLowerCase().contains(searchString));
 
         Seq<Cell> cells = assetTable.getCells().select(c -> c.get() instanceof ImageButton ib && ib.getImage().getDrawable() == Icon.refresh);
-        if(cells.size != assetsList.size) return;
+        if(cells.size != assetsList.size){
+            //行数对不上说明原版内容列表的结构变了。只提示一次，避免搜索时每敲一个字刷一条日志
+            if(!contentMismatchWarned){
+                contentMismatchWarned = true;
+                Log.warn("PatchEditor: content list has @ row(s) but @ content asset(s), edit buttons were not mounted. The editor may need an update for this game version.", cells.size, assetsList.size);
+            }
+            return;
+        }
 
         for(int i = 0; i < assetsList.size; i++){
             ContentAsset asset = assets.get(i);
