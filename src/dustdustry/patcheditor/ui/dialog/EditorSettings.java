@@ -149,9 +149,7 @@ public class EditorSettings extends BaseDialog{
             b.margin(8f).left();
             b.image(Icon.infoCircle).size(Vars.iconMed).padRight(8f);
             b.add("@patch-editor.settings.quickAccess.usageHint");
-        },  Styles.cleari, () -> {
-            EUI.showUsageInfo(() -> EUI.showInGameWarning(null));
-        });
+        },  Styles.cleari, () -> EUI.showUsageInfo(null));
     }
 
     public static ExportConfig getExportConfig(){
