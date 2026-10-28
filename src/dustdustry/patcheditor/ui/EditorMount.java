@@ -163,7 +163,8 @@ public class EditorMount{
         }
 
         for(int i = 0; i < assetsList.size; i++){
-            ContentAsset asset = assets.get(i);
+            //用过滤后的列表取，否则搜索时第 i 行对应的是未过滤列表的第 i 个资源
+            ContentAsset asset = assetsList.get(i);
             Cell cell = cells.get(i);
 
             ImageButton button = new ImageButton(Icon.edit, Styles.graySquarei);
