@@ -50,9 +50,8 @@ public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
         Seq<AtlasRegion> dpRegions = new Seq<>();
         map.put(Core.bundle.get("selector.texture-region.custom"), dpRegions);
 
-        ObjectSet<String> mapImages = Vars.state.data.getImages().map(asset -> asset.name).asSet();
         for(AtlasRegion item : getItems()){
-            if(mapImages.contains(item.name)){
+            if(item.name.contains(DataImagePacker.regionPrefix)){
                 dpRegions.add(item);
             }else{
                 map.get("" + Character.toUpperCase(item.name.charAt(0)), Seq::new).add(item);
