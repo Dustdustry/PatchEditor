@@ -93,7 +93,10 @@ public class EditorMount{
         editorPatches.set(state.data.getPatches().map(EditorPatch::new));
         TableUtils.insertColumnAfter(assetList, 1, t -> {
             t.defaults().set(assetList.defaults()).fill();
-            for(EditorPatch editorPatch : editorPatches){
+
+            String searchString = Reflect.get(assetsDialog, "searchString");
+            Seq<EditorPatch> patchList = searchString == null ? editorPatches : editorPatches.select(patch -> patch.name.toLowerCase().contains(searchString));
+            for(EditorPatch editorPatch : patchList){
                 t.button(Icon.edit, Styles.graySquarei, iconMed, () -> {
                     state.data.reloadPatches(new Seq<>());
                     EUI.patchEditor.edit(editorPatch, () -> {
@@ -133,13 +136,16 @@ public class EditorMount{
         }).padTop(12f).minWidth(240f).height(64f).colspan(assetList.getColumns()).fillX();
     }
 
-    private static void mountContent(MapAssetsDialog assetsDialog, Table assetList){
+    private static void mountContent(MapAssetsDialog assetsDialog, Table assetTable){
         Seq<ContentAsset> assets = state.data.getContent();
 
-        Seq<Cell> cells = assetList.getCells().select(c -> c.get() instanceof ImageButton ib && ib.getImage().getDrawable() == Icon.refresh);
-        if(cells.size != assets.size) return;
+        String searchString = Reflect.get(assetsDialog, "searchString");
+        Seq<ContentAsset> assetsList = searchString == null ? assets : assets.select(asset -> asset.name.toLowerCase().contains(searchString));
 
-        for(int i = 0; i < assets.size; i++){
+        Seq<Cell> cells = assetTable.getCells().select(c -> c.get() instanceof ImageButton ib && ib.getImage().getDrawable() == Icon.refresh);
+        if(cells.size != assetsList.size) return;
+
+        for(int i = 0; i < assetsList.size; i++){
             ContentAsset asset = assets.get(i);
             Cell cell = cells.get(i);
 
