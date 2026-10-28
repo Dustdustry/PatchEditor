@@ -333,10 +333,7 @@ public abstract class ModifierBuilder<T>{
 
             table.button(Icon.book, Styles.clearNonei, () -> {
                 EUI.soundSelector.select(s -> {
-                    String keyName = PatchJsonIO.getKeyEntryMap(Sound.class).findKey(s, true);
-                    if(keyName != null){
-                        setValue(keyName);
-                    }
+                    setValue(s.name);
                     return true;
                 });
             }).padLeft(4f).width(48f).growY().tooltip("@selector.stringItems.hint");

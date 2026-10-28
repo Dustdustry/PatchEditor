@@ -8,6 +8,7 @@ import arc.audio.*;
 import arc.scene.ui.layout.*;
 import arc.struct.*;
 import arc.util.*;
+import dustdustry.patcheditor.core.EditorList.*;
 import mindustry.*;
 import mindustry.gen.*;
 import mindustry.ui.*;
@@ -15,7 +16,7 @@ import mindustry.ui.*;
 import java.lang.reflect.*;
 
 // TODO: add specified UI for sound asset.
-public class SoundSelector extends SelectorDialog<Sound>{
+public class SoundSelector extends SelectorDialog<SoundEntry>{
     private final IntSeq playingSounds = new IntSeq();
 
     public SoundSelector(){
@@ -34,10 +35,11 @@ public class SoundSelector extends SelectorDialog<Sound>{
     @Override
     protected void setupButtons(){
         buttons.button("@selector.sound.loadAll", Icon.download, () -> {
-            for(Sound item : getItems()){
-                long handle = Reflect.get(AudioSource.class, item, "handle");
-                if(handle == 0 && item.file != null){
-                    item.load(item.file);
+            for(SoundEntry item : getItems()){
+                Sound sound = item.sound;
+                long handle = Reflect.get(AudioSource.class, sound, "handle");
+                if(handle == 0 && sound.file != null){
+                    sound.load(sound.file);
                 }
             }
             rebuild();
@@ -45,39 +47,34 @@ public class SoundSelector extends SelectorDialog<Sound>{
     }
 
     @Override
-    protected void setupItemTable(Table table, Sound item){
-        String name = PatchJsonIO.getKeyEntryMap(Sound.class).findKey(item, true);
-        table.add(name).pad(4f).expandX().left();
+    protected void setupItemTable(Table table, SoundEntry item){
+        Sound sound = item.sound;
+        table.add(item.name).pad(4f).expandX().left();
 
         table.button(b -> {
             b.image(Icon.play).pad(4f);
             b.add("@selector.sound.unloaded").minWidth(64f).update(l -> {
-                if(!Mathf.zero(item.getLength())){
-                    l.setText(Strings.autoFixed(item.getLength(), 2) + "s");
+                if(!Mathf.zero(sound.getLength())){
+                    l.setText(Strings.autoFixed(sound.getLength(), 2) + "s");
                     l.update(null);
                 }
             });
         }, Styles.clearNonei, () -> {
-            AudioBus lastBus = item.bus;
-            item.setBus(Vars.control.sound.uiBus);
-            playingSounds.add(item.play(Core.audio.sfxVolume));
-            item.setBus(lastBus);
+            AudioBus lastBus = sound.bus;
+            sound.setBus(Vars.control.sound.uiBus);
+            playingSounds.add(sound.play(Core.audio.sfxVolume));
+            sound.setBus(lastBus);
         }).padRight(4f).growY();
     }
 
     @Override
-    protected boolean matchQuery(Sound item){
-        String name = PatchJsonIO.getKeyEntryMap(Sound.class).findKey(item, true);
-        return Strings.matches(query, name);
+    protected boolean matchQuery(SoundEntry item){
+        return Strings.matches(query, item.name);
     }
 
     @Override
-    protected Seq<Sound> getItems(){
-        ObjectMap<String, Sound> map = PatchJsonIO.getKeyEntryMap(Sound.class);
-        for(var entry : Core.assets.getAllEntries(Sound.class, new Seq<>())){
-            map.put(Strings.getFileNameWithoutExtension(entry.key), entry.value);
-        }
-        return map.keys().toSeq().sort().map(map::get);
+    protected Seq<SoundEntry> getItems(){
+        return EditorList.getSoundEntries().sortComparing(e -> e.name);
     }
 
     public static class SoloudAssessor{

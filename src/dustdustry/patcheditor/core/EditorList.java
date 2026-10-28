@@ -1,5 +1,7 @@
 package dustdustry.patcheditor.core;
 
+import arc.*;
+import arc.audio.*;
 import arc.graphics.*;
 import arc.math.*;
 import arc.struct.*;
@@ -30,6 +32,7 @@ public class EditorList{
     private static Seq<ColorEntry> colorList;
     private static Seq<Field> partProgressFields, interpFields;
     private static Seq<EffectEntry> effectList;
+    private static Seq<SoundEntry> soundFields;
 
     public static Seq<Weapon> getWeapons(){
         if(weaponList == null){
@@ -138,6 +141,23 @@ public class EditorList{
         return effectList;
     }
 
+    // Sound list is a mutable
+    public static Seq<SoundEntry> getSoundEntries(){
+        if(soundFields == null){
+            soundFields = new Seq<>();
+            for(var entry : PatchJsonIO.getKeyEntryMap(Sound.class)){
+                soundFields.add(new SoundEntry(entry.key, entry.value));
+            }
+        }
+
+        Seq<SoundEntry> entries = new Seq<>();
+        entries.addAll(soundFields);
+        for(var entry : Core.assets.getAllEntries(Sound.class, new Seq<>())){
+            entries.add(new SoundEntry(Strings.getFileNameWithoutExtension(entry.key), entry.value));
+        }
+        return entries;
+    }
+
     public enum UnitConstructorType{
         flying(UnitEntity.class),
         mech(MechUnit.class),
@@ -154,6 +174,36 @@ public class EditorList{
 
         UnitConstructorType(Class<?> type){
             this.type = type;
+        }
+    }
+
+    public static class SoundEntry{
+        public String name;
+        public Sound sound;
+
+        public SoundEntry(String name, Sound sound){
+            this.name = name;
+            this.sound = sound;
+        }
+
+        @Override
+        public boolean equals(Object o){
+            if(!(o instanceof SoundEntry that)) return false;
+            return Objects.equals(name, that.name) && Objects.equals(sound, that.sound);
+        }
+
+        @Override
+        public int hashCode(){
+            return Objects.hash(name, sound);
+        }
+
+
+        @Override
+        public String toString(){
+            return "SoundEntry{" +
+            "name='" + name + '\'' +
+            ", sound=" + sound +
+            '}';
         }
     }
 
