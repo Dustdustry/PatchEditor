@@ -17,7 +17,7 @@ import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
 import arc.util.*;
 import mindustry.*;
-import mindustry.gen.*;
+import mindustry.core.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
@@ -82,21 +82,30 @@ public class EUI{
         Vars.ui.settings.addCategory("@patch-editor", icon,table -> settings.buildSettings(table));
     }
 
-    public static void showUsageInfo(Runnable onHide){
-        BaseDialog dialog = new BaseDialog("@patch-editor.usageHint.title");
+    public static void showUsageInfo(@Nullable Runnable onHide){
+        showLinesDialog("@patch-editor.usageHint.title", "patch-editor.usageHint", onHide);
+    }
+
+    public static void showInGameWarning(@Nullable Runnable onHide){
+        showLinesDialog("@patch-editor.inGameWarning.title", "patch-editor.inGameWarning", onHide);
+    }
+
+    public static void showLinesDialog(String title, String prefix, @Nullable Runnable onHide){
+        BaseDialog dialog = new BaseDialog(title);
 
         dialog.setFillParent(false);
         dialog.cont.margin(16f);
 
         dialog.cont.defaults().expandX().left();
 
+        float maxWidth = Math.min(Core.graphics.getWidth() * 0.75f, 540f);
         for(int i = 1;; i++){
-            String line = Core.bundle.get("patch-editor.usageHint" + "." + i, null);
+            String line = Core.bundle.get(prefix + "." + i, null);
             if(line == null) break;
-            dialog.cont.add(line).padTop(4f).row();
+            dialog.cont.add(UI.formatIcons(line)).padTop(4f).wrap().maxWidth(maxWidth).row();
         }
 
-        dialog.hidden(onHide);
+        if(onHide != null) dialog.hidden(onHide);
         dialog.addCloseButton();
         dialog.show();
     }

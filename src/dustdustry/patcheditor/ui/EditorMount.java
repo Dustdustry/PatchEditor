@@ -49,6 +49,16 @@ public class EditorMount{
             if(!Core.settings.getBool("patch-editor.readUsageHint")){
                 Core.app.post(() -> EUI.showUsageInfo(() -> {
                     Core.settings.put("patch-editor.readUsageHint", true);
+
+                    if(state.isGame() && !Core.settings.getBool("patch-editor.readInGameWarning")){
+                        Core.app.post(() -> EUI.showInGameWarning(() -> {
+                            Core.settings.put("patch-editor.readInGameWarning", true);
+                        }));
+                    }
+                }));
+            }else if(state.isGame() && !Core.settings.getBool("patch-editor.readInGameWarning")){
+                Core.app.post(() -> EUI.showInGameWarning(() -> {
+                    Core.settings.put("patch-editor.readInGameWarning", true);
                 }));
             }
         });
