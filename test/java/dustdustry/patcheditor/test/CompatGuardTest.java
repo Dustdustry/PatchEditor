@@ -110,10 +110,12 @@ class CompatGuardTest extends HeadlessTest{
         assertField(MapInfoDialog.class, "patches", false);
         assertField(MapAssetsDialog.class, "list", false);
         assertField(MapAssetsDialog.class, "currentType", false);
+        assertField(MapAssetsDialog.class, "searchString", false);
         assertDeclaredMethod(MapAssetsDialog.class, "rebuild");
 
         assertFieldType(MapEditorDialog.class, "infoDialog", MapInfoDialog.class);
         assertFieldType(MapInfoDialog.class, "patches", MapAssetsDialog.class);
+        assertFieldType(MapAssetsDialog.class, "searchString", String.class);
     }
 
     private static void assertFieldType(Class<?> owner, String name, Class<?> type){

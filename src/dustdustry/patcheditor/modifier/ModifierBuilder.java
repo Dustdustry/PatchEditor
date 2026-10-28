@@ -297,9 +297,14 @@ public abstract class ModifierBuilder<T>{
         protected void build(Table table){
             table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).pad(8f).growX()
             .tooltip(true, t -> {
-                var map = PatchJsonIO.getKeyEntryMap(Effect.class);
-                Effect effect = map.get(value);
                 t.background(Styles.black3).margin(8f);
+
+                Effect effect = PatchJsonIO.getKeyEntryMap(Effect.class).get(value);
+                if(effect == null){
+                    t.add(value).ellipsis(true).labelAlign(Align.right).color(EPalettes.value).pad(8f);
+                    return;
+                }
+
                 t.stack(EffectElems.getEffectElem(new EffectEntry(effect), null), new Table(stacked -> {
                     stacked.right().bottom();
                     stacked.add(value).ellipsis(true).labelAlign(Align.right).color(EPalettes.value).pad(8f);
