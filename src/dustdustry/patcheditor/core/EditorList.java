@@ -150,12 +150,12 @@ public class EditorList{
             }
         }
 
-        Seq<SoundEntry> entries = new Seq<>();
+        ObjectSet<SoundEntry> entries = new ObjectSet<>();
         entries.addAll(soundFields);
         for(var entry : Core.assets.getAllEntries(Sound.class, new Seq<>())){
             entries.add(new SoundEntry(Strings.getFileNameWithoutExtension(entry.key), entry.value));
         }
-        return entries;
+        return entries.toSeq();
     }
 
     public enum UnitConstructorType{
