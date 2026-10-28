@@ -179,12 +179,10 @@ public class NodeDisplay{
     }
 
     public static void displayEffect(Table table, Effect effect){
-        table.defaults().right();
-
         ClickListener listener = new ClickListener();
         EffectEntry entry = new EffectEntry(effect).name(PatchJsonIO.getKeyName(effect));
         Element element = EffectElems.getEffectElem(entry, listener);
-        table.add(element).size(imageSize);
+        table.add(element).size(imageSize).right();
 
         Tooltip tooltip = new Tooltip(t -> {
             t.background(Styles.black3).margin(8f);
