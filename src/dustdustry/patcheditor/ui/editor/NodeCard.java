@@ -277,7 +277,7 @@ public class NodeCard extends Table{
                 });
             }).pad(8f).fill();
 
-            t.table((mt) -> modifier.build(mt, readOnly)).pad(4).grow();
+            t.table(mt -> modifier.build(mt.left(), readOnly)).pad(4f).grow();
             t.table(buttons -> {
                 buttons.defaults().growX();
                 buttons.table(top -> setupChildNodeButtons(top, node, modifier)).grow();

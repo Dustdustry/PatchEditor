@@ -4,6 +4,7 @@ import arc.*;
 import arc.audio.*;
 import arc.graphics.*;
 import arc.graphics.g2d.*;
+import arc.scene.*;
 import arc.scene.actions.*;
 import arc.scene.ui.*;
 import arc.scene.ui.layout.*;
@@ -14,8 +15,11 @@ import dustdustry.patcheditor.ui.*;
 import mindustry.*;
 import mindustry.core.*;
 import mindustry.ctype.*;
+import mindustry.entities.*;
 import mindustry.gen.*;
 import mindustry.graphics.*;
+import mindustry.logic.*;
+import mindustry.logic.LogicFx.*;
 import mindustry.ui.*;
 import mindustry.ui.dialogs.*;
 
@@ -76,7 +80,7 @@ public abstract class ModifierBuilder<T>{
         public void build(Table table){
             field = table.add(new CacheTextField(value, t -> {
                 setValue(UI.formatIcons(t));
-            })).valid(consumer::checkValue).pad(4f).growX().get();
+            })).valid(consumer::checkValue).growX().get();
             field.setProgrammaticChangeEvents(true);
 
             if(consumer.getTypeMeta() == String.class){
@@ -95,7 +99,7 @@ public abstract class ModifierBuilder<T>{
 
                     dialog.addCloseButton();
                     dialog.show();
-                }).pad(4f).width(32f).growY();
+                }).padLeft(4f).width(32f).growY();
             }
         }
 
@@ -118,7 +122,7 @@ public abstract class ModifierBuilder<T>{
         public void build(Table table){
             table.button(b -> {
                 b.add(image = new BorderImage()).size(32f).pad(8f);
-                b.label(() -> value ? "true" : "false").color(EPalettes.value).padLeft(8f).expandX().left();
+                b.label(() -> value.toString()).color(EPalettes.value).padLeft(8f).expandX().left();
             }, Styles.clearNonei, () -> {
                 setValue(!value);
             }).grow();
@@ -240,14 +244,14 @@ public abstract class ModifierBuilder<T>{
         @Override
         public void build(Table table){
             field = table.field(value, this::setValue)
-            .valid(consumer::checkValue).pad(4f).width(100f).get();
+            .valid(consumer::checkValue).width(100f).get();
 
             table.button(Icon.book, Styles.clearNonei, () -> {
                 EUI.weaponSelector.select(weapon -> {
                     setValue(weapon.name);
                     return true;
                 });
-            }).pad(4f).width(48f).growY().tooltip("@selector.weapon.tooltip");
+            }).padLeft(4f).width(48f).growY().tooltip("@selector.weapon.tooltip");
         }
     }
 
@@ -271,7 +275,7 @@ public abstract class ModifierBuilder<T>{
 
         @Override
         protected void build(Table table){
-            table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX()
+            table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).pad(8f).growX()
             .tooltip(t -> t.background(Styles.black3).label(() -> value).pad(4f));
 
             table.button(Icon.book, Styles.clearNonei, () -> {
@@ -279,7 +283,7 @@ public abstract class ModifierBuilder<T>{
                     setValue(str);
                     return true;
                 });
-            }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
+            }).padLeft(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
         }
     }
 
@@ -291,15 +295,23 @@ public abstract class ModifierBuilder<T>{
 
         @Override
         protected void build(Table table){
-            table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX()
-            .tooltip(t -> t.background(Styles.black3).label(() -> value).pad(4f));
+            table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).pad(8f).growX()
+            .tooltip(true, t -> {
+                var map = PatchJsonIO.getKeyEntryMap(Effect.class);
+                Effect effect = map.get(value);
+                t.background(Styles.black3).margin(8f);
+                t.stack(EffectElems.getEffectElem(new EffectEntry(effect), null), new Table(stacked -> {
+                    stacked.right().bottom();
+                    stacked.add(value).ellipsis(true).labelAlign(Align.right).color(EPalettes.value).pad(8f);
+                })).minSize(Vars.iconXLarge * 5f);
+            });
 
             table.button(Icon.book, Styles.clearNonei, () -> {
                 EUI.effectSelector.select(entry ->{
                     setValue(entry.name);
                     return true;
                 });
-            }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
+            }).padLeft(4f).width(48f).growY().expandX().right().tooltip("@selector.stringItems.hint");
         }
     }
 
@@ -311,7 +323,7 @@ public abstract class ModifierBuilder<T>{
 
         @Override
         protected void build(Table table){
-            table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).growX()
+            table.label(() -> value).ellipsis(true).color(EPalettes.value).minWidth(64f).pad(8f).growX()
             .tooltip(t -> t.background(Styles.black3).label(() -> value).pad(4f));
 
             table.button(Icon.book, Styles.clearNonei, () -> {
@@ -322,7 +334,7 @@ public abstract class ModifierBuilder<T>{
                     }
                     return true;
                 });
-            }).pad(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
+            }).padLeft(4f).width(48f).growY().tooltip("@selector.stringItems.hint");
         }
     }
 
@@ -336,7 +348,7 @@ public abstract class ModifierBuilder<T>{
         @Override
         protected void build(Table table){
             progressElem = new ProgressElem(value).hideText();
-            table.add(progressElem).size(64f).pad(8f);
+            table.add(progressElem).size(64f).padRight(8f);
             table.button(Icon.edit, Styles.clearNonei, () -> EUI.progressEditor.show(this::setValue)).width(48f).growY();
 
             Tooltip tooltip = new Tooltip(t -> {
@@ -352,7 +364,7 @@ public abstract class ModifierBuilder<T>{
 
         @Override
         protected void buildNull(Table table){
-            table.image(Core.atlas.find("error")).size(64f).pad(8f);
+            table.image(Core.atlas.find("error")).size(64f).padRight(8f);
             table.button(Icon.edit, Styles.clearNonei, () -> EUI.progressEditor.show(this::setValue)).width(48f).growY();
         }
 

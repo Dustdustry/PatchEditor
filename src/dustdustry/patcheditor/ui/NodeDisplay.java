@@ -130,7 +130,7 @@ public class NodeDisplay{
         }else if(object instanceof Effect effect){
             displayNameType(object);
             table.add().expandX();
-            displayEffect(effect);
+            displayEffect(table, effect);
         }else if(object instanceof PartProgress progress){
             displayNameType(object);
             table.add().expandX();
@@ -178,24 +178,25 @@ public class NodeDisplay{
         });
     }
 
-    private static void displayEffect(Effect effect){
-        table.table(valueTable -> {
-            valueTable.defaults().right();
+    public static void displayEffect(Table table, Effect effect){
+        table.defaults().right();
 
-            ClickListener listener = new ClickListener();
-            EffectEntry entry = new EffectEntry(effect).name(PatchJsonIO.getKeyName(effect));
-            Element element = EffectElems.getEffectElem(entry, listener);
-            valueTable.add(element).size(imageSize);
+        ClickListener listener = new ClickListener();
+        EffectEntry entry = new EffectEntry(effect).name(PatchJsonIO.getKeyName(effect));
+        Element element = EffectElems.getEffectElem(entry, listener);
+        table.add(element).size(imageSize);
 
-            Tooltip tooltip = new Tooltip(t -> {
-                t.background(Styles.black3).margin(8f);
-                t.add(EffectElems.getEffectElem(entry, listener)).minSize(imageSize * 5f);
-            });
-            tooltip.allowMobile = true;
-
-            element.addListener(listener);
-            element.addListener(tooltip);
+        Tooltip tooltip = new Tooltip(t -> {
+            t.background(Styles.black3).margin(8f);
+            t.stack(EffectElems.getEffectElem(entry, null), new Table(stacked -> {
+                stacked.right().bottom();
+                stacked.add(entry.name).ellipsis(true).labelAlign(Align.right).color(EPalettes.value).pad(8f);
+            })).minSize(imageSize * 5f);
         });
+        tooltip.allowMobile = true;
+
+        element.addListener(listener);
+        element.addListener(tooltip);
     }
 
     private static void displayProgress(PartProgress progress){
