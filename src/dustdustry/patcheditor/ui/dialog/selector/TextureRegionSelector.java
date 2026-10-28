@@ -6,6 +6,7 @@ import arc.graphics.g2d.*;
 import arc.graphics.g2d.TextureAtlas.*;
 import arc.graphics.gl.*;
 import arc.math.*;
+import arc.scene.style.*;
 import arc.scene.ui.*;
 import arc.scene.ui.Button.*;
 import arc.scene.ui.layout.*;
@@ -106,9 +107,20 @@ public class TextureRegionSelector extends SelectorDialog<AtlasRegion>{
 
         table.button(b -> {
             b.margin(8f);
-            BorderImage image = new BorderImage(Icon.ok){{
-                thickness = 3f;
-            }};
+            BorderImage image = new BorderImage(Icon.ok){
+                {
+                    thickness = 3f;
+                }
+
+                @Override
+                public void layout(){
+                    // a hacky way to keep the size of border
+                    Drawable drawable = this.drawable;
+                    this.drawable = Icon.ok;
+                    super.layout();
+                    this.drawable = drawable;
+                }
+            };
             b.add(image).size(Vars.iconMed).grow();
             image.update(() -> image.setDrawable(!selectedRegions.contains(item) ? null : Icon.ok));
         }, selectBorder, () -> {
