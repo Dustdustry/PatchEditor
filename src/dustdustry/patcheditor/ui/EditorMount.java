@@ -100,12 +100,12 @@ public class EditorMount{
         });
     }
 
-    private static void mountPatch(MapAssetsDialog assetsDialog, Table assetList){
+    private static void mountPatch(MapAssetsDialog dialog, Table list){
         editorPatches.set(state.data.getPatches().map(EditorPatch::new));
-        TableUtils.insertColumnAfter(assetList, 1, t -> {
-            t.defaults().set(assetList.defaults()).fill();
+        TableUtils.insertColumnAfter(list, 1, t -> {
+            t.defaults().set(list.defaults()).fill().height(50f);
 
-            String searchString = Reflect.get(assetsDialog, "searchString");
+            String searchString = Reflect.get(dialog, "searchString");
             Seq<EditorPatch> patchList = searchString == null ? editorPatches : editorPatches.select(patch -> patch.name.toLowerCase().contains(searchString));
             for(EditorPatch editorPatch : patchList){
                 t.button(Icon.edit, Styles.graySquarei, iconMed, () -> {
@@ -113,7 +113,7 @@ public class EditorMount{
                     EUI.patchEditor.edit(editorPatch, () -> {
                         try{
                             state.data.reloadPatches(editorPatches.map(e -> new PatchAsset(e.patch)));
-                            Reflect.invoke(assetsDialog, "rebuild");
+                            Reflect.invoke(dialog, "rebuild");
                         }catch(Exception e){
                             Vars.ui.showException(e);
                         }
@@ -132,9 +132,9 @@ public class EditorMount{
             }
         });
 
-        assetList.row();
-        if(editorPatches.any()) assetList.add();
-        assetList.button("@patch-editor.addEmptyPatch", Icon.add, Styles.grayt, () -> {
+        list.row();
+        if(editorPatches.any()) list.add();
+        list.button("@patch-editor.addEmptyPatch", Icon.add, Styles.grayt, () -> {
             Seq<PatchAsset> assets = state.data.getPatches();
 
             String name = findAssetName("Patch", assets);
@@ -143,41 +143,40 @@ public class EditorMount{
             assets.add(new PatchAsset(json.toString(Jformat.plain)));
 
             state.data.reloadPatches(assets);
-            Reflect.invoke(assetsDialog, "rebuild");
-        }).padTop(12f).minWidth(240f).height(64f).colspan(assetList.getColumns()).fillX();
+            Reflect.invoke(dialog, "rebuild");
+        }).padTop(12f).minWidth(240f).height(64f).colspan(list.getColumns()).fillX();
     }
 
-    private static void mountContent(MapAssetsDialog assetsDialog, Table assetTable){
-        Seq<ContentAsset> assets = state.data.getContent();
+    private static void mountContent(MapAssetsDialog dialog, Table list){
+        Seq<ContentAsset> contentAssets = state.data.getContent();
 
-        String searchString = Reflect.get(assetsDialog, "searchString");
-        Seq<ContentAsset> assetsList = searchString == null ? assets : assets.select(asset -> asset.name.toLowerCase().contains(searchString));
+        String searchString = Reflect.get(dialog, "searchString");
+        Seq<ContentAsset> assets = searchString == null ? contentAssets : contentAssets.select(asset -> asset.name.toLowerCase().contains(searchString));
 
-        Seq<Cell> cells = assetTable.getCells().select(c -> c.get() instanceof ImageButton ib && ib.getImage().getDrawable() == Icon.refresh);
-        if(cells.size != assetsList.size){
+        Seq<Cell> cells = list.getCells().select(c -> c.get() instanceof ImageButton ib && ib.getImage().getDrawable() == Icon.refresh);
+        if(cells.size != assets.size){
             if(!contentMismatchWarned){
                 contentMismatchWarned = true;
-                Log.warn("PatchEditor: content list has @ row(s) but @ content asset(s), edit buttons were not mounted. The editor may need an update for this game version.", cells.size, assetsList.size);
+                Log.warn("PatchEditor: content list has @ row(s) but @ content asset(s), edit buttons were not mounted. The editor may need an update for this game version.", cells.size, assets.size);
             }
             return;
         }
 
-        for(int i = 0; i < assetsList.size; i++){
-            //用过滤后的列表取，否则搜索时第 i 行对应的是未过滤列表的第 i 个资源
-            ContentAsset asset = assetsList.get(i);
+        for(int i = 0; i < assets.size; i++){
+            ContentAsset asset = assets.get(i);
             Cell cell = cells.get(i);
 
             ImageButton button = new ImageButton(Icon.edit, Styles.graySquarei);
             button.resizeImage(iconMed);
             button.clicked(() -> {
-                EUI.contentAssetEditor.show(asset, () -> Reflect.invoke(assetsDialog, "rebuild"));
+                EUI.contentAssetEditor.show(asset, () -> Reflect.invoke(dialog, "rebuild"));
             });
 
             cell.setElement(button);
         }
 
         String addText = Core.bundle.get("add");
-        Cell<?> cell = assetsDialog.buttons.getCells().find(c -> {
+        Cell<?> cell = dialog.buttons.getCells().find(c -> {
             if(!(c.get() instanceof TextButton tb)) return false;
             return addText.contentEquals(tb.getText());
         });
@@ -189,7 +188,7 @@ public class EditorMount{
                 state.data.getContent().add(new ContentAsset( assetName, ContentType.item, "{}"));
                 state.data.reloadContent(false);
                 state.data.regenerateContentSprites(false);
-                Reflect.invoke(assetsDialog, "rebuild");
+                Reflect.invoke(dialog, "rebuild");
             });
         }});
     }

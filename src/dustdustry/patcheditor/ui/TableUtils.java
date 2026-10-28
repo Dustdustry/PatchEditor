@@ -61,6 +61,7 @@ public class TableUtils{
 
                 Element element = columnCell.get();
                 table.addChild(element);
+                insertCell.setLayout(table);
                 Reflect.set(insertCell, "element", element);
                 Reflect.set(insertCell, "column", cellCol + 1);
 
