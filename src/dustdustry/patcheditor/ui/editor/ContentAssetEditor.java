@@ -52,7 +52,10 @@ public class ContentAssetEditor extends BaseDialog{
 
         cont.add("@name").padRight(10f);
         TextField nameField = cont.field(asset.name, text -> {
-            asset.setPath(text + ".json");
+            if(!text.equals(asset.name)){
+                asset.setPath(text + ".json");
+                dirty = true;
+            }
         }).with(t -> {
             t.setFilter((field, c) -> !Character.isWhitespace(c));
             t.setValidator(ContentAssetEditor::isSafeContentName);
@@ -116,7 +119,12 @@ public class ContentAssetEditor extends BaseDialog{
 
         buttons.button("@patch-editor.asset.openInEditor", Icon.edit, () -> {
             if(dirty) applyJson();
-            editor.edit(asset, this::applyJson);
+            editor.edit(asset, () -> {
+                // ContentEditor.savePatch() 已经重新加载过内容和贴图，这里只刷新本地状态，不再重复加载
+                dirty = false;
+                readContentClass();
+                refreshDataChanged();
+            });
         }).width(200f);
 
         buttons.button("@asset.content.import.file", Icon.fileText, () -> FileChooser.open("json", "json5", "hjson").submit(file -> {
@@ -133,6 +141,7 @@ public class ContentAssetEditor extends BaseDialog{
     public void show(ContentAsset asset, Runnable onHide){
         this.asset = asset;
         this.onDataChanged = onHide;
+        dirty = false;
         readContentClass();
         show();
     }
@@ -142,6 +151,7 @@ public class ContentAssetEditor extends BaseDialog{
         asset.data = json;
         try{
             Jval.read(asset.data);
+            dirty = true;
             applyJson();
         }catch(Exception e){
             asset.data = oldJson;
@@ -173,16 +183,20 @@ public class ContentAssetEditor extends BaseDialog{
     }
 
     protected void applyJson(){
+        if(!dirty) return;
         state.data.reloadContent(false);
         state.data.regenerateContentSprites(false);
+        dirty = false;
         readContentClass();
+        refreshDataChanged();
+    }
 
+    /** 通知外部（地图资源列表）刷新，回调只消费一次 */
+    protected void refreshDataChanged(){
         if(onDataChanged != null){
             onDataChanged.run();
             onDataChanged = null;
         }
-
-        dirty = false;
     }
 
     public static boolean isSafeContentName(String name){
