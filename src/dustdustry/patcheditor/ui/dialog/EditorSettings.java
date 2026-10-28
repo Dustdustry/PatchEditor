@@ -142,6 +142,16 @@ public class EditorSettings extends BaseDialog{
             b.image(Icon.play).size(Vars.iconMed).padRight(8f);
             b.add("@patch-editor.settings.quickAccess.sound");
         },  Styles.cleari, () -> EUI.soundSelector.select(r -> false));
+
+        table.row();
+
+        table.button(b -> {
+            b.margin(8f).left();
+            b.image(Icon.infoCircle).size(Vars.iconMed).padRight(8f);
+            b.add("@patch-editor.settings.quickAccess.usageHint");
+        },  Styles.cleari, () -> {
+            EUI.showUsageInfo(() -> EUI.showInGameWarning(null));
+        });
     }
 
     public static ExportConfig getExportConfig(){
