@@ -23,6 +23,9 @@ public class EditorNode{
     private ObjectNode currentObj;
     private final ObjectNode objectNode;
 
+    private boolean objNodeInvalid = true;
+    private Class<?> shadowType;
+
     private EditorNode parent;
     private final OrderedMap<String, EditorNode> children = new OrderedMap<>();
 
@@ -41,17 +44,17 @@ public class EditorNode{
     }
 
     public ObjectMap<String, EditorNode> buildChildren(){
+        ObjectNode current = getObjNode();
         PatchNode patchNode = getPatch();
 
         if(needResolve){
             needResolve = false;
-            for(ObjectNode node : currentObj.getChildren().values()){
+            for(ObjectNode node : current.getChildren().values()){
                 if(node.isSign()) continue;
 
                 EditorNode child = new EditorNode(node, manager);
                 child.parent = this;
                 children.put(child.name(), child);
-                child.checkObjNode();
             }
         }
 
@@ -79,10 +82,10 @@ public class EditorNode{
                         try{
                             // changing type support
                             Class<?> type = PatchJsonIO.resolveType(typeJson);
-                            if(type == null) type = getObjNode().elementType; // Not changing type. Use meta type.
-                            if(getObjNode().elementType == null) throw new RuntimeException("Unknown elementType of '" + getPath() + "'");
+                            if(type == null) type = current.elementType; // Not changing type. Use meta type.
+                            if(current.elementType == null) throw new RuntimeException("Unknown elementType of '" + getPath() + "'");
 
-                            EditorNode child = new DynamicEditorNode(childPatch.key, getObjNode().elementType, type, manager, getObjNode().getResolutionStrategy());
+                            EditorNode child = new DynamicEditorNode(childPatch.key, current.elementType, type, manager, current.getResolutionStrategy());
                             child.parent = this;
                             children.put(child.name(), child);
                         }catch(Exception e){
@@ -94,7 +97,7 @@ public class EditorNode{
                     }
 
                     if(elemInvalid || isInvalidNode(children, childPatch)){
-                        EditorNode child = new InvalidEditorNode(childPatch.key, manager, getObjNode().getResolutionStrategy());
+                        EditorNode child = new InvalidEditorNode(childPatch.key, manager, current.getResolutionStrategy());
                         child.parent = this;
                         children.put(childPatch.key, child);
                     }
@@ -112,6 +115,7 @@ public class EditorNode{
     }
 
     public ObjectNode getObjNode(){
+        if(objNodeInvalid) resolveObjNode();
         return currentObj;
     }
 
@@ -364,43 +368,63 @@ public class EditorNode{
     }
 
     public void sync(){
-        checkObjNode();
+        getObjNode(); // resolves the type; a type change invalidates children
         if(needResolve || patchChanged){
             buildChildren();
         }
     }
 
-    public void checkObjNode(){
-        ObjectNode resolved = objectNode;
+    protected void resolveObjNode(){
+        objNodeInvalid = false;
 
-        Class<?> type = getTypeIn();
-        if(isOverriding() && ClassHelper.isContainer(type)){
-            resolved = ObjectResolver.getShadowNode(objectNode, type);
-        }else{
-            PatchNode patchNode = getPatch();
-            if(patchNode != null){
-                PatchNode typePatch = patchNode.getOrNull("type");
-                if(typePatch != null && typePatch.value != null){
-                    type = PatchJsonIO.resolveType(typePatch.value);
-                }
+        Class<?> type = computeShadowType();
+        if(type == shadowType) return;
 
-                if(type != null && PatchJsonIO.typeOverrideable(type)){
-                    if(type != currentObj.type){
-                        resolved = ObjectResolver.getShadowNode(objectNode, type);
-                    }
-                }
-            }
+        ObjectNode next = type == null ? objectNode : ObjectResolver.getShadowNode(objectNode, type);
+
+        shadowType = type;
+        currentObj = next;
+        clearChildren();
+    }
+
+    // Returns the type of the shadow node to display, or null to keep the object.
+    protected @Nullable Class<?> computeShadowType(){
+        PatchNode patchNode = getPatch();
+        if(patchNode == null) return null;
+
+        Class<?> declared = getTypeIn();
+
+        // Literally change the type
+        PatchNode typePatch = patchNode.getOrNull("type");
+        if(typePatch != null && typePatch.value != null){
+            Class<?> parsed = PatchJsonIO.resolveType(typePatch.value);
+            if(parsed == null) return null;
+            // appended element: the node is already a template of this type
+            if(parsed == declared && patchNode.sign == ModifierSign.PLUS) return null;
+            // even changing back to the declared type rebuilds the value
+            return PatchJsonIO.typeOverrideable(parsed) ? parsed : null;
         }
 
-        if(currentObj != resolved){
-            currentObj = resolved;
-            clearChildren();
-        }
+        if(patchNode.sign != ModifierSign.MODIFY || patchNode.value != null) return null;
+
+        if(ClassHelper.isContainer(declared)) return declared;
+
+        if(!PatchJsonIO.typeOverrideable(declared)) return null;
+
+        // object override, e.g. bullet: {}: rebuilt as the declared type,
+        // or its default subclass (Ability -> ForceFieldAbility)
+        Class<?> rebuiltType = PatchJsonIO.resolveType(declared);
+        if(ClassHelper.isAbstractClass(rebuiltType)) return null;
+
+        Object object = objectNode.object;
+        if(object == null) return rebuiltType;
+
+        return ClassHelper.actualClass(object.getClass()) == ClassHelper.actualClass(rebuiltType) ? null : rebuiltType;
     }
 
     public void patchChanged(){
         patchChanged = true;
-        checkObjNode();
+        objNodeInvalid = true;
     }
 
     @Override
