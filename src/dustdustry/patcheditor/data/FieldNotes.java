@@ -285,5 +285,6 @@ public class FieldNotes{
         public int noteCount;
         public String fileName;
         public String fileUrl;
+        public Seq<String> contributors;
     }
 }

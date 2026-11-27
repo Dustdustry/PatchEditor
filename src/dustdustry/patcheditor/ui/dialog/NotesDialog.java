@@ -169,14 +169,11 @@ public class NotesDialog extends BaseDialog{
                 });
 
                 buttons.row();
-                buttons.button("@notes.wiki.export", Icon.copy, Styles.cleart, () -> {
-                    try{
-                        Core.app.setClipboardText(FieldNotes.exportWikiNotesJson());
-                    }catch(Exception e){
-                        Vars.ui.showException(e);
-                        return;
-                    }
-                    EUI.infoToast("@notes.export.succeed");
+                buttons.button("@notes.wiki.export", Icon.export, Styles.cleart, () -> {
+                    FileChooser.save("json").name("wikiNotes").submit(fi -> {
+                        fi.writeString(FieldNotes.exportWikiNotesJson());
+                        EUI.infoToast("@notes.export.succeed");
+                    });
                 });
                 buttons.button("@notes.wiki.clear", Icon.cancel, Styles.cleart, () -> {
                     Vars.ui.showConfirm("@confirm", "@notes.wiki.clear.confirm", () -> {
@@ -205,14 +202,11 @@ public class NotesDialog extends BaseDialog{
                 buttons.button("@notes.import", Icon.download, Styles.cleart, this::importNotesFromClipboard);
 
                 buttons.row();
-                buttons.button("@notes.export", Icon.copy, Styles.cleart, () -> {
-                    try{
-                        Core.app.setClipboardText(FieldNotes.exportUserNotesJson());
-                    }catch(Exception e){
-                        Vars.ui.showException(e);
-                        return;
-                    }
-                    EUI.infoToast("@notes.export.succeed");
+                buttons.button("@notes.export", Icon.export, Styles.cleart, () -> {
+                    FileChooser.save("json").name("userNotes").submit(fi -> {
+                        fi.writeString(FieldNotes.exportUserNotesJson());
+                        EUI.infoToast("@notes.export.succeed");
+                    });
                 });
 
                 buttons.button("@notes.clear", Icon.cancel, Styles.cleart, () -> {
@@ -298,36 +292,34 @@ public class NotesDialog extends BaseDialog{
         BaseDialog dialog = new BaseDialog("@notes.wiki.github.title");
         dialog.addCloseButton();
 
-        TextField[] repoField = {null};
-        TextField[] branchField = {null};
+        // lambda is bad
+        final String[] repo = {EVars.githubNotesRepo};
+        final String[] branch = {EVars.githubNotesBranch};
 
         dialog.cont.table(t -> {
             t.defaults().pad(6f);
             t.add(Core.bundle.format("notes.wiki.github.hint", EVars.githubNotesRepo)).left().row();
-
-            repoField[0] = new TextField(EVars.githubNotesRepo);
-            repoField[0].setMessageText("owner/repo");
-            t.add(repoField[0]).growX();
+            t.field(repo[0], text -> {
+                repo[0] = text;
+            }).growX().get().setMessageText("owner/repo");
             t.row();
 
             t.add("@notes.wiki.github.branch").left().row();
-            branchField[0] = new TextField("main");
-            t.add(branchField[0]).growX();
+            t.field(branch[0], text -> {
+                branch[0] = text;
+            }).growX();
             t.row();
         });
 
         dialog.buttons.button("@confirm", () -> {
-            String repo = repoField[0] != null ? repoField[0].getText().trim() : EVars.githubNotesRepo;
-            String branch = branchField[0] != null ? branchField[0].getText().trim() : EVars.githubNotesBranch;
-
-            if(repo.isEmpty()){
+            if(repo[0].isEmpty()){
                 EUI.infoToast("@notes.wiki.github.failed");
                 return;
             }
-            if(branch.isEmpty()) branch = "main";
+            if(branch[0].isEmpty()) branch[0] = "main";
 
             dialog.hide();
-            fetchGithubIndex(repo, branch);
+            fetchGithubIndex(repo[0], branch[0]);
         });
 
         dialog.show();
@@ -369,64 +361,73 @@ public class NotesDialog extends BaseDialog{
         });
     }
 
-    private void showFileSelectionDialog(String ownerRepo, String branch, FieldNotes.IndexData index){
-        Seq<FieldNotes.NoteDataIndexed> files = index.notes;
+    private void showFileSelectionDialog(String ownerRepo, String branch, IndexData index){
+        Seq<NoteDataIndexed> files = index.notes;
 
-        OrderedMap<String, Seq<FieldNotes.NoteDataIndexed>> groupedByLang = new OrderedMap<>();
-        for(FieldNotes.NoteDataIndexed file : files){
+        OrderedMap<String, Seq<NoteDataIndexed>> groupedByLang = new OrderedMap<>();
+        for(NoteDataIndexed file : files){
             groupedByLang.get(file.lang, Seq::new).add(file);
+        }
+        for(var entry : groupedByLang){
+            entry.value.sortComparing(data -> -data.updateTime);
         }
 
         BaseDialog dialog = new BaseDialog("@notes.wiki.github.select");
         dialog.addCloseButton();
 
-        Table fileTable = new Table();
-        fileTable.top().defaults().pad(4f).growX();
+        Table table = new Table();
+        table.top().defaults().pad(4f).growX();
 
         boolean first = true;
         for(var entry : groupedByLang){
             String lang = entry.key;
-            Seq<FieldNotes.NoteDataIndexed> langFiles = entry.value;
+            Seq<NoteDataIndexed> langFiles = entry.value;
 
-            fileTable.table(top -> {
+            table.table(top -> {
                 top.image().color(Pal.darkerGray).width(32f).padRight(8f);
                 top.add(lang).labelAlign(Align.left).color(EPalettes.type).minWidth(64f);
                 top.add("(" + langFiles.size + ")").color(EPalettes.grayFront).padLeft(4f);
                 top.image().color(Pal.darkerGray).padLeft(8f).padRight(16f).growX();
             }).padTop(first ? 0f : 16f);
+            first = false;
 
-            fileTable.row();
+            table.row();
+            Table filesTable = table.table().get();
+            table.row();
 
+            int i = 0;
             for(NoteDataIndexed file : langFiles){
-                fileTable.button(row -> {
-                    row.table(info -> {
+                filesTable.button(b -> {
+                    b.table(info -> {
                         info.left().defaults().left();
-                        info.add(file.fileName).style(Styles.outlineLabel).row();
-                        info.add(Core.bundle.format("notes.wiki.github.meta.version", file.versionTag))
-                            .color(EPalettes.grayFront).padTop(4f).row();
-                        if(file.updateTime > 0){
-                            info.add(Core.bundle.format("notes.wiki.github.meta.updateTime", dateFormat.format(file.updateTime)))
-                                .color(EPalettes.grayFront).row();
-                        }
-                        info.add(Core.bundle.format("notes.wiki.github.meta.count", file.noteCount))
-                            .color(EPalettes.grayFront);
-                    }).pad(8f).growX();
+                        info.table(top -> {
+                            top.image(Icon.bookSmall).size(Vars.iconSmall).padRight(4f);
+                            top.add(file.fileName).style(Styles.outlineLabel).row();
+                        }).row();
 
-                    row.image().width(4f).color(Color.darkGray).growY().right();
-                    row.row();
-                    Cell<?> horizontalLine = row.image().height(4f).color(Color.darkGray).growX();
-                    horizontalLine.colspan(row.getColumns());
+                        info.add(Core.bundle.format("notes.wiki.github.meta.version", file.versionTag)).padTop(6f).row();
+                        if(file.updateTime > 0){
+                            info.add(Core.bundle.format("notes.wiki.github.meta.updateTime", dateFormat.format(file.updateTime))).row();
+                        }
+                        info.add(Core.bundle.format("notes.wiki.github.meta.count", file.noteCount)).row();
+                        info.add(Core.bundle.format("notes.wiki.github.meta.contributors", file.contributors.toString(", "))).wrap();
+                    }).margin(8f).growX();
+
+                    b.image().width(4f).color(Color.darkGray).growY().right();
+                    b.row();
+                    Cell<?> horizontalLine = b.image().height(4f).color(Color.darkGray).growX();
+                    horizontalLine.colspan(b.getColumns());
                 }, EStyles.cardButtoni, () -> {
                     showDownloadConfirm(file);
-                });
+                }).padRight(12f).growX();
+
+                if(++i % 2 == 0) filesTable.row();
             }
-            fileTable.row();
-            first = false;
         }
 
         float width = Math.min(Core.graphics.getWidth() * 0.7f, 1000f);
         dialog.cont.table(t -> {
-            t.pane(Styles.noBarPane, fileTable).grow().scrollX(false);
+            t.pane(Styles.noBarPane, table).grow().scrollX(false);
         }).width(width).growY();
 
         dialog.show();
